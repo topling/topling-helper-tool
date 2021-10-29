@@ -71,6 +71,13 @@ namespace ToplingHelper
 
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
+
+            if (!long.TryParse(AliYunId.Text, out var _))
+            {
+                MessageBox.Show("格式错误，阿里云账号为纯数字");
+                return;
+            }
+            
             LogBuilder.Clear();
             Log.Text = "";
 
@@ -89,6 +96,7 @@ namespace ToplingHelper
             }
 
 
+ 
 
             _aliyunId = AliYunId.Text;
             _accessId = AccessId.Text;
@@ -496,10 +504,14 @@ namespace ToplingHelper
                 new string[]
                 {
                     $"创建成功" ,
-                    $"请登录阿里云，在 VPC: {vpcId} 中创建新 ECS 实例" ,
-                    $"连接 {ip}:6379 (与 redis 使用方式相同)" ,
+                    $"请登录阿里云，在 VPC: {vpcId} 中创建新 ECS 实例(操作系统请选择 CentOS)" ,
+                    $"一定在 {vpcId} 下创建实例！(操作系统请选择 CentOS){Environment.NewLine}" +
+                    $"一定在 {vpcId} 下创建实例！(操作系统请选择 CentOS){Environment.NewLine}" +
+                    $"一定在 {vpcId} 下创建实例！(操作系统请选择 CentOS){Environment.NewLine}" ,
+                    $"连接 {ip}:6379 (与 Redis 使用方式相同)" ,
                     $"如果无法连接，请先尝试 ping {ip} 查看网络是否联通(首次并网可能需要等待几分钟)" ,
-                    $"同时可尝试重新点击主窗口上的提交(本程序执行结果幂等)"
+                    $"同时可尝试重新点击主窗口上的提交(本程序执行结果幂等)" ,
+                    $"我们提供了测试工具和数据集，详情可访问 https://topling.cn/downloads 查看"
                 });
 
 

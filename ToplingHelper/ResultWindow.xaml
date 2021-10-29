@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ToplingHelper"
         mc:Ignorable="d"
-        Title="创建成功！" Height="400" Width="600">
+        Title="创建成功！" Height="600" Width="800">
     <Grid>
         <Viewbox Stretch="Uniform">
             <Canvas Height="600" Width="800" >
-                <TextBox Canvas.Left="0" Name="Content1" Canvas.Top="100" FontSize="24" TextWrapping="Wrap" Width="800" Height="400" IsReadOnly="True"/>
+                <TextBox Canvas.Left="50" Name="Content1" Canvas.Top="50" FontSize="20" TextWrapping="Wrap" Width="700" Height="500" IsReadOnly="True"/>
             </Canvas>
         </Viewbox>
     </Grid>

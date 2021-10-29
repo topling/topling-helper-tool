@@ -9,7 +9,7 @@
     <Grid>
         <Viewbox Stretch="Uniform">
             <Canvas Height="600" Width="800" >
-                <Canvas Height="400" Width="200" Canvas.Left="150" >
+                <Canvas Height="400" Width="200" Canvas.Left="120" >
                     <TextBlock HorizontalAlignment="Left" Margin="0,50,0,0"  TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="zh-cn" Text="拓扑岭用户名"/></TextBlock>
                     <TextBlock HorizontalAlignment="Left" Margin="0,100,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="zh-cn" Text="拓扑岭用户密码"/></TextBlock>
                     <TextBlock HorizontalAlignment="Left" Margin="0,150,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="zh-cn" Text="阿里云ID (纯数字)"/></TextBlock>
@@ -23,6 +23,9 @@
                         <Hyperlink NavigateUri="https://ram.console.aliyun.com/manage" RequestNavigate="Hyperlink_Click">
                             阿里云 accessKeySecret
                         </Hyperlink>
+                        <Span>
+                            (截图请打码)
+                        </Span>
                     </TextBlock>
                 </Canvas>
                 <Canvas Height="400" Width="400" Canvas.Left="350">
@@ -33,9 +36,9 @@
                     <TextBox HorizontalAlignment="Left" Name="AccessSecret" Height="20" Margin="0,250,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="300"/>
                 </Canvas>
 
-                <Canvas Height="40" Canvas.Left="150" Canvas.Top="300">
+                <Canvas Height="40" Canvas.Left="120" Canvas.Top="300">
                     <Button Content="提交" Name="Btn" HorizontalAlignment="Left" VerticalAlignment="Top" Height="24" Width="90" FontSize="14" Click="Submit_Click" />
-                    <TextBox Name="Log"  Margin="0,50,0,0"  Height="200" Width="500" TextWrapping="Wrap" IsReadOnly="True" />
+                    <TextBox Name="Log"  Margin="0,50,0,0"  Height="200" Width="530" TextWrapping="Wrap" IsReadOnly="True" />
                 </Canvas>
             </Canvas>
         </Viewbox>
