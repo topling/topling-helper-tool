@@ -1,0 +1,16 @@
+﻿<Window x:Class="ToplingHelper.ResultWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ToplingHelper"
+        mc:Ignorable="d"
+        Title="创建成功！" Height="400" Width="600">
+    <Grid>
+        <Viewbox Stretch="Uniform">
+            <Canvas Height="600" Width="800" >
+                <TextBox Canvas.Left="0" Name="Content1" Canvas.Top="100" FontSize="24" TextWrapping="Wrap" Width="800" Height="400" IsReadOnly="True"/>
+            </Canvas>
+        </Viewbox>
+    </Grid>
+</Window>

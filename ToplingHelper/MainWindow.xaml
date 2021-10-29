@@ -1,0 +1,43 @@
+﻿<Window x:Class="ToplingHelper.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ToplingHelper"
+        mc:Ignorable="d"
+        Title="拓扑岭辅助工具" Height="900" Width="1200">
+    <Grid>
+        <Viewbox Stretch="Uniform">
+            <Canvas Height="600" Width="800" >
+                <Canvas Height="400" Width="200" Canvas.Left="150" >
+                    <TextBlock HorizontalAlignment="Left" Margin="0,50,0,0"  TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="zh-cn" Text="拓扑岭用户名"/></TextBlock>
+                    <TextBlock HorizontalAlignment="Left" Margin="0,100,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="zh-cn" Text="拓扑岭用户密码"/></TextBlock>
+                    <TextBlock HorizontalAlignment="Left" Margin="0,150,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="zh-cn" Text="阿里云ID (纯数字)"/></TextBlock>
+                    <TextBlock HorizontalAlignment="Left" Margin="0,200,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
+                        <Hyperlink  NavigateUri="https://ram.console.aliyun.com/manage" Click="Hyperlink_Click">
+                            阿里云 accessKeyID
+                        </Hyperlink>
+                    </TextBlock>
+
+                    <TextBlock HorizontalAlignment="Left" Margin="0,250,0,0" TextWrapping="Wrap" VerticalAlignment="Top">
+                        <Hyperlink NavigateUri="https://ram.console.aliyun.com/manage" RequestNavigate="Hyperlink_Click">
+                            阿里云 accessKeySecret
+                        </Hyperlink>
+                    </TextBlock>
+                </Canvas>
+                <Canvas Height="400" Width="400" Canvas.Left="350">
+                    <TextBox HorizontalAlignment="Left" Name="ToplingId" Height="20" Margin="0,50,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="300" />
+                    <PasswordBox HorizontalAlignment="Left" Name="ToplingPassword" Height="20" Margin="0,100,0,0" VerticalAlignment="Top" Width="300" />
+                    <TextBox HorizontalAlignment="Left" Name="AliYunId" Height="20" Margin="0,150,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="300"  PreviewTextInput="NumberValidationTextBox"/>
+                    <TextBox HorizontalAlignment="Left" Name="AccessId" Height="20" Margin="0,200,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="300"/>
+                    <TextBox HorizontalAlignment="Left" Name="AccessSecret" Height="20" Margin="0,250,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="300"/>
+                </Canvas>
+
+                <Canvas Height="40" Canvas.Left="150" Canvas.Top="300">
+                    <Button Content="提交" Name="Btn" HorizontalAlignment="Left" VerticalAlignment="Top" Height="24" Width="90" FontSize="14" Click="Submit_Click" />
+                    <TextBox Name="Log"  Margin="0,50,0,0"  Height="200" Width="500" TextWrapping="Wrap" IsReadOnly="True" />
+                </Canvas>
+            </Canvas>
+        </Viewbox>
+    </Grid>
+</Window>
