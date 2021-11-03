@@ -69,8 +69,20 @@ namespace ToplingHelper
             e.Handled = regex.IsMatch(e.Text);
         }
 
+        private void LoadWindow()
+        {
+
+        }
+
+
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
+            var text = new RichText();
+            text.Show();
+                
+
+
+            return;
 
             if (!long.TryParse(AliYunId.Text, out var _))
             {
@@ -343,6 +355,8 @@ namespace ToplingHelper
                 ChildInstanceType = "VPC",
                 ChildInstanceRegionId = ToplingTestRegion
             });
+            // 授权后等待10s，否则可能会报错
+            Task.Delay(TimeSpan.FromSeconds(10)).Wait();
         }
         #endregion
 
