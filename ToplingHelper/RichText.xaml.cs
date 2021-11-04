@@ -20,19 +20,6 @@ namespace ToplingHelper
     /// </summary>
     public partial class RichText : Window
     {
-        public string UserVpcId
-        {
-            get => (string) GetValue(UserVpcProp);
-            set => SetValue(UserVpcProp, value);
-        }
-
-        public string ToplingVpcId
-        {
-            get => (string)GetValue(ToplingVpcIdProp);
-            set => SetValue(ToplingVpcIdProp, value);
-        }
-
-        
 
         public string CenId
         {
@@ -40,32 +27,31 @@ namespace ToplingHelper
             set => SetValue(CenIdProp, value);
         }
 
-        public string TodisPrivateIp
-        {
-            get => (string)GetValue(TodisPrivateIpProp);
-            set => SetValue(TodisPrivateIpProp, value);
-        }
 
-        public string TodisGrafana
-        {
-            get => (string)GetValue(TodisGrafanaProp);
-            set => SetValue(TodisGrafanaProp, value);
-        }
+        //}
 
-        public string TodisEcsId
-        {
-            get => (string)GetValue(TodisEcsIdProp);
-            set => SetValue(TodisEcsIdProp, value);
-        }
+        private string TodisEcsId => (string)GetValue(TodisEcsIdProp);
 
-        public RichText()
+
+
+
+
+        public RichText(string userVpcId, string toplingVpcId, string cenId, string todisPrivateIp, string todisEcsId)
         {
             InitializeComponent();
-            UserVpcId = "vpc-user";
-            ToplingVpcId = "vpc-topling";
-            CenId = "cen-id";
-            TodisPrivateIp = "10.1.2.3";
-            TodisEcsId = "i-instance";
+
+
+            SetValue(ToplingVpcIdProp, toplingVpcId);
+            SetValue(UserVpcProp, userVpcId);
+            SetValue(CenIdProp, cenId);
+            SetValue(TodisPrivateIpProp, $"{todisPrivateIp}:6379");
+            SetValue(TodisEcsIdProp, todisEcsId);
+            SetValue(UserCenUrlProp, $"https://cen.console.aliyun.com/cen/detail/{cenId}/attachInstance");
+
+
+            SetValue(PreTestProp, PreTestText);
+            SetValue(TestTextProp, GetTestText("10.1.2.3"));
+
         }
 
         public static readonly DependencyProperty UserVpcProp =
@@ -89,9 +75,51 @@ namespace ToplingHelper
         public static readonly DependencyProperty TodisEngineProp =
             DependencyProperty.Register("TodisEngine", typeof(string), typeof(RichText), new PropertyMetadata(null));
 
+        public static readonly DependencyProperty UserCenUrlProp =
+            DependencyProperty.Register("UserCenUrl", typeof(string), typeof(RichText), new PropertyMetadata(null));
+
+        public static readonly DependencyProperty PreTestProp =
+            DependencyProperty.Register("PreTest", typeof(string), typeof(RichText), new PropertyMetadata(null));
+
+        public static readonly DependencyProperty TestTextProp =
+            DependencyProperty.Register("TestText", typeof(string), typeof(RichText), new PropertyMetadata(null));
         private void Cen_click(object sender, RoutedEventArgs e)
         {
             Process.Start("Explorer", $"https://cen.console.aliyun.com/cen/detail/{CenId}/attachInstance");
         }
+
+        private const string PreTestText = @"# 请首先确保测试实例为CentOS
+# 下载自动脚本
+wget https://topling.cn/downloads/mount-test.sh && chmod +x ./mount-test.sh
+
+# 挂载测试程序及源数据到 /mnt
+sudo bash mount-test.sh /mnt
+";
+
+        private static string GetTestText(string privateIp) => $@"# 直接执行查看帮助
+/mnt/InsertKeys
+
+# 插入顺序数据(源文件过大，已使用 zstd 压缩)
+zstd -d -c -q /mnt/wikipedia-flat-seq.zst | /mnt/InsertKeys -h {privateIp} -t 8 --multi-set 32 -f /dev/stdin
+
+# 插入乱序数据(源文件过大，已使用 zstd 压缩)
+zstd -d -c -q /mnt/wikipedia-flat-rand.zst | /mnt/InsertKeys -h {privateIp} -t 8 --multi-set 32 -f /dev/stdin
+
+# 读取数据(顺序)
+/mnt/GetKeysQps -t 64 -n 32 -f /mnt/wikipedia-flat-key-seq.txt
+
+# 读取数据(乱序)
+/mnt/GetKeysQps -t 64 -n 32 -f /mnt/wikipedia-flat-key-rand.txt";
+
+        private void Engine_OnClick(object sender, RoutedEventArgs e)
+        {
+            Process.Start("Explorer", $"http://{TodisEcsId}.aliyun.db.topling.cn:8000");
+        }
+
+        private void Grafana_OnClick(object sender, RoutedEventArgs e)
+        {
+            Process.Start("Explorer", $"http://{TodisEcsId}.aliyun.db.topling.cn:3000");
+        }
     }
+
 }

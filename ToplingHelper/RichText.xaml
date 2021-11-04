@@ -5,98 +5,91 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ToplingHelper"
         mc:Ignorable="d"
-        Title="RichText" Height="700" Width="1000" >
+        Title="运行成功" Height="700" Width="1000" >
     <Grid>
         <FlowDocumentScrollViewer>
+            <FlowDocumentScrollViewer.Resources>
+                <Style TargetType="TextBox">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="IsReadOnly" Value="True" />
+                    <Setter Property="BorderThickness" Value="0"/>
+                </Style>
+            </FlowDocumentScrollViewer.Resources>
             <FlowDocument  FontFamily="微软雅黑">
                 <Paragraph >
-                    请登录阿里云，在 <Bold>vpc-xxxxx</Bold> 下创建新 ECS 实例（操作系统请选择 <Bold>CentOS</Bold>）
+                    <TextBox>请登录阿里云，在</TextBox>
+                    <TextBox FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
+                    <TextBox>下创建新 ECS 实例，操作系统请选择</TextBox>
+                    <TextBox  FontWeight="Bold" Foreground="Red">CentOS</TextBox>
                 </Paragraph>
                 <Paragraph>
-                    一定在 <TextBlock FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/> 下创建实例！操作系统请选择 <Bold>CentOS</Bold>！<LineBreak/>
-                    一定在 <TextBlock FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/> 下创建实例！操作系统请选择 <Bold>CentOS</Bold>！<LineBreak/>
-                    一定在 <TextBlock FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/> 下创建实例！操作系统请选择 <Bold>CentOS</Bold>！<LineBreak/>
+                    <TextBox>一定在</TextBox>
+                    <TextBox FontWeight="Bold" FontSize="24" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"></TextBox>
+                    <TextBox>下创建实例！操作系统请选择</TextBox>
+                    <TextBox  FontWeight="Bold" FontSize="30" Foreground="Red">CentOS</TextBox> ！
                 </Paragraph>
                 <Paragraph FontFamily="微软雅黑">
-                    连接
-                    <TextBlock Text="{Binding TodisPrivateIp,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>:6379<LineBreak/>
-                    <TextBlock Text="{Binding TodisEcsId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>.aliyun.db.topling.cn
+                    <TextBox>连接</TextBox>
+                    <TextBox Text="{Binding TodisPrivateIp,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
+                    <LineBreak/>
+                    <Hyperlink Name="Grafana" Click="Grafana_OnClick">查看Grafana监控</Hyperlink>
+                    <LineBreak/>
+                    <Hyperlink Name="Engine" Click="Engine_OnClick">查看引擎监控</Hyperlink>
                 </Paragraph>
-                
+
                 <List>
                     <ListItem>
                         <Paragraph>
-                            ping 不通
+                            如果 ping 不通
                         </Paragraph>
                         <Paragraph Padding="10,10,0,0">
-                            1. 运行
-                            <TextBlock Background="Gainsboro">curl http://100.100.100.200/latest/meta-data/vpc-id</TextBlock> 查看结果
-                            <TextBlock FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/> ?
-
+                            <TextBox>1. 运行</TextBox>
+                            <TextBox Background="Gainsboro">curl http://100.100.100.200/latest/meta-data/vpc-id</TextBox>
+                            <TextBox>查看结果是否为</TextBox>
+                            <TextBox FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
                         </Paragraph>
                         <Paragraph Padding="10,10,0,10">
-                            2. 查看阿里云页面
-                            <Hyperlink Click="Cen_click">https://cen.console.aliyun.com/cen/detail/<TextBlock Text="{Binding TodisEcsId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>/attachInstance</Hyperlink> <LineBreak/>
-                            应该有两个VPC,分别是：
-                            <TextBlock Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
-                            和
-                            <TextBlock Text="{Binding ToplingVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
+                            <TextBox>2. 查看阿里云页面</TextBox>
+                            <TextBox Text="{Binding UserCenUrl,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}">
+                            </TextBox>
                             <LineBreak/>
-                            <TextBlock Padding="10,0,0,0">
+                            <TextBox>应该有两个VPC,分别是：</TextBox>
+                            <TextBox Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
+                            <TextBox>和</TextBox>
+                            <TextBox Text="{Binding ToplingVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
+                            <LineBreak/>
+                            <StackPanel Margin="20,0,0,0">
                                 <TextBlock>
-                                ● 缺少 <TextBlock Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/> 
+                                    <TextBox>● 缺少</TextBox> <TextBox Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
                                 </TextBlock>
-                                <LineBreak/>
                                 <TextBlock >
-                                    点击 <Bold>加载网络实例</Bold> 按钮 选择<Bold>同账号</Bold>，实例类型选择  <Bold>VPC</Bold> 地域选择 <Bold>成都</Bold> 网络实例选择 <TextBlock FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/> <LineBreak/>
+                                    点击 <Bold>加载网络实例</Bold> 按钮，选择<Bold>同账号</Bold>，实例类型选择 <Bold>VPC</Bold>，地域选择<Bold>成都</Bold>，网络实例选择 <TextBlock FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/> <LineBreak/>
                                 </TextBlock>
-                                <LineBreak/>
-                                <TextBlock>
-                                ● 缺少 <TextBlock Text="{Binding ToplingVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/> 
-                                </TextBlock>
-                                <LineBreak/>
                                 <TextBlock >
-                                    点击 <Bold>加载网络实例</Bold> 按钮 选择<Bold>跨账号</Bold>，对方账号填写 <Bold>1343819498686551</Bold> <LineBreak/> 
+                                    <TextBox>● 缺少</TextBox> <TextBox Text="{Binding ToplingVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
+                                </TextBlock>
+
+                                <TextBlock >
+                                    <TextBox>点击</TextBox><TextBox FontWeight="Bold">加载网络实例</TextBox><TextBox>按钮，选择</TextBox><TextBox FontWeight="Bold">跨账号</TextBox><TextBox>，对方账号填写 </TextBox><TextBox FontWeight="Bold">1343819498686551</TextBox> <LineBreak/> 
                                     实例类型选择  <Bold>VPC</Bold> 地域选择 <Bold>成都</Bold>
                                     网络实例选择 <TextBlock FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
                                 </TextBlock>
-
-                            </TextBlock>
-                                
-
+                            </StackPanel>
                         </Paragraph>
                     </ListItem>
                     <ListItem>
                         <Paragraph  Padding="10,0,0,0">
-                            测试性能<LineBreak/>
-                            <TextBlock Background="Gainsboro"  Padding="0,10,0,0">
-                                #请首先确保测试实例为CentOS<LineBreak/>
-                                #下载自动脚本<LineBreak/>
-                                wget https://topling.cn/downloads/mount-test.sh &amp;&amp; chmod +x ./mount-test.sh <LineBreak/>
-                                #挂载测试程序及源数据到 /mnt<LineBreak/>
-                                sudo bash mount-test.sh /mnt<LineBreak/>
-                            </TextBlock><LineBreak/>
+                            测试性能
+                            <LineBreak/>
+                            <TextBox Background="Gainsboro"  Padding="0,10,0,0" Text="{Binding PreTest,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
+                            <LineBreak/>
                             测试指令
                             <LineBreak/>
-                            <TextBlock Background="Gainsboro" Padding="0,10,0,0">
-                                # 直接执行查看帮助<LineBreak/>
-                                /mnt/InsertKeys<LineBreak/>
-                                <LineBreak/>
-                                # 插入顺序数据(源文件过大，已使用 zstd 压缩)<LineBreak/>
-                                zstd -d -c -q /mnt/wikipedia-flat-seq.zst | /mnt/InsertKeys -h <TextBlock Text="{Binding TodisPrivateIp,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/> -t 8 --multi-set 32 -f /dev/stdin<LineBreak/>
-                                <LineBreak/>
-                                # 插入乱序数据(源文件过大，已使用 zstd 压缩)<LineBreak/>
-                                zstd -d -c -q /mnt/wikipedia-flat-rand.zst | /mnt/InsertKeys -h &lt;TodisIP&gt; -t 8 --multi-set 32 -f /dev/stdin<LineBreak/>
-                                    <LineBreak/>
-                                # 读取数据(顺序)<LineBreak/>
-                                /mnt/GetKeysQps -t 64 -n 32 -f /mnt/wikipedia-flat-key-seq.txt<LineBreak/>
-                                <LineBreak/>
-                                # 读取数据(乱序)<LineBreak/>
-                                /mnt/GetKeysQps -t 64 -n 32 -f /mnt/wikipedia-flat-key-rand.txt<LineBreak/>
+                            <TextBox Background="Gainsboro" Padding="0,10,0,0" Text="{Binding TestText,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
 
-                            </TextBlock><LineBreak/>
                         </Paragraph>
-                        
+
                     </ListItem>
                 </List>
 

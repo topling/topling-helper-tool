@@ -9,3 +9,9 @@ mv publish/x64-full/ToplingHelper.exe publish/ToplingHelper-full-x64.exe
 mv publish/x86-full/ToplingHelper.exe publish/ToplingHelper-full-x86.exe
 
 Get-ChildItem publish -Directory | Remove-Item -Recurse -Force
+
+Get-ChildItem publish | Foreach-Object {   
+    $output = "publish/" + $_.BaseName + ".zip";
+    $input = "publish/" + $_.Name;
+    zip -1 $output $input
+}

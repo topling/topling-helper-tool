@@ -77,19 +77,14 @@ namespace ToplingHelper
 
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
-            var text = new RichText();
-            text.Show();
-                
 
-
-            return;
 
             if (!long.TryParse(AliYunId.Text, out var _))
             {
                 MessageBox.Show("格式错误，阿里云账号为纯数字");
                 return;
             }
-            
+
             LogBuilder.Clear();
             Log.Text = "";
 
@@ -108,7 +103,7 @@ namespace ToplingHelper
             }
 
 
- 
+
 
             _aliyunId = AliYunId.Text;
             _accessId = AccessId.Text;
@@ -129,14 +124,19 @@ namespace ToplingHelper
 
         }
 
-        private void ShowResult(string vpcId, string ip, string cenId)
+        private void ShowResult(string userVpcId, string vpcToplingId, string ip, string cenId, string todisEcsId)
         {
-            var window = new ResultWindow
+            var window = new RichText(
+                userVpcId,
+                vpcToplingId,
+                cenId,
+                ip,
+                todisEcsId)
             {
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Owner = this,
-                Content1 = { Text = ResultText(vpcId, ip, cenId) }
+                Owner = this
             };
+
             window.Show();
         }
 
@@ -166,6 +166,7 @@ namespace ToplingHelper
                 var cenId = GetOrCreateCen(client);
                 AppendLog("创建云企业网完成...");
                 // 创建VPC
+                AppendLog("开始创建VPC...");
                 var vpcId = GetOrCreateVpc(client);
                 AppendLog($"创建 VPC 完成, VPCID:{vpcId}");
 
@@ -195,15 +196,15 @@ namespace ToplingHelper
                 CreateTodisRequest(toplingHttpClient, toplingVpc);
                 AppendLog("创建实例完成，正在初始化...");
 
-                var todisIp = "";
+                TodisInstance todis;
                 do
                 {
                     Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                    todisIp = WaitingForInstance(toplingHttpClient);
+                    todis = WaitingForInstance(toplingHttpClient);
 
-                } while (string.IsNullOrWhiteSpace(todisIp));
+                } while (string.IsNullOrWhiteSpace(todis.TodisPrivateIp));
 
-                Dispatcher.Invoke(() => ShowResult(vpcId, todisIp, cenId));
+                Dispatcher.Invoke(() => ShowResult(vpcId, toplingVpc, todis.TodisPrivateIp, cenId, todis.TodisInstanceId));
 
             }
             catch (ClientException exception)
@@ -410,7 +411,7 @@ namespace ToplingHelper
                 // 等待5秒;
                 Task.Delay(TimeSpan.FromSeconds(5)).Wait();
                 vpc = JObject.Parse(client.GetAsync(uri).Result.Content.ReadAsStringAsync().Result);
-                vpcId = vpc.Count > 0 ? vpc[0]?.vpcId : null;
+                vpcId = vpc.data.Count > 0 ? vpc.data[0].vpcId : null;
             }
 
             return vpcId;
@@ -428,10 +429,19 @@ namespace ToplingHelper
             });
             var content = new StringContent(body, Encoding.UTF8, "application/json");
             client.PostAsync(uri, content).Wait();
+            Task.Delay(TimeSpan.FromSeconds(10)).Wait();
         }
 
 
-        public string WaitingForInstance(HttpClient client)
+        public class TodisInstance
+        {
+            public string TodisPrivateIp { get; set; }
+
+            public string TodisInstanceId { get; set; }
+        }
+
+
+        public TodisInstance WaitingForInstance(HttpClient client)
         {
             var uri = $"https://console.topling.cn/api/instance";
 
@@ -443,7 +453,11 @@ namespace ToplingHelper
                 throw new Exception("实例创建可能出错，请重新执行本程序");
             }
 
-            return instance.data?[0].host;
+            return new TodisInstance
+            {
+                TodisInstanceId = instance.data[0].id,
+                TodisPrivateIp = instance.data[0].host
+            };
         }
 
         private string CreateTodisRequest(HttpClient client, string vpcId)
