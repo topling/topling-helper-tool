@@ -50,7 +50,7 @@ namespace ToplingHelper
 
 
             SetValue(PreTestProp, PreTestText);
-            SetValue(TestTextProp, GetTestText("10.1.2.3"));
+            SetValue(TestTextProp, GetTestText(todisPrivateIp));
 
         }
 
