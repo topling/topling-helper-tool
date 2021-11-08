@@ -100,16 +100,16 @@ sudo bash mount-test.sh /mnt
 /mnt/InsertKeys
 
 # 插入顺序数据(源文件过大，已使用 zstd 压缩)
-zstd -d -c -q /mnt/wikipedia-flat-seq.zst | /mnt/InsertKeys -h {privateIp} -t 8 --multi-set 32 -f /dev/stdin
+zstd -d -c -q /mnt/wikipedia-flat-seq.zst | /mnt/InsertKeys -h {privateIp} -t 8 --multi-set 8 -f /dev/stdin
 
 # 插入乱序数据(源文件过大，已使用 zstd 压缩)
-zstd -d -c -q /mnt/wikipedia-flat-rand.zst | /mnt/InsertKeys -h {privateIp} -t 8 --multi-set 32 -f /dev/stdin
+zstd -d -c -q /mnt/wikipedia-flat-rand.zst | /mnt/InsertKeys -h {privateIp} -t 8 --multi-set 8 -f /dev/stdin
 
 # 读取数据(顺序)
-/mnt/GetKeysQps -t 64 -n 32 -f /mnt/wikipedia-flat-key-seq.txt
+/mnt/GetKeysQps -t 32 -n 8 -f /mnt/wikipedia-flat-key-seq.txt -h {privateIp}
 
 # 读取数据(乱序)
-/mnt/GetKeysQps -t 64 -n 32 -f /mnt/wikipedia-flat-key-rand.txt";
+/mnt/GetKeysQps -t 32 -n 8 -f /mnt/wikipedia-flat-key-rand.txt -h {privateIp}";
 
         private void Engine_OnClick(object sender, RoutedEventArgs e)
         {

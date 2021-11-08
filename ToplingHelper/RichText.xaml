@@ -22,6 +22,9 @@
                     <TextBox FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
                     <TextBox>下创建新 ECS 实例，操作系统请选择</TextBox>
                     <TextBox  FontWeight="Bold" Foreground="Red">CentOS</TextBox>
+                    <TextBox>，创建时请为ECS添加</TextBox>
+                    <TextBox FontWeight="Bold" Foreground="Red">公网 Ip</TextBox>
+                    <TextBox>(用来安装 oss-util 一键脚本)</TextBox>
                 </Paragraph>
                 <Paragraph>
                     <TextBox>一定在</TextBox>
@@ -44,17 +47,15 @@
                             如果 ping 不通
                         </Paragraph>
                         <Paragraph Padding="10,10,0,0">
-                            <TextBox>1. 运行</TextBox>
+                            <TextBlock>1. 运行</TextBlock>
                             <TextBox Background="Gainsboro">curl http://100.100.100.200/latest/meta-data/vpc-id</TextBox>
                             <TextBox>查看结果是否为</TextBox>
                             <TextBox FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
                         </Paragraph>
                         <Paragraph Padding="10,10,0,10">
-                            <TextBox>2. 查看阿里云页面</TextBox>
-                            <TextBox Text="{Binding UserCenUrl,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}">
-                            </TextBox>
+                            2. 查看云企业网页面(<Hyperlink  Click="Cen_click">点此跳转</Hyperlink> )，
+                            应该有两个VPC，分别是：
                             <LineBreak/>
-                            <TextBox>应该有两个VPC,分别是：</TextBox>
                             <TextBox Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
                             <TextBox>和</TextBox>
                             <TextBox Text="{Binding ToplingVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>

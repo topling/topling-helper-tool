@@ -13,5 +13,5 @@ Get-ChildItem publish -Directory | Remove-Item -Recurse -Force
 Get-ChildItem publish | Foreach-Object {   
     $output = "publish/" + $_.BaseName + ".zip";
     $input = "publish/" + $_.Name;
-    zip -1 $output $input
+    zip -j1 $output $input
 }
