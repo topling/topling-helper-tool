@@ -52,7 +52,7 @@ namespace ToplingHelper
 
         private readonly StringBuilder LogBuilder = new StringBuilder();
 
-        private string _aliyunId;
+        private long _aliyunId;
         private string _accessId;
         private string _accessSecret;
         private string _toplingId;
@@ -63,34 +63,14 @@ namespace ToplingHelper
             InitializeComponent();
         }
 
-        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
-        {
-            var regex = new Regex("[^0-9]+");
-            e.Handled = regex.IsMatch(e.Text);
-        }
-
-        private void LoadWindow()
-        {
-
-        }
-
-
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
-
-
-            if (!long.TryParse(AliYunId.Text, out var _))
-            {
-                MessageBox.Show("格式错误，阿里云账号为纯数字");
-                return;
-            }
 
             LogBuilder.Clear();
             Log.Text = "";
 
             SetInputs(false);
             if (
-                string.IsNullOrWhiteSpace(AliYunId.Text) ||
                 string.IsNullOrWhiteSpace(AccessSecret.Text) ||
                 string.IsNullOrWhiteSpace(AccessId.Text) ||
                 string.IsNullOrWhiteSpace(ToplingId.Text) ||
@@ -102,10 +82,6 @@ namespace ToplingHelper
                 return;
             }
 
-
-
-
-            _aliyunId = AliYunId.Text;
             _accessId = AccessId.Text;
             _accessSecret = AccessSecret.Text;
             _toplingId = ToplingId.Text;
@@ -180,12 +156,12 @@ namespace ToplingHelper
                 AppendLog("加入用户 VPC 到云企业网...");
                 // 把用户的vpc加入云企业网
                 Task.Delay(TimeSpan.FromSeconds(10)).Wait(); // 等待10秒，VPC创建后不能立即并网
-                AddVpcIntoCen(client, vpcId, cenId, long.Parse(_aliyunId));
+                AddVpcIntoCen(client, vpcId, cenId, _aliyunId);
                 AppendLog("自动创建的 VPC 加入云企业网完成...");
 
                 // 授权
                 AppendLog("开始授权云企业网...");
-                AuthCen(toplingHttpClient, toplingVpc, cenId, long.Parse(_aliyunId));
+                AuthCen(toplingHttpClient, toplingVpc, cenId, _aliyunId);
                 AppendLog("授权云企业网完成...");
                 AppendLog("开始并网...");
                 AddVpcIntoCen(client, toplingVpc, cenId, ToplingAliYunUserId);
@@ -257,9 +233,10 @@ namespace ToplingHelper
                 RegionId = ToplingTestRegion,
             }).Vpcs.FirstOrDefault(v => v.VpcName == ToplingVpcName);
 
-
             if (vpc != null)
             {
+                Debug.Assert(vpc.OwnerId != null, "vpc.OwnerId != null");
+                _aliyunId = vpc.OwnerId.Value;
                 // create switches if not exists
                 if (!vpc.VSwitchIds.Any())
                 {
@@ -271,17 +248,27 @@ namespace ToplingHelper
             }
 
             // create vpc;
-            var vpcId = client.GetAcsResponse(new CreateVpcRequest
+            var response = client.GetAcsResponse(new CreateVpcRequest
             {
                 RegionId = ToplingTestRegion,
                 VpcName = ToplingVpcName,
                 CidrBlock = "172.16.0.0/12"
-            }).VpcId;
+            });
+
             // VPC创建后不能立刻创建交换机，等待20秒;
             Task.Delay(TimeSpan.FromSeconds(20)).Wait();
-            CreateVSwitch(client, vpcId);
-            CreateDefaultSecurityGroupIfNotExists(client, vpcId);
-            return vpcId;
+
+            vpc = client.GetAcsResponse(new DescribeVpcsRequest
+            {
+                RegionId = ToplingTestRegion,
+            }).Vpcs.FirstOrDefault(v => v.VpcName == ToplingVpcName);
+            Debug.Assert(vpc != null);
+
+            Debug.Assert(vpc.OwnerId != null, "vpc.OwnerId != null");
+            _aliyunId = vpc.OwnerId.Value;
+            CreateVSwitch(client, response.VpcId);
+            CreateDefaultSecurityGroupIfNotExists(client, vpc.VpcId);
+            return vpc.VpcId;
 
         }
 
@@ -511,7 +498,6 @@ namespace ToplingHelper
             Btn.IsEnabled = status;
             ToplingId.IsEnabled = status;
             ToplingPassword.IsEnabled = status;
-            AliYunId.IsEnabled = status;
             AccessId.IsEnabled = status;
             AccessSecret.IsEnabled = status;
         }

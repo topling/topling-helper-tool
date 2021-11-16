@@ -8,7 +8,7 @@
         Title="拓扑岭辅助工具" Height="700" Width="800">
     <Grid>
         <Viewbox Stretch="Uniform">
-            <Canvas Height="700" Width="800" >
+            <Canvas Height="650" Width="800" >
                 <Canvas Height="200" Width="200" Canvas.Left="50" >
                     <StackPanel Orientation="Vertical" Margin="0,20,0,0">
                         <StackPanel.Resources>
@@ -22,7 +22,6 @@
                         </StackPanel.Resources>
                         <TextBlock ><Run Language="zh-cn" Text="拓扑岭用户名"/></TextBlock>
                         <TextBlock ><Run Language="zh-cn" Text="拓扑岭用户密码"/></TextBlock>
-                        <TextBlock ><Run Language="zh-cn" Text="阿里云ID (纯数字)"/></TextBlock>
                         <TextBlock HorizontalAlignment="Left">
                         <Hyperlink  NavigateUri="https://ram.console.aliyun.com/manage" Click="Hyperlink_Click">
                             阿里云 accessKeyID
@@ -38,7 +37,7 @@
                         </TextBlock>
                     </StackPanel>
                 </Canvas>
-                <Canvas Height="400" Width="400" Canvas.Left="400">
+                <Canvas Height="200" Width="400" Canvas.Left="400">
                     <StackPanel Orientation="Vertical" Margin="0,12,0,0">
                         <StackPanel.Resources>
                             <Style x:Key="InputStyle" TargetType="{x:Type Control}">
@@ -51,13 +50,12 @@
                         </StackPanel.Resources>
                         <TextBox Style="{StaticResource InputStyle}" Name="ToplingId" TextWrapping="Wrap" />
                         <PasswordBox  Style="{StaticResource InputStyle}" Name="ToplingPassword"/>
-                        <TextBox Style="{StaticResource InputStyle}" Name="AliYunId" TextWrapping="Wrap"   PreviewTextInput="NumberValidationTextBox"/>
                         <TextBox Style="{StaticResource InputStyle}" Name="AccessId" TextWrapping="Wrap" />
                         <TextBox Style="{StaticResource InputStyle}" Name="AccessSecret" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Canvas>
 
-                <Canvas Height="40" Canvas.Left="50" Canvas.Top="250">
+                <Canvas Height="40" Canvas.Left="50" Canvas.Top="200">
                     <Button Content="提交" Name="Btn" HorizontalAlignment="Left" VerticalAlignment="Top" Height="24" Width="90" FontSize="14" Click="Submit_Click" />
                     <TextBox Name="Log"  Margin="0,50,0,0"  Height="350" Width="700" TextWrapping="Wrap" IsReadOnly="True" />
                 </Canvas>
