@@ -85,7 +85,17 @@ namespace ToplingHelper
             DependencyProperty.Register("TestText", typeof(string), typeof(RichText), new PropertyMetadata(null));
         private void Cen_click(object sender, RoutedEventArgs e)
         {
-            Process.Start("Explorer", $"https://cen.console.aliyun.com/cen/detail/{CenId}/attachInstance");
+            var cenUrl = $"https://cen.console.aliyun.com/cen/detail/{CenId}/attachInstance";
+            try
+            {
+                Process.Start("Explorer", cenUrl);
+            }
+            catch (Exception)
+            {
+                var window = OpenUrlFail.New(cenUrl, this);
+                window.Show();
+            }
+
         }
 
         private const string PreTestText = @"# 请首先确保测试实例为CentOS
@@ -117,12 +127,31 @@ zstd -d -c -q /mnt/weibo.zst  |  /mnt/InsertWeiboData -h {privateIp} -t 32 -f /d
 
         private void Engine_OnClick(object sender, RoutedEventArgs e)
         {
-            Process.Start("Explorer", $"http://{TodisEcsId}.aliyun.db.topling.cn:8000");
+            var ecsUrl = $"http://{TodisEcsId}.aliyun.db.topling.cn:8000";
+            try
+            {
+                Process.Start("Explorer", ecsUrl);
+            }
+            catch (Exception)
+            {
+                var window = OpenUrlFail.New(ecsUrl, this);
+                window.Show();
+            }
+
         }
 
         private void Grafana_OnClick(object sender, RoutedEventArgs e)
         {
-            Process.Start("Explorer", $"http://{TodisEcsId}.aliyun.db.topling.cn:3000");
+            var ecsUrl = $"http://{TodisEcsId}.aliyun.db.topling.cn:3000";
+            try
+            {
+                Process.Start("Explorer", ecsUrl);
+            }
+            catch (Exception)
+            {
+                var window = OpenUrlFail.New(ecsUrl, this);
+                window.Show();
+            }
         }
     }
 

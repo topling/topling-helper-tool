@@ -531,7 +531,17 @@ namespace ToplingHelper
 
         private void Hyperlink_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start("Explorer", "https://ram.console.aliyun.com/manage");
+            const string url = "https://ram.console.aliyun.com/manage";
+            try
+            {
+                Process.Start("Explorer", url);
+                
+            }
+            catch (Exception)
+            {
+                var window = OpenUrlFail.New(url, this);
+                window.Show();
+            }
         }
     }
 }
