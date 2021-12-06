@@ -33,9 +33,11 @@ namespace ToplingHelper
         public OpenUrlFail(string url)
         {
             InitializeComponent();
+            // base64防止被报毒
+            // 打开连接出错，请关闭360等软件后点击，或手动访问
             const string base64 = "5omT5byA6L+e5o6l5Ye66ZSZ77yM6K+35YWz6ZetMzYw562J6L2v5Lu25ZCO54K55Ye777yM5oiW5omL5Yqo6K6/6Zeu";
             CloseTextBox.Text =
-                Encoding.UTF8.GetString(Convert.FromBase64String(base64));
+            Encoding.UTF8.GetString(Convert.FromBase64String(base64));
             Url.Text = url;
         }
     }

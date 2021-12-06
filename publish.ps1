@@ -3,15 +3,19 @@ dotnet publish --runtime win-x64   /p:PublishSingleFile=true --self-contained fa
 dotnet publish --runtime win-x86   /p:PublishSingleFile=true --self-contained false  /p:IncludeNativeLibrariesForSelfExtract=true  -c release -o publish/x86-lite
 dotnet publish --runtime win-x64   /p:PublishSingleFile=true --self-contained true   /p:IncludeNativeLibrariesForSelfExtract=true  -c release -o publish/x64-full
 dotnet publish --runtime win-x86   /p:PublishSingleFile=true --self-contained true   /p:IncludeNativeLibrariesForSelfExtract=true  -c release -o publish/x86-full
-mv publish/x64-lite/ToplingHelper.exe publish/ToplingHelper-lite-x64.exe
-mv publish/x86-lite/ToplingHelper.exe publish/ToplingHelper-lite-x86.exe
-mv publish/x64-full/ToplingHelper.exe publish/ToplingHelper-full-x64.exe
-mv publish/x86-full/ToplingHelper.exe publish/ToplingHelper-full-x86.exe
+Move-Item publish/x64-lite/ToplingHelper.exe publish/ToplingHelper-lite-x64.exe
+Move-Item publish/x86-lite/ToplingHelper.exe publish/ToplingHelper-lite-x86.exe
+Move-Item publish/x64-full/ToplingHelper.exe publish/ToplingHelper-full-x64.exe
+Move-Item publish/x86-full/ToplingHelper.exe publish/ToplingHelper-full-x86.exe
+
+&"${env:ProgramFiles(x86)}\Microsoft SDKs\ClickOnce\SignTool\signtool.exe" sign /tr http://ts.ssl.com /sha1  652298E27FBDFDD0312360C93E9922DC05863299 /fd sha256 .\publish\*.exe
 
 Get-ChildItem publish -Directory | Remove-Item -Recurse -Force
 
 Get-ChildItem publish | Foreach-Object {   
     $output = "publish/" + $_.BaseName + ".zip";
-    $input = "publish/" + $_.Name;
-    zip -j1 $output $input
+    $input_ = "publish/" + $_.Name;
+    zip -j1 $output $input_
 }
+
+explorer.exe ./publish

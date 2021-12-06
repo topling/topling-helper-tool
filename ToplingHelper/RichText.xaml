@@ -20,17 +20,21 @@
                 <Paragraph >
                     <TextBox>请登录阿里云，在</TextBox>
                     <TextBox FontWeight="Bold" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"/>
+                    <LineBreak/>
                     <TextBox>下创建新 ECS 实例，操作系统请选择</TextBox>
-                    <TextBox  FontWeight="Bold" Foreground="Red">CentOS</TextBox>
-                    <TextBox>，创建时请为ECS添加</TextBox>
+                    <TextBox  FontWeight="Bold" Foreground="Red">CentOS(7/8)/AliyunOS/Ubuntu(16.04/18.04)</TextBox> ，
+                    <LineBreak/>
+                    <TextBox>创建时请为 ECS 添加</TextBox>
                     <TextBox FontWeight="Bold" Foreground="Red">公网 Ip</TextBox>
-                    <TextBox>(用来安装 oss-util 一键脚本)</TextBox>
+                    <TextBox>(一键脚本使用公网安装 oss-util 相关依赖并内网挂载数据集)</TextBox>
                 </Paragraph>
                 <Paragraph>
                     <TextBox>一定在</TextBox>
                     <TextBox FontWeight="Bold" FontSize="24" Text="{Binding UserVpcId,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}"></TextBox>
-                    <TextBox>下创建实例！操作系统请选择</TextBox>
-                    <TextBox  FontWeight="Bold" FontSize="30" Foreground="Red">CentOS</TextBox> ！
+                    <TextBox>下创建实例！</TextBox>
+                    <LineBreak />
+                    <TextBox>操作系统请选择</TextBox>
+                    <TextBox  FontWeight="Bold" FontSize="20" Foreground="Red">CentOS(7/8)/AliyunOS/Ubuntu(16.04/18.04)</TextBox> ！
                 </Paragraph>
                 <Paragraph FontFamily="微软雅黑">
                     <TextBox>连接</TextBox>
