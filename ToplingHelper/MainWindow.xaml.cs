@@ -41,8 +41,10 @@ namespace ToplingHelper
     {
 
         private const string ToplingCenName = "for-toping";
-        private const string ToplingVpcName = "for-toping";
-        private const string ToplingTestRegion = "cn-chengdu";
+        private const string ToplingVpcName = "for-toping-shenzhen";
+        private const string ToplingTestRegion = "cn-shenzhen";
+
+        private const string ShenzhenCidrFormat = "172.17.{0}.0/24";
 
         private const long ToplingAliYunUserId = 1343819498686551;
 
@@ -228,10 +230,13 @@ namespace ToplingHelper
         }
         private string GetOrCreateVpc(DefaultAcsClient client)
         {
-            var vpc = client.GetAcsResponse(new DescribeVpcsRequest
+            var vpcList = client.GetAcsResponse(new DescribeVpcsRequest
             {
                 RegionId = ToplingTestRegion,
-            }).Vpcs.FirstOrDefault(v => v.VpcName == ToplingVpcName);
+            }).Vpcs;
+
+
+            var vpc = vpcList.FirstOrDefault(v => v.VpcName == ToplingVpcName);
 
             if (vpc != null)
             {
@@ -246,7 +251,7 @@ namespace ToplingHelper
                 CreateDefaultSecurityGroupIfNotExists(client, vpc.VpcId);
                 return vpc.VpcId;
             }
-
+            
             // create vpc;
             var response = client.GetAcsResponse(new CreateVpcRequest
             {
@@ -274,20 +279,18 @@ namespace ToplingHelper
 
         private void CreateVSwitch(DefaultAcsClient client, string vpcId)
         {
-            client.GetAcsResponse(new CreateVSwitchRequest
+            for (var ch = 'a'; ch <= 'f'; ++ch)
             {
-                RegionId = ToplingTestRegion,
-                VpcId = vpcId,
-                ZoneId = $"{ToplingTestRegion}-a",
-                CidrBlock = "172.16.1.0/24"
-            });
-            client.GetAcsResponse(new CreateVSwitchRequest
-            {
-                RegionId = ToplingTestRegion,
-                ZoneId = $"{ToplingTestRegion}-b",
-                VpcId = vpcId,
-                CidrBlock = "172.16.2.0/24"
-            });
+                var cidrBlock = string.Format(ShenzhenCidrFormat, ch - 'a');
+                client.GetAcsResponse(new CreateVSwitchRequest
+                {
+                    RegionId = ToplingTestRegion,
+                    VpcId = vpcId,
+                    ZoneId = $"{ToplingTestRegion}-{ch}",
+                    CidrBlock = cidrBlock
+                });
+            }
+
         }
 
         private void CreateDefaultSecurityGroupIfNotExists(DefaultAcsClient client, string vpcId)
@@ -535,7 +538,7 @@ namespace ToplingHelper
             try
             {
                 Process.Start("Explorer", url);
-                
+
             }
             catch (Exception)
             {
