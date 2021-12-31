@@ -467,7 +467,7 @@ namespace ToplingHelper
                 FlushXsrf(client);
                 var bodyContent = JsonConvert.SerializeObject(new
                 {
-                    zoneId = $"{ToplingTestRegion}-a",
+                    zoneId = $"{ToplingTestRegion}-e",
                     vpcId = vpcId,
                     insatnceType = Todis,
                     ecsType = "ecs.r6e.large",
