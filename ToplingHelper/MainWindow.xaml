@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ToplingHelper"
         mc:Ignorable="d"
-        Title="拓扑岭辅助工具" Height="700" Width="800">
+        Title="拓扑岭自动化工具" Height="700" Width="800">
     <Grid>
         <Viewbox Stretch="Uniform">
             <Canvas Height="650" Width="800" >
