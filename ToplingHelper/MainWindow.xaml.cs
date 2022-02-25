@@ -372,9 +372,15 @@ namespace ToplingHelper
                 ChildInstanceType = "VPC",
                 ChildInstanceRegionId = ToplingTestRegion
             });
-            // 加入后等待10s，否则可能会报错
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
-            return false;
+            joined = client.GetAcsResponse(new DescribeCenAttachedChildInstancesRequest
+            {
+                CenId = cenId,
+                ChildInstanceType = "VPC"
+            }).ChildInstances.Any(i => i.ChildInstanceId == vpcId);
+            // 加入后等待10s，否则可能会报错
+
+            return joined;
         }
         #endregion
 
