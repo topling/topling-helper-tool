@@ -118,7 +118,12 @@ namespace ToplingHelper
             window.Show();
         }
 
+        private void ShowFail(string vpcId, string cenId)
+        {
+            var window = new Fail(vpcId, cenId, $"{ToplingAliYunUserId}");
+            window.Show();
 
+        }
         private void Worker()
         {
 
@@ -166,12 +171,34 @@ namespace ToplingHelper
                 AuthCen(toplingHttpClient, toplingVpc, cenId, _aliyunId);
                 AppendLog("授权云企业网完成...");
                 AppendLog("开始并网...");
-                AddVpcIntoCen(client, toplingVpc, cenId, ToplingAliYunUserId);
+                if (!AddVpcIntoCen(client, toplingVpc, cenId, ToplingAliYunUserId))
+                {
+                    AppendLog("并网失败...");
+                    // 并网失败
+                    Dispatcher.Invoke(() => ShowFail(toplingVpc, cenId));
+                    return;
+                }
                 AppendLog("并网完成...");
 
                 AppendLog("开始创建实例...");
                 // 创建实例
-                CreateTodisRequest(toplingHttpClient, toplingVpc);
+                var res = CreateTodisRequest(toplingHttpClient, toplingVpc);
+                if (!res.Success)
+                {
+                    AppendLog("实例创建失败。");
+                    if (res.Content.Contains("预留网段尚未并网前暂不允许创建实例"))
+                    {
+                        Dispatcher.Invoke(() => ShowFail(toplingVpc, cenId));
+                    }
+                    else
+                    {
+                        MessageBox.Show(
+                            $"执行失败:{Environment.NewLine}{res.Content}",
+                            "执行失败");
+                    }
+
+                    return;
+                }
                 AppendLog("创建实例完成，正在初始化...");
 
                 TodisInstance todis;
@@ -251,7 +278,7 @@ namespace ToplingHelper
                 CreateDefaultSecurityGroupIfNotExists(client, vpc.VpcId);
                 return vpc.VpcId;
             }
-            
+
             // create vpc;
             var response = client.GetAcsResponse(new CreateVpcRequest
             {
@@ -325,7 +352,7 @@ namespace ToplingHelper
             });
         }
 
-        private void AddVpcIntoCen(DefaultAcsClient client, string vpcId, string cenId, long vpcOwnerId)
+        private bool AddVpcIntoCen(DefaultAcsClient client, string vpcId, string cenId, long vpcOwnerId)
         {
             // 先查看，后加入
             var joined = client.GetAcsResponse(new DescribeCenAttachedChildInstancesRequest
@@ -335,9 +362,8 @@ namespace ToplingHelper
             }).ChildInstances.Any(i => i.ChildInstanceId == vpcId);
             if (joined)
             {
-                return;
+                return true;
             }
-
             client.GetAcsResponse(new AttachCenChildInstanceRequest
             {
                 CenId = cenId,
@@ -346,8 +372,9 @@ namespace ToplingHelper
                 ChildInstanceType = "VPC",
                 ChildInstanceRegionId = ToplingTestRegion
             });
-            // 授权后等待10s，否则可能会报错
+            // 加入后等待10s，否则可能会报错
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
+            return false;
         }
         #endregion
 
@@ -450,7 +477,13 @@ namespace ToplingHelper
             };
         }
 
-        private string CreateTodisRequest(HttpClient client, string vpcId)
+        private class Response
+        {
+            public bool Success { get; set; }
+            public string Content { get; set; }
+        }
+
+        private Response CreateTodisRequest(HttpClient client, string vpcId)
         {
             var uri = $"https://console.topling.cn/api/instance";
 
@@ -460,28 +493,57 @@ namespace ToplingHelper
             string instanceId;
             if (instance.data.Count > 0)
             {
-                instanceId = (string)instance.data[0].id;
-            }
-            else
-            {
-                FlushXsrf(client);
-                var bodyContent = JsonConvert.SerializeObject(new
+                return new Response
                 {
-                    zoneId = $"{ToplingTestRegion}-e",
-                    vpcId = vpcId,
-                    insatnceType = Todis,
-                    ecsType = "ecs.r6e.large",
-                    port = 6379,
-                    name = "auto-create"
-                });
-                var body = new StringContent(bodyContent, Encoding.UTF8, "application/json");
-                var postResponse = client.PostAsync($"{uri}/aliyun", body).Result;
-                instance = JObject.Parse(client.GetAsync(uri).Result.Content.ReadAsStringAsync()
-                    .Result);
-                instanceId = (string)instance.data[0].id;
+                    Success = true,
+                    Content = (string)instance.data[0].id
+                };
             }
 
-            return instanceId;
+            FlushXsrf(client);
+            var bodyContent = JsonConvert.SerializeObject(new
+            {
+                zoneId = $"{ToplingTestRegion}-e",
+                vpcId = vpcId,
+                insatnceType = Todis,
+                ecsType = "ecs.r6e.large",
+                port = 6379,
+                name = "auto-create"
+            });
+            var body = new StringContent(bodyContent, Encoding.UTF8, "application/json");
+            var postResponse = client.PostAsync($"{uri}/aliyun", body).Result.Content.ReadAsStringAsync().Result;
+            dynamic postResult = JObject.Parse(postResponse);
+
+            try
+            {
+                if ((int)postResult.code == 0)
+                {
+                    instance = JObject.Parse(client.GetAsync(uri).Result.Content.ReadAsStringAsync()
+                        .Result);
+                    instanceId = (string)instance.data[0].id;
+                    return new Response
+                    {
+                        Success = true,
+                        Content = instanceId
+                    };
+                }
+
+                return new Response
+                {
+                    Success = false,
+                    Content = (string)postResult.msg
+                };
+
+            }
+            catch (Exception)
+            {
+                return new Response
+                {
+                    Success = false,
+                    Content = postResponse
+                };
+            }
+
         }
 
 
