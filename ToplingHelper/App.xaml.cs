@@ -13,5 +13,11 @@ namespace ToplingHelper
     /// </summary>
     public partial class App : Application
     {
+        void App_Startup(object sender, StartupEventArgs e)
+        {
+            var mainWindow = new MainWindow(e.Args);
+
+            mainWindow.Show();
+        }
     }
 }

@@ -4,9 +4,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ToplingHelper"
+        xmlns:models="clr-namespace:ToplingHelperModels.Models;assembly=ToplingHelperModels"
         mc:Ignorable="d"
-        Title="拓扑岭自动化工具" Height="700" Width="800">
-    <Grid>
+        
+        Title="拓扑岭自动化工具" Height="800" Width="800">
+    <Grid Name="ThisGrid">
+        <Grid.Resources>
+            <local:VisibleConverter x:Key="VisibleConverter"/>
+            <local:MySqlDataContext x:Key="VisibleMysqlKey"/>
+        </Grid.Resources>
+        <Grid.DataContext>
+            <Binding Source="{StaticResource VisibleMysqlKey}"/>
+        </Grid.DataContext>
         <Viewbox Stretch="Uniform">
             <Canvas Height="650" Width="800" >
                 <Canvas Height="200" Width="200" Canvas.Left="50" >
@@ -35,12 +44,16 @@
                             (截图请打码)
                         </Span>
                         </TextBlock>
+                        <TextBlock>服务选择</TextBlock>
+                        <TextBlock Visibility="{Binding Path=IsMySql, Converter={StaticResource VisibleConverter},Mode=OneWay}">MySQL 使用 Gtid</TextBlock>
+                        <TextBlock Visibility="{Binding Path=IsMySql, Converter={StaticResource VisibleConverter},Mode=OneWay}">自定义 server-id</TextBlock>
+                        <TextBlock Visibility="{Binding Path=VisibleEditServerId, Converter={StaticResource VisibleConverter},Mode=OneWay}">自定义 server-id 值</TextBlock>
                     </StackPanel>
                 </Canvas>
                 <Canvas Height="200" Width="400" Canvas.Left="400">
                     <StackPanel Orientation="Vertical" Margin="0,12,0,0">
                         <StackPanel.Resources>
-                            <Style x:Key="InputStyle" TargetType="{x:Type Control}">
+                            <Style x:Key="InputStyle" TargetType="{x:Type FrameworkElement}">
                                 <Setter Property="Margin" Value="0,13,0,0"/>
                                 <Setter Property="VerticalAlignment" Value="Top"/>
                                 <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -52,12 +65,31 @@
                         <PasswordBox  Style="{StaticResource InputStyle}" Name="ToplingPassword"/>
                         <TextBox Style="{StaticResource InputStyle}" Name="AccessId" TextWrapping="Wrap" />
                         <TextBox Style="{StaticResource InputStyle}" Name="AccessSecret" TextWrapping="Wrap"/>
+
+                        <StackPanel Orientation="Horizontal" Style="{StaticResource InputStyle}">
+                            <StackPanel.Resources>
+                                <Style x:Key="RadioMargin" TargetType="{x:Type Control}">
+                                    <Setter Property="Margin" Value="20,0,0,0"/>
+                                </Style>
+                            </StackPanel.Resources>
+                            <RadioButton FontSize="14"                                   Checked="Set_Todis">Todis (Redis 服务)</RadioButton>
+                            <RadioButton FontSize="14" Margin="20,0,0,0" Checked="Set_MyTopling">MyTopling (MySQL 服务)</RadioButton>
+                        </StackPanel>
+                        <!--MySQL-->
+                        <CheckBox Name="UseGtid" Style="{StaticResource InputStyle}"
+                                  Visibility="{Binding Path=IsMySql, Converter={StaticResource VisibleConverter},Mode=OneWay}"/>
+                        <CheckBox IsChecked="{Binding Path=EditServerId}" Style="{StaticResource InputStyle}" 
+                                  Visibility="{Binding Path=IsMySql, Converter={StaticResource VisibleConverter},Mode=OneWay}"/>
+                        <TextBox  Name="ServerId" Style="{StaticResource InputStyle}"
+                                  MaxLength="10"
+                                  Visibility="{Binding Path=VisibleEditServerId, Converter={StaticResource VisibleConverter},Mode=OneWay}">1</TextBox>
+                        <!--MySQL ends-->
                     </StackPanel>
                 </Canvas>
 
-                <Canvas Height="40" Canvas.Left="50" Canvas.Top="200">
+                <Canvas Height="40" Canvas.Left="50" Canvas.Top="320">
                     <Button Content="提交" Name="Btn" HorizontalAlignment="Left" VerticalAlignment="Top" Height="24" Width="90" FontSize="14" Click="Submit_Click" />
-                    <TextBox Name="Log"  Margin="0,50,0,0"  Height="350" Width="700" TextWrapping="Wrap" IsReadOnly="True" />
+                    <TextBox Name="Log"  Margin="0,50,0,0"  Height="320" Width="700" TextWrapping="Wrap" IsReadOnly="True" />
                 </Canvas>
             </Canvas>
         </Viewbox>

@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection.Metadata;
 using System.Security.RightsManagement;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,6 +20,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -28,6 +34,7 @@ using Aliyun.Acs.Ecs.Model.V20140526;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using ToplingHelperModels.Models;
 using CreateVpcRequest = Aliyun.Acs.Vpc.Model.V20160428.CreateVpcRequest;
 using CreateVSwitchRequest = Aliyun.Acs.Vpc.Model.V20160428.CreateVSwitchRequest;
 using DescribeVpcsRequest = Aliyun.Acs.Vpc.Model.V20160428.DescribeVpcsRequest;
@@ -40,38 +47,56 @@ namespace ToplingHelper
     public partial class MainWindow : Window
     {
 
-        private const string ToplingCenName = "for-toping";
-        private const string ToplingVpcName = "for-toping-shenzhen";
-        private const string ToplingTestRegion = "cn-shenzhen";
-
-        private const string ShenzhenCidrFormat = "172.17.{0}.0/24";
-
-        private const long ToplingAliYunUserId = 1343819498686551;
-
         private const string Todis = "Pika";
 
-        private readonly CookieContainer _container = new CookieContainer();
 
-        private readonly StringBuilder LogBuilder = new StringBuilder();
+        private readonly CookieContainer _container = new();
 
-        private long _aliyunId;
-        private string _accessId;
-        private string _accessSecret;
-        private string _toplingId;
-        private string _toplingPassword;
+        private readonly StringBuilder _logBuilder = new();
 
-        public MainWindow()
+        private ToplingUserData.InstanceType? InstanceType { get; set; }
+
+        private ToplingConstants ToplingConstants { get; init; }
+        private ToplingUserData UserData { get; set; }
+
+        public MainWindow(string[] args)
         {
-            InitializeComponent();
-        }
 
+            InitializeComponent();
+
+            if (args.Length > 0 && File.Exists(args[0]))
+            {
+
+                var content = File.ReadAllText(args[0]);
+                try
+                {
+                    ToplingConstants = System.Text.Json.JsonSerializer.Deserialize<ToplingConstants>(content);
+                }
+                catch (Exception e)
+                {
+                    Dispatcher.Invoke(() => MessageBox.Show(e.ToString()));
+                    ToplingConstants = new ToplingConstants();
+                }
+            }
+            else
+            {
+                ToplingConstants = new ToplingConstants();
+            }
+
+        }
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
 
-            LogBuilder.Clear();
+            _logBuilder.Clear();
             Log.Text = "";
 
             SetInputs(false);
+            if (InstanceType == null)
+            {
+                MessageBox.Show("请选择创建 Todis 服务或 MyTopling 服务");
+                SetInputs(true);
+                return;
+            }
             if (
                 string.IsNullOrWhiteSpace(AccessSecret.Text) ||
                 string.IsNullOrWhiteSpace(AccessId.Text) ||
@@ -84,13 +109,35 @@ namespace ToplingHelper
                 return;
             }
 
-            _accessId = AccessId.Text;
-            _accessSecret = AccessSecret.Text;
-            _toplingId = ToplingId.Text;
-            _toplingPassword = ToplingPassword.Password;
-            if (AccessId.Text.Length > AccessSecret.Text.Length)
+            if (InstanceType == null)
             {
-                MessageBox.Show("阿里云AccessId应短于AccessSecret，请检查是否粘贴错误");
+                MessageBox.Show("请选服务类型");
+                SetInputs(true);
+                return;
+            }
+
+            if (!uint.TryParse(ServerId.Text, out var serverId) || serverId == 0)
+            {
+                MessageBox.Show("自定义 server-id 输入不合法");
+                SetInputs(true);
+                return;
+            }
+
+            var context = (MySqlDataContext)ThisGrid.DataContext;
+            UserData = new ToplingUserData
+            {
+                AccessId = AccessId.Text,
+                AccessSecret = AccessSecret.Text,
+                ToplingId = ToplingId.Text,
+                ToplingPassword = ToplingPassword.Password,
+                GtidMode = UseGtid.IsChecked ?? false,
+                ServerId = context.EditServerId ? uint.Parse(ServerId.Text) : 0,
+                CreatingInstanceType = InstanceType.Value,
+            };
+
+            if (UserData.UserdataCheck(out var error))
+            {
+                MessageBox.Show(error);
                 return;
             }
 
@@ -120,7 +167,7 @@ namespace ToplingHelper
 
         private void ShowFail(string vpcId, string cenId)
         {
-            var window = new Fail(vpcId, cenId, $"{ToplingAliYunUserId}");
+            var window = new FailWindow(vpcId, cenId, $"{ToplingConstants.ToplingAliYunUserId}");
             window.Show();
 
         }
@@ -128,7 +175,8 @@ namespace ToplingHelper
         {
 
 
-            var client = new DefaultAcsClient(DefaultProfile.GetProfile(ToplingTestRegion, _accessId, _accessSecret));
+            var client = new DefaultAcsClient(DefaultProfile.GetProfile(ToplingConstants.ToplingTestRegion,
+                UserData.AccessId, UserData.AccessSecret));
 
 
             var handler = new HttpClientHandler()
@@ -163,15 +211,15 @@ namespace ToplingHelper
                 AppendLog("加入用户 VPC 到云企业网...");
                 // 把用户的vpc加入云企业网
                 Task.Delay(TimeSpan.FromSeconds(10)).Wait(); // 等待10秒，VPC创建后不能立即并网
-                AddVpcIntoCen(client, vpcId, cenId, _aliyunId);
+                AddVpcIntoCen(client, vpcId, cenId, UserData.AliYunId);
                 AppendLog("自动创建的 VPC 加入云企业网完成...");
 
                 // 授权
                 AppendLog("开始授权云企业网...");
-                AuthCen(toplingHttpClient, toplingVpc, cenId, _aliyunId);
+                AuthCen(toplingHttpClient, toplingVpc, cenId, UserData.AliYunId);
                 AppendLog("授权云企业网完成...");
                 AppendLog("开始并网...");
-                if (!AddVpcIntoCen(client, toplingVpc, cenId, ToplingAliYunUserId))
+                if (!AddVpcIntoCen(client, toplingVpc, cenId, ToplingConstants.ToplingAliYunUserId))
                 {
                     AppendLog("并网失败...");
                     // 并网失败
@@ -182,34 +230,79 @@ namespace ToplingHelper
 
                 AppendLog("开始创建实例...");
                 // 创建实例
-                var res = CreateTodisRequest(toplingHttpClient, toplingVpc);
-                if (!res.Success)
+
+
+                #region MySQL
+
+                if (UserData.CreatingInstanceType == ToplingUserData.InstanceType.MyTopling)
                 {
-                    AppendLog("实例创建失败。");
-                    if (res.Content.Contains("预留网段尚未并网前暂不允许创建实例"))
+                    var res = CreateMyToplingRequest(toplingHttpClient, toplingVpc);
+                    if (!res.Success)
                     {
-                        Dispatcher.Invoke(() => ShowFail(toplingVpc, cenId));
-                    }
-                    else
-                    {
-                        MessageBox.Show(
-                            $"执行失败:{Environment.NewLine}{res.Content}",
-                            "执行失败");
+                        AppendLog("实例创建失败。");
+                        if (res.Content.Contains("预留网段尚未并网前暂不允许创建实例"))
+                        {
+                            Dispatcher.Invoke(() => ShowFail(toplingVpc, cenId));
+                        }
+                        else
+                        {
+                            MessageBox.Show(
+                                $"执行失败:{Environment.NewLine}{res.Content}",
+                                "执行失败");
+                        }
+
+                        return;
                     }
 
-                    return;
+                    AppendLog("创建实例完成，正在初始化...");
+                    TodisInstance instance;
+                    do
+                    {
+                        Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+                        instance = WaitingForInstance(toplingHttpClient);
+
+                    } while (string.IsNullOrWhiteSpace(instance.TodisPrivateIp));
+
+                    MessageBox.Show(ResultText(vpcId, instance.TodisPrivateIp, cenId), "创建完成");
                 }
-                AppendLog("创建实例完成，正在初始化...");
 
-                TodisInstance todis;
-                do
+
+                #endregion
+
+                #region Todis
+
+                if (UserData.CreatingInstanceType == ToplingUserData.InstanceType.Todis)
                 {
-                    Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                    todis = WaitingForInstance(toplingHttpClient);
+                    var res = CreateTodisRequest(toplingHttpClient, toplingVpc);
+                    if (!res.Success)
+                    {
+                        AppendLog("实例创建失败。");
+                        if (res.Content.Contains("预留网段尚未并网前暂不允许创建实例"))
+                        {
+                            Dispatcher.Invoke(() => ShowFail(toplingVpc, cenId));
+                        }
+                        else
+                        {
+                            MessageBox.Show(
+                                $"执行失败:{Environment.NewLine}{res.Content}",
+                                "执行失败");
+                        }
 
-                } while (string.IsNullOrWhiteSpace(todis.TodisPrivateIp));
+                        return;
+                    }
+                    AppendLog("创建实例完成，正在初始化...");
 
-                Dispatcher.Invoke(() => ShowResult(vpcId, toplingVpc, todis.TodisPrivateIp, cenId, todis.TodisInstanceId));
+                    TodisInstance todis;
+                    do
+                    {
+                        Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+                        todis = WaitingForInstance(toplingHttpClient);
+
+                    } while (string.IsNullOrWhiteSpace(todis.TodisPrivateIp));
+
+                    Dispatcher.Invoke(() =>
+                        ShowResult(vpcId, toplingVpc, todis.TodisPrivateIp, cenId, todis.TodisInstanceId));
+                }
 
             }
             catch (ClientException exception)
@@ -230,12 +323,10 @@ namespace ToplingHelper
             }
             finally
             {
-                Dispatcher.Invoke(() =>
-                {
-                    SetInputs(true);
-                });
+                Dispatcher.Invoke(() => { SetInputs(true); });
             }
 
+            #endregion
         }
 
 
@@ -245,13 +336,13 @@ namespace ToplingHelper
         {
 
             var cenId = client.GetAcsResponse(new DescribeCensRequest()).Cens
-                .FirstOrDefault(c => c.Name == ToplingCenName)?.CenId;
+                .FirstOrDefault(c => c.Name == ToplingConstants.ToplingCenName)?.CenId;
 
 
 
             return cenId ?? client.GetAcsResponse(new CreateCenRequest
             {
-                Name = ToplingCenName,
+                Name = ToplingConstants.ToplingCenName,
 
             }).CenId;
         }
@@ -259,16 +350,16 @@ namespace ToplingHelper
         {
             var vpcList = client.GetAcsResponse(new DescribeVpcsRequest
             {
-                RegionId = ToplingTestRegion,
+                RegionId = ToplingConstants.ToplingTestRegion,
             }).Vpcs;
 
 
-            var vpc = vpcList.FirstOrDefault(v => v.VpcName == ToplingVpcName);
+            var vpc = vpcList.FirstOrDefault(v => v.VpcName == ToplingConstants.ToplingVpcName);
 
             if (vpc != null)
             {
                 Debug.Assert(vpc.OwnerId != null, "vpc.OwnerId != null");
-                _aliyunId = vpc.OwnerId.Value;
+                UserData.AliYunId = vpc.OwnerId.Value;
                 // create switches if not exists
                 if (!vpc.VSwitchIds.Any())
                 {
@@ -282,8 +373,8 @@ namespace ToplingHelper
             // create vpc;
             var response = client.GetAcsResponse(new CreateVpcRequest
             {
-                RegionId = ToplingTestRegion,
-                VpcName = ToplingVpcName,
+                RegionId = ToplingConstants.ToplingTestRegion,
+                VpcName = ToplingConstants.ToplingVpcName,
                 CidrBlock = "172.16.0.0/12"
             });
 
@@ -292,12 +383,12 @@ namespace ToplingHelper
 
             vpc = client.GetAcsResponse(new DescribeVpcsRequest
             {
-                RegionId = ToplingTestRegion,
-            }).Vpcs.FirstOrDefault(v => v.VpcName == ToplingVpcName);
+                RegionId = ToplingConstants.ToplingTestRegion,
+            }).Vpcs.FirstOrDefault(v => v.VpcName == ToplingConstants.ToplingVpcName);
             Debug.Assert(vpc != null);
 
             Debug.Assert(vpc.OwnerId != null, "vpc.OwnerId != null");
-            _aliyunId = vpc.OwnerId.Value;
+            UserData.AliYunId = vpc.OwnerId.Value;
             CreateVSwitch(client, response.VpcId);
             CreateDefaultSecurityGroupIfNotExists(client, vpc.VpcId);
             return vpc.VpcId;
@@ -308,12 +399,12 @@ namespace ToplingHelper
         {
             for (var ch = 'a'; ch <= 'f'; ++ch)
             {
-                var cidrBlock = string.Format(ShenzhenCidrFormat, ch - 'a');
+                var cidrBlock = string.Format(ToplingConstants.ShenzhenCidrFormat, ch - 'a');
                 client.GetAcsResponse(new CreateVSwitchRequest
                 {
-                    RegionId = ToplingTestRegion,
+                    RegionId = ToplingConstants.ToplingTestRegion,
                     VpcId = vpcId,
-                    ZoneId = $"{ToplingTestRegion}-{ch}",
+                    ZoneId = $"{ToplingConstants.ToplingTestRegion}-{ch}",
                     CidrBlock = cidrBlock
                 });
             }
@@ -325,7 +416,7 @@ namespace ToplingHelper
             var sgId = client.GetAcsResponse(new DescribeSecurityGroupsRequest
             {
                 VpcId = vpcId,
-                RegionId = ToplingTestRegion
+                RegionId = ToplingConstants.ToplingTestRegion
             }).SecurityGroups.FirstOrDefault()?.SecurityGroupId;
 
             if (string.IsNullOrWhiteSpace(sgId))
@@ -370,7 +461,7 @@ namespace ToplingHelper
                 ChildInstanceId = vpcId,
                 ChildInstanceOwnerId = vpcOwnerId,
                 ChildInstanceType = "VPC",
-                ChildInstanceRegionId = ToplingTestRegion
+                ChildInstanceRegionId = ToplingConstants.ToplingTestRegion
             });
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
             joined = client.GetAcsResponse(new DescribeCenAttachedChildInstancesRequest
@@ -388,10 +479,11 @@ namespace ToplingHelper
 
         private void LoginAndSetHeader(HttpClient httpClient)
         {
-            var uri = "https://console.topling.cn";
+            var uri = ToplingConstants.ToplingConsoleHost;
 
             var response = httpClient
-                .PostAsync(new Uri($"{uri}/api/auth?username={_toplingId}&password={_toplingPassword}"), null).Result
+                .PostAsync(new Uri($"{uri}/api/auth?username={UserData.ToplingId}&password={UserData.ToplingPassword}"),
+                    null).Result
                 .Content.ReadAsStringAsync().Result;
             if (response.Contains("用户名或密码错误"))
             {
@@ -406,7 +498,7 @@ namespace ToplingHelper
         }
         private string GetOrCreateToplingSideVpc(HttpClient client)
         {
-            var uri = "https://console.topling.cn/api/vpc";
+            var uri = $"{ToplingConstants.ToplingConsoleHost}/api/vpc";
 
             dynamic vpc = JObject.Parse(client.GetAsync(uri).Result.Content.ReadAsStringAsync()
                 .Result);
@@ -421,7 +513,7 @@ namespace ToplingHelper
                 provider = "AliYun",
                 name = "",
                 cidrSecond = -1,
-                region = ToplingTestRegion
+                region = ToplingConstants.ToplingTestRegion
 
             });
             var content = new StringContent(body, Encoding.UTF8, "application/json");
@@ -443,7 +535,7 @@ namespace ToplingHelper
 
         private void AuthCen(HttpClient client, string vpcId, string cenId, long aliYunId)
         {
-            var uri = $"https://console.topling.cn/api/vpc/aliyun/{vpcId}/join";
+            var uri = $"{ToplingConstants.ToplingConsoleHost}/api/vpc/aliyun/{vpcId}/join";
             FlushXsrf(client);
             var body = JsonConvert.SerializeObject(new
             {
@@ -466,20 +558,28 @@ namespace ToplingHelper
 
         public TodisInstance WaitingForInstance(HttpClient client)
         {
-            var uri = $"https://console.topling.cn/api/instance";
+            var uri = $"{ToplingConstants.ToplingConsoleHost}/api/instance";
 
             var response = client.GetAsync(uri).Result;
             var content = response.Content.ReadAsStringAsync().Result;
-            dynamic instance = JObject.Parse(content);
-            if (instance.data.Count == 0)
+            var body = JObject.Parse(content)["data"]!;
+
+            var comparison = UserData.CreatingInstanceType == ToplingUserData.InstanceType.Todis
+                ? Todis
+                : UserData.CreatingInstanceType.ToString();
+
+            dynamic instance = (JObject)body.FirstOrDefault(i =>
+                string.Equals((string)i["InstanceType"], comparison, StringComparison.OrdinalIgnoreCase));
+
+            if (instance == null)
             {
                 throw new Exception("实例创建可能出错，请重新执行本程序");
             }
 
             return new TodisInstance
             {
-                TodisInstanceId = instance.data[0].id,
-                TodisPrivateIp = instance.data[0].host
+                TodisInstanceId = instance.id,
+                TodisPrivateIp = instance.host
             };
         }
 
@@ -489,27 +589,83 @@ namespace ToplingHelper
             public string Content { get; set; }
         }
 
-        private Response CreateTodisRequest(HttpClient client, string vpcId)
+        private Response CreateMyToplingRequest(HttpClient client, string vpcId)
         {
-            var uri = $"https://console.topling.cn/api/instance";
-
+            var uri = $"{ToplingConstants.ToplingConsoleHost}/api/instance";
             var response = client.GetAsync(uri).Result;
             var content = response.Content.ReadAsStringAsync().Result;
-            dynamic instance = JObject.Parse(content);
-            string instanceId;
-            if (instance.data.Count > 0)
+            var data = (JArray)((dynamic)JObject.Parse(content)).data;
+            var comparison = UserData.CreatingInstanceType == ToplingUserData.InstanceType.Todis
+                ? Todis
+                : UserData.CreatingInstanceType.ToString();
+
+            dynamic instance = (JObject)data.FirstOrDefault(i =>
+                string.Equals((string)i["InstanceType"], comparison, StringComparison.OrdinalIgnoreCase));
+
+
+            if (instance != null)
             {
                 return new Response
                 {
-                    Success = true,
-                    Content = (string)instance.data[0].id
+                    Success = true
                 };
             }
 
             FlushXsrf(client);
             var bodyContent = JsonConvert.SerializeObject(new
             {
-                zoneId = $"{ToplingTestRegion}-e",
+                zoneId = $"{ToplingConstants.ToplingTestRegion}-e",
+                vpcId = vpcId,
+                insatnceType = UserData.CreatingInstanceType.ToString(),
+                ecsType = "ecs.r6e.large",
+                port = 6379,
+                name = "auto-create-mytopling",
+                UserData.GtidMode,
+                UserData.ServerId
+            });
+            var body = new StringContent(bodyContent, Encoding.UTF8, "application/json");
+            var postResponse = client.PostAsync($"{uri}/aliyun/{UserData.CreatingInstanceType}", body).Result.Content
+                .ReadAsStringAsync().Result;
+            dynamic postResult = JObject.Parse(postResponse);
+
+            try
+            {
+                return (int)postResult.code switch
+                {
+                    0 => new Response { Success = true },
+                    _ => new Response { Success = false, Content = (string)postResult.msg }
+                };
+            }
+            catch (Exception)
+            {
+                return new Response
+                {
+                    Success = false,
+                    Content = postResponse
+                };
+            }
+        }
+
+        private Response CreateTodisRequest(HttpClient client, string vpcId)
+        {
+            var uri = $"{ToplingConstants.ToplingConsoleHost}/api/instance";
+
+            var response = client.GetAsync(uri).Result;
+            var content = response.Content.ReadAsStringAsync().Result;
+            var data = (JArray)((dynamic)JObject.Parse(content)).data;
+            dynamic instance = (JObject)data.FirstOrDefault(i => (string)(i as JObject)!["InstanceType"] == "Todis");
+            if (instance != null)
+            {
+                return new Response
+                {
+                    Success = true
+                };
+            }
+
+            FlushXsrf(client);
+            var bodyContent = JsonConvert.SerializeObject(new
+            {
+                zoneId = $"{ToplingConstants.ToplingTestRegion}-e",
                 vpcId = vpcId,
                 insatnceType = Todis,
                 ecsType = "ecs.r6e.large",
@@ -522,24 +678,11 @@ namespace ToplingHelper
 
             try
             {
-                if ((int)postResult.code == 0)
+                return (int)postResult.code switch
                 {
-                    instance = JObject.Parse(client.GetAsync(uri).Result.Content.ReadAsStringAsync()
-                        .Result);
-                    instanceId = (string)instance.data[0].id;
-                    return new Response
-                    {
-                        Success = true,
-                        Content = instanceId
-                    };
-                }
-
-                return new Response
-                {
-                    Success = false,
-                    Content = (string)postResult.msg
+                    0 => new Response { Success = true },
+                    _ => new Response { Success = false, Content = (string)postResult.msg }
                 };
-
             }
             catch (Exception)
             {
@@ -558,7 +701,7 @@ namespace ToplingHelper
 
         private void FlushXsrf(HttpClient client)
         {
-            var xsrf = _container.GetCookies(new Uri("https://console.topling.cn")).Cast<Cookie>()
+            var xsrf = _container.GetCookies(new Uri(ToplingConstants.ToplingConsoleHost)).Cast<Cookie>()
                 .First(i => i.Name == "admin-XSRF-TOKEN").Value;
             client.DefaultRequestHeaders.Remove("xsrf-token");
             client.DefaultRequestHeaders.Add("xsrf-token", xsrf);
@@ -577,26 +720,24 @@ namespace ToplingHelper
 
         private void AppendLog(string line)
         {
-            LogBuilder.AppendLine(line);
-            Dispatcher.Invoke(() =>
-            {
-                Log.Text = LogBuilder.ToString();
-            });
+            _logBuilder.AppendLine(line);
+            Dispatcher.Invoke(() => { Log.Text = _logBuilder.ToString(); });
         }
 
         private string ResultText(string vpcId, string ip, string cenId) =>
             string.Join($"{Environment.NewLine}{Environment.NewLine}",
                 new string[]
                 {
-                    $"创建成功" ,
-                    $"请登录阿里云，在 VPC: {vpcId} 中创建新 ECS 实例(操作系统请选择 CentOS)" ,
-                    $"一定在 {vpcId} 下创建实例！(操作系统请选择 CentOS){Environment.NewLine}" +
-                    $"一定在 {vpcId} 下创建实例！(操作系统请选择 CentOS){Environment.NewLine}" +
-                    $"一定在 {vpcId} 下创建实例！(操作系统请选择 CentOS){Environment.NewLine}" ,
-                    $"连接 {ip}:6379 (与 Redis 使用方式相同)" ,
-                    $"如果无法连接，请先尝试 ping {ip} 查看网络是否联通(首次并网可能需要等待几分钟)" ,
-                    $"同时可尝试重新点击主窗口上的提交(本程序执行结果幂等)" ,
-                    $"我们提供了测试工具和数据集，详情可访问 https://topling.cn/downloads 查看"
+                    $"创建成功 MyTopling 实例初始化大约需要三分钟，",
+                    $"可登录 {ToplingConstants.ToplingConsoleHost} 查看创建进度",
+                    $"登录阿里云，在 VPC: {vpcId} 中创建新 ECS 实例连接 MyTopling 实例",
+                    $"一定在 {vpcId} 下创建实例！{Environment.NewLine}" +
+                    $"一定在 {vpcId} 下创建实例！{Environment.NewLine}" +
+                    $"连接 {ip}:3306 (与 MySQL 使用方式相同)",
+                    $"用户名: admin 密码: password",
+                    $"首次登录后需修改密码使用",
+                    $"如果无法连接，请先尝试 ping {ip} 查看网络是否联通(首次并网可能需要等待几分钟)",
+                    $"同时可尝试重新点击主窗口上的提交(本程序执行结果幂等)"
                 });
 
 
@@ -614,5 +755,29 @@ namespace ToplingHelper
                 window.Show();
             }
         }
+
+
+        private void Set_Todis(object sender, RoutedEventArgs e)
+        {
+            InstanceType = ToplingUserData.InstanceType.Todis;
+            ((MySqlDataContext)ThisGrid.DataContext).IsMySql = false;
+        }
+
+        private void Set_MyTopling(object sender, RoutedEventArgs e)
+        {
+            InstanceType = ToplingUserData.InstanceType.MyTopling;
+            ((MySqlDataContext)ThisGrid.DataContext).IsMySql = true;
+
+        }
+
+        private static readonly Regex NumberRegex = new(@"^[1-9]\d*");
+
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+
+            e.Handled = uint.TryParse(e.Text, out var number) && number > 0;
+
+        }
+
     }
 }

@@ -19,9 +19,9 @@ namespace ToplingHelper
     /// <summary>
     /// Fail.xaml 的交互逻辑
     /// </summary>
-    public partial class Fail : Window
+    public partial class FailWindow : Window
     {
-        public Fail(string vpcId,string cenId,string toplingId)
+        public FailWindow(string vpcId,string cenId,string toplingId)
         {
             InitializeComponent();
 
