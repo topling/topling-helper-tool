@@ -34,8 +34,15 @@
                     <TextBox>下创建新 ECS 实例以连接 MyTopling(MySQL) 服务</TextBox>
                 </Paragraph>
                 <Paragraph FontFamily="微软雅黑">
-                    <TextBox>连接</TextBox>
+                    <TextBox>连接</TextBox><TextBox></TextBox>
                     <TextBox Text="{Binding Source={StaticResource Context},Path=InstancePrivateIp}"/>
+                    <TextBox>用户名：</TextBox>
+                    <TextBox>admin</TextBox>
+                    <TextBox>密码：</TextBox>
+                    <TextBox>password</TextBox>
+                    <LineBreak/>
+                    <TextBlock><TextBlock Foreground="Red">初次连接</TextBlock>必须<TextBlock Foreground="Red">修改密码</TextBlock>后使用</TextBlock>
+                    <LineBreak/>
                     <LineBreak/>
                     <Hyperlink Name="Grafana" Click="Grafana_OnClick">查看Grafana监控</Hyperlink>
                     <LineBreak/>

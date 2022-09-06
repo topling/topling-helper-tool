@@ -225,7 +225,7 @@ namespace ToplingHelper
 
                 if (UserData.CreatingInstanceType == ToplingUserData.InstanceType.MyTopling)
                 {
-                    var res = CreateMyToplingRequest(toplingHttpClient, toplingVpc);
+                    var res = CreateMyToplingRequest(toplingHttpClient, toplingVpc, "ecs.r6e.2xlarge");
                     if (!res.Success)
                     {
                         AppendLog("实例创建失败。");
@@ -612,7 +612,7 @@ namespace ToplingHelper
             public string Content { get; set; }
         }
 
-        private Response CreateMyToplingRequest(HttpClient client, string vpcId)
+        private Response CreateMyToplingRequest(HttpClient client, string vpcId, string ecsType)
         {
             var uri = $"{ToplingConstants.ToplingConsoleHost}/api/instance";
             var response = client.GetAsync(uri).Result;
@@ -640,7 +640,7 @@ namespace ToplingHelper
                 zoneId = $"{ToplingConstants.ToplingTestRegion}-e",
                 vpcId = vpcId,
                 insatnceType = UserData.CreatingInstanceType.ToString(),
-                ecsType = "ecs.r6e.large",
+                ecsType = ecsType,
                 port = 6379,
                 name = "auto-create-mytopling",
                 UserData.GtidMode,
@@ -793,14 +793,6 @@ namespace ToplingHelper
 
         }
 
-        private static readonly Regex NumberRegex = new(@"^[1-9]\d*");
-
-        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
-        {
-
-            e.Handled = uint.TryParse(e.Text, out var number) && number > 0;
-
-        }
 
     }
 }
