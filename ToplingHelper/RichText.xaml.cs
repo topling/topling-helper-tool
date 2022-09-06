@@ -21,70 +21,26 @@ namespace ToplingHelper
     public partial class RichText : Window
     {
 
-        public string CenId
-        {
-            get => (string)GetValue(CenIdProp);
-            set => SetValue(CenIdProp, value);
-        }
-
-
-
-        private string TodisEcsId => (string)GetValue(TodisEcsIdProp);
-
-
-
-
+        public ResultDataContext Context => (ResultDataContext)Viewer.DataContext;
 
         public RichText(string userVpcId, string toplingVpcId, string cenId, string todisPrivateIp, string todisEcsId)
         {
             InitializeComponent();
+            Context.ToplingVpcId = toplingVpcId;
+            Context.UserVpcId = userVpcId;
+            Context.CenId = cenId;
+            Context.InstancePrivateIp = todisPrivateIp;
+            Context.EcsId = todisEcsId;
 
+            TestPerformance.Text = PreTestText;
+            TestCommands.Text = GetTestText(todisPrivateIp);
 
-            SetValue(ToplingVpcIdProp, toplingVpcId);
-            SetValue(UserVpcProp, userVpcId);
-            SetValue(CenIdProp, cenId);
-            SetValue(TodisPrivateIpProp, $"{todisPrivateIp}:6379");
-            SetValue(TodisEcsIdProp, todisEcsId);
-            SetValue(UserCenUrlProp, $"https://cen.console.aliyun.com/cen/detail/{cenId}/attachInstance");
-
-
-            SetValue(PreTestProp, PreTestText);
-            SetValue(TestTextProp, GetTestText(todisPrivateIp));
 
         }
 
-        public static readonly DependencyProperty UserVpcProp =
-            DependencyProperty.Register("UserVpcId", typeof(string), typeof(RichText), new PropertyMetadata(null));
-
-        public static readonly DependencyProperty ToplingVpcIdProp =
-            DependencyProperty.Register("ToplingVpcId", typeof(string), typeof(RichText), new PropertyMetadata(null));
-
-        public static readonly DependencyProperty CenIdProp =
-            DependencyProperty.Register("CenId", typeof(string), typeof(RichText), new PropertyMetadata(null));
-
-        public static readonly DependencyProperty TodisEcsIdProp =
-            DependencyProperty.Register("TodisEcsId", typeof(string), typeof(RichText), new PropertyMetadata(null));
-
-        public static readonly DependencyProperty TodisPrivateIpProp =
-            DependencyProperty.Register("TodisPrivateIp", typeof(string), typeof(RichText), new PropertyMetadata(null));
-
-        public static readonly DependencyProperty TodisGrafanaProp =
-            DependencyProperty.Register("TodisGrafana", typeof(string), typeof(RichText), new PropertyMetadata(null));
-
-        public static readonly DependencyProperty TodisEngineProp =
-            DependencyProperty.Register("TodisEngine", typeof(string), typeof(RichText), new PropertyMetadata(null));
-
-        public static readonly DependencyProperty UserCenUrlProp =
-            DependencyProperty.Register("UserCenUrl", typeof(string), typeof(RichText), new PropertyMetadata(null));
-
-        public static readonly DependencyProperty PreTestProp =
-            DependencyProperty.Register("PreTest", typeof(string), typeof(RichText), new PropertyMetadata(null));
-
-        public static readonly DependencyProperty TestTextProp =
-            DependencyProperty.Register("TestText", typeof(string), typeof(RichText), new PropertyMetadata(null));
         private void Cen_click(object sender, RoutedEventArgs e)
         {
-            var cenUrl = $"https://cen.console.aliyun.com/cen/detail/{CenId}/attachInstance";
+            var cenUrl = $"https://cen.console.aliyun.com/cen/detail/{Context.CenId}/attachInstance";
             try
             {
                 Process.Start("Explorer", cenUrl);
@@ -126,7 +82,7 @@ zstd -d -c -q /mnt/weibo.zst  |  /mnt/InsertWeiboData -h {privateIp} -t 32 -f /d
 
         private void Engine_OnClick(object sender, RoutedEventArgs e)
         {
-            var ecsUrl = $"http://{TodisEcsId}.aliyun.db.topling.cn:8000";
+            var ecsUrl = $"http://{Context.EcsId}.aliyun.db.topling.cn:8000";
             try
             {
                 Process.Start("Explorer", ecsUrl);
@@ -141,7 +97,7 @@ zstd -d -c -q /mnt/weibo.zst  |  /mnt/InsertWeiboData -h {privateIp} -t 32 -f /d
 
         private void Grafana_OnClick(object sender, RoutedEventArgs e)
         {
-            var ecsUrl = $"http://{TodisEcsId}.aliyun.db.topling.cn:3000";
+            var ecsUrl = $"http://{Context.EcsId}.aliyun.db.topling.cn:3000";
             try
             {
                 Process.Start("Explorer", ecsUrl);

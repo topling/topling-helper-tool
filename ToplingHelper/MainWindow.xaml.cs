@@ -25,6 +25,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Aliyun.Acs.Cbn.Model.V20170912;
 using Aliyun.Acs.Core;
 using Aliyun.Acs.Core.Exceptions;
@@ -59,29 +60,16 @@ namespace ToplingHelper
         private ToplingConstants ToplingConstants { get; init; }
         private ToplingUserData UserData { get; set; }
 
-        public MainWindow(string[] args)
+        public MainWindow(ToplingConstants toplingConstants, ToplingUserData toplingUserData)
         {
 
             InitializeComponent();
-
-            if (args.Length > 0 && File.Exists(args[0]))
-            {
-
-                var content = File.ReadAllText(args[0]);
-                try
-                {
-                    ToplingConstants = System.Text.Json.JsonSerializer.Deserialize<ToplingConstants>(content);
-                }
-                catch (Exception e)
-                {
-                    Dispatcher.Invoke(() => MessageBox.Show(e.ToString()));
-                    ToplingConstants = new ToplingConstants();
-                }
-            }
-            else
-            {
-                ToplingConstants = new ToplingConstants();
-            }
+            UserData = toplingUserData;
+            ToplingConstants = toplingConstants;
+            AccessSecret.Text = UserData.AccessSecret;
+            AccessId.Text = UserData.AccessId;
+            ToplingId.Text = UserData.ToplingId;
+            ToplingPassword.Password = UserData.ToplingPassword;
 
         }
         private void Submit_Click(object sender, RoutedEventArgs e)
@@ -89,8 +77,8 @@ namespace ToplingHelper
 
             _logBuilder.Clear();
             Log.Text = "";
-
             SetInputs(false);
+
             if (InstanceType == null)
             {
                 MessageBox.Show("请选择创建 Todis 服务或 MyTopling 服务");
@@ -135,15 +123,16 @@ namespace ToplingHelper
                 CreatingInstanceType = InstanceType.Value,
             };
 
-            if (UserData.UserdataCheck(out var error))
+            if (!UserData.UserdataCheck(out var error))
             {
                 MessageBox.Show(error);
+                SetInputs(true);
                 return;
             }
 
-            MessageBox.Show("流程约两分钟，请不要关闭窗口!");
 
 
+            Dispatcher.BeginInvoke(() => MessageBox.Show("流程约两分钟，请不要关闭窗口!"));
 
             Task.Run(Worker);
 
@@ -190,6 +179,7 @@ namespace ToplingHelper
             {
                 NoCache = true
             };
+
             try
             {
                 AppendLog("开始操作...");
@@ -210,7 +200,6 @@ namespace ToplingHelper
 
                 AppendLog("加入用户 VPC 到云企业网...");
                 // 把用户的vpc加入云企业网
-                Task.Delay(TimeSpan.FromSeconds(10)).Wait(); // 等待10秒，VPC创建后不能立即并网
                 AddVpcIntoCen(client, vpcId, cenId, UserData.AliYunId);
                 AppendLog("自动创建的 VPC 加入云企业网完成...");
 
@@ -263,7 +252,20 @@ namespace ToplingHelper
 
                     } while (string.IsNullOrWhiteSpace(instance.TodisPrivateIp));
 
-                    MessageBox.Show(ResultText(vpcId, instance.TodisPrivateIp, cenId), "创建完成");
+                    //MessageBox.Show(ResultText(vpcId, instance.TodisPrivateIp, cenId), "创建完成");
+
+                    void Action()
+                    {
+                        var result = new MyToplingWindow(vpcId, toplingVpc, cenId, instance.TodisPrivateIp, instance.TodisInstanceId)
+                        {
+                            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                            Owner = this
+                        };
+                        result.Show();
+                    }
+
+                    Dispatcher.Invoke(Action);
+
                 }
 
 
@@ -338,13 +340,12 @@ namespace ToplingHelper
             var cenId = client.GetAcsResponse(new DescribeCensRequest()).Cens
                 .FirstOrDefault(c => c.Name == ToplingConstants.ToplingCenName)?.CenId;
 
-
-
             return cenId ?? client.GetAcsResponse(new CreateCenRequest
             {
                 Name = ToplingConstants.ToplingCenName,
 
             }).CenId;
+
         }
         private string GetOrCreateVpc(DefaultAcsClient client)
         {
@@ -445,6 +446,7 @@ namespace ToplingHelper
 
         private bool AddVpcIntoCen(DefaultAcsClient client, string vpcId, string cenId, long vpcOwnerId)
         {
+
             // 先查看，后加入
             var joined = client.GetAcsResponse(new DescribeCenAttachedChildInstancesRequest
             {
@@ -455,6 +457,24 @@ namespace ToplingHelper
             {
                 return true;
             }
+            // 等待30秒后创建
+            var cen = client.GetAcsResponse(new DescribeCensRequest
+            {
+                RegionId = ToplingConstants.ToplingTestRegion,
+
+            }).Cens.FirstOrDefault(i => i.CenId == cenId);
+
+            if (cen != null)
+            {
+                // 等待云企业网创建完成一分钟
+                var startingTime = DateTime.Parse(cen.CreationTime) + TimeSpan.FromMinutes(1);
+                if (startingTime > DateTime.Now)
+                {
+                    AppendLog($"云企业网创建完成，预计{startingTime:HH:mm:ss}开始并网");
+                    Task.Delay(startingTime - DateTime.Now).Wait();
+                }
+            }
+
             client.GetAcsResponse(new AttachCenChildInstanceRequest
             {
                 CenId = cenId,
@@ -463,13 +483,14 @@ namespace ToplingHelper
                 ChildInstanceType = "VPC",
                 ChildInstanceRegionId = ToplingConstants.ToplingTestRegion
             });
+            // 加入后等待10s，否则可能会报错
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
             joined = client.GetAcsResponse(new DescribeCenAttachedChildInstancesRequest
             {
                 CenId = cenId,
                 ChildInstanceType = "VPC"
             }).ChildInstances.Any(i => i.ChildInstanceId == vpcId);
-            // 加入后等待10s，否则可能会报错
+
 
             return joined;
         }
@@ -535,6 +556,8 @@ namespace ToplingHelper
 
         private void AuthCen(HttpClient client, string vpcId, string cenId, long aliYunId)
         {
+
+            // 查看是否授权过，如果授权过则直接返回，否则授权并且等待20秒
             var uri = $"{ToplingConstants.ToplingConsoleHost}/api/vpc/aliyun/{vpcId}/join";
             FlushXsrf(client);
             var body = JsonConvert.SerializeObject(new
@@ -544,7 +567,7 @@ namespace ToplingHelper
             });
             var content = new StringContent(body, Encoding.UTF8, "application/json");
             client.PostAsync(uri, content).Wait();
-            Task.Delay(TimeSpan.FromSeconds(10)).Wait();
+            Task.Delay(TimeSpan.FromSeconds(5)).Wait();
         }
 
 
@@ -569,7 +592,7 @@ namespace ToplingHelper
                 : UserData.CreatingInstanceType.ToString();
 
             dynamic instance = (JObject)body.FirstOrDefault(i =>
-                string.Equals((string)i["InstanceType"], comparison, StringComparison.OrdinalIgnoreCase));
+                string.Equals((string)i["instanceType"], comparison, StringComparison.OrdinalIgnoreCase));
 
             if (instance == null)
             {
@@ -600,7 +623,7 @@ namespace ToplingHelper
                 : UserData.CreatingInstanceType.ToString();
 
             dynamic instance = (JObject)data.FirstOrDefault(i =>
-                string.Equals((string)i["InstanceType"], comparison, StringComparison.OrdinalIgnoreCase));
+                string.Equals((string)i["instanceType"], comparison, StringComparison.OrdinalIgnoreCase));
 
 
             if (instance != null)
@@ -653,7 +676,7 @@ namespace ToplingHelper
             var response = client.GetAsync(uri).Result;
             var content = response.Content.ReadAsStringAsync().Result;
             var data = (JArray)((dynamic)JObject.Parse(content)).data;
-            dynamic instance = (JObject)data.FirstOrDefault(i => (string)(i as JObject)!["InstanceType"] == "Todis");
+            dynamic instance = (JObject)data.FirstOrDefault(i => (string)(i as JObject)!["instanceType"] == Todis);
             if (instance != null)
             {
                 return new Response
