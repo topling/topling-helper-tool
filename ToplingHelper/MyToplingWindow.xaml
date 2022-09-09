@@ -38,8 +38,8 @@
                     <TextBox Text="{Binding Source={StaticResource Context},Path=InstancePrivateIp}"/>
                     <TextBox>用户名：</TextBox>
                     <TextBox>admin</TextBox>
-                    <TextBox>密码：</TextBox>
-                    <TextBox>password</TextBox>
+                    <TextBox>初始密码：</TextBox>
+                    <TextBox>123456</TextBox>
                     <LineBreak/>
                     <TextBlock><TextBlock Foreground="Red">初次连接</TextBlock>必须<TextBlock Foreground="Red">修改密码</TextBlock>后使用</TextBlock>
                     <LineBreak/>

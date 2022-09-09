@@ -1,8 +1,7 @@
 {
   "profiles": {
     "ToplingHelper": {
-      "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\25110\\source\\repos\\ToplingHelper\\publish\\settings.json"
+      "commandName": "Project"
     }
   }
 }

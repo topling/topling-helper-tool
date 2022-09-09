@@ -132,7 +132,7 @@ namespace ToplingHelper
 
 
 
-            Dispatcher.BeginInvoke(() => MessageBox.Show("流程约两分钟，请不要关闭窗口!"));
+            Dispatcher.BeginInvoke(() => MessageBox.Show("流程约三分钟，请不要关闭窗口!"));
 
             Task.Run(Worker);
 
@@ -205,7 +205,11 @@ namespace ToplingHelper
 
                 // 授权
                 AppendLog("开始授权云企业网...");
+
                 AuthCen(toplingHttpClient, toplingVpc, cenId, UserData.AliYunId);
+                // 检测是否授权成功
+
+
                 AppendLog("授权云企业网完成...");
                 AppendLog("开始并网...");
                 if (!AddVpcIntoCen(client, toplingVpc, cenId, ToplingConstants.ToplingAliYunUserId))
@@ -225,7 +229,7 @@ namespace ToplingHelper
 
                 if (UserData.CreatingInstanceType == ToplingUserData.InstanceType.MyTopling)
                 {
-                    var res = CreateMyToplingRequest(toplingHttpClient, toplingVpc, "ecs.r6e.2xlarge");
+                    var res = CreateMyToplingRequest(toplingHttpClient, toplingVpc, "ecs.g7.2xlarge");
                     if (!res.Success)
                     {
                         AppendLog("实例创建失败。");
@@ -329,6 +333,15 @@ namespace ToplingHelper
             }
 
             #endregion
+        }
+
+        private bool IsAuthed(HttpClient client, string vpcId)
+        {
+            var uri = $"{ToplingConstants.ToplingConsoleHost}/api/vpc";
+            var vpc = ((JArray)JObject.Parse(client.GetAsync(uri).Result.Content.ReadAsStringAsync().Result)["data"]!)
+                .First(i => i["vpcId"].ToString() == vpcId);
+
+            return !string.IsNullOrEmpty(vpc["cenId"]!.ToString());
         }
 
 
@@ -457,7 +470,7 @@ namespace ToplingHelper
             {
                 return true;
             }
-            // 等待30秒后创建
+
             var cen = client.GetAcsResponse(new DescribeCensRequest
             {
                 RegionId = ToplingConstants.ToplingTestRegion,
@@ -474,25 +487,39 @@ namespace ToplingHelper
                     Task.Delay(startingTime - DateTime.Now).Wait();
                 }
             }
-
-            client.GetAcsResponse(new AttachCenChildInstanceRequest
+            for (var i = 0; i < 3; ++i)
             {
-                CenId = cenId,
-                ChildInstanceId = vpcId,
-                ChildInstanceOwnerId = vpcOwnerId,
-                ChildInstanceType = "VPC",
-                ChildInstanceRegionId = ToplingConstants.ToplingTestRegion
-            });
-            // 加入后等待10s，否则可能会报错
-            Task.Delay(TimeSpan.FromSeconds(10)).Wait();
-            joined = client.GetAcsResponse(new DescribeCenAttachedChildInstancesRequest
-            {
-                CenId = cenId,
-                ChildInstanceType = "VPC"
-            }).ChildInstances.Any(i => i.ChildInstanceId == vpcId);
+                try
+                {
+                    client.GetAcsResponse(new AttachCenChildInstanceRequest
+                    {
+                        CenId = cenId,
+                        ChildInstanceId = vpcId,
+                        ChildInstanceOwnerId = vpcOwnerId,
+                        ChildInstanceType = "VPC",
+                        ChildInstanceRegionId = ToplingConstants.ToplingTestRegion
+                    });
+                }
+                catch (ClientException e) when (string.Equals(e.ErrorCode, "Forbbiden.AttachChildInstanceAcrossUid", StringComparison.OrdinalIgnoreCase))
+                {
+                    Task.Delay(TimeSpan.FromSeconds(10)).Wait();
+                    continue;
+                }
 
+                Task.Delay(TimeSpan.FromSeconds(10)).Wait();
+                joined = client.GetAcsResponse(new DescribeCenAttachedChildInstancesRequest
+                {
+                    CenId = cenId,
+                    ChildInstanceType = "VPC"
+                }).ChildInstances.Any(i => i.ChildInstanceId == vpcId);
+                if (joined)
+                {
 
-            return joined;
+                    return true;
+                }
+            }
+
+            return false;
         }
         #endregion
 
@@ -557,8 +584,19 @@ namespace ToplingHelper
         private void AuthCen(HttpClient client, string vpcId, string cenId, long aliYunId)
         {
 
-            // 查看是否授权过，如果授权过则直接返回，否则授权并且等待20秒
-            var uri = $"{ToplingConstants.ToplingConsoleHost}/api/vpc/aliyun/{vpcId}/join";
+            // 查看是否授权过，如果授权过则直接返回，否则授权并且等待
+            var uri = $"{ToplingConstants.ToplingConsoleHost}/api/vpc";
+
+            var vpc =
+                ((JArray)JObject.Parse(client.GetAsync(uri).Result.Content.ReadAsStringAsync().Result)["data"]!)
+                .First(i => i["vpcId"].ToString() == vpcId);
+
+            if (!string.IsNullOrEmpty(vpc["cenId"]!.ToString()))
+            {
+                return;
+            }
+            Task.Delay(TimeSpan.FromSeconds(20)).Wait();
+            uri = $"{ToplingConstants.ToplingConsoleHost}/api/vpc/aliyun/{vpcId}/join";
             FlushXsrf(client);
             var body = JsonConvert.SerializeObject(new
             {
@@ -566,8 +604,17 @@ namespace ToplingHelper
                 aliYunCenId = cenId
             });
             var content = new StringContent(body, Encoding.UTF8, "application/json");
-            client.PostAsync(uri, content).Wait();
-            Task.Delay(TimeSpan.FromSeconds(5)).Wait();
+            // 有时会授权不成功，重试几次
+            for (var i = 0; i < 3; ++i)
+            {
+                client.PostAsync(uri, content).Wait();
+                Task.Delay(TimeSpan.FromSeconds(20)).Wait();
+                // 检测是否授权
+                if (IsAuthed(client, vpcId))
+                {
+                    break;
+                }
+            }
         }
 
 
@@ -746,23 +793,7 @@ namespace ToplingHelper
             _logBuilder.AppendLine(line);
             Dispatcher.Invoke(() => { Log.Text = _logBuilder.ToString(); });
         }
-
-        private string ResultText(string vpcId, string ip, string cenId) =>
-            string.Join($"{Environment.NewLine}{Environment.NewLine}",
-                new string[]
-                {
-                    $"创建成功 MyTopling 实例初始化大约需要三分钟，",
-                    $"可登录 {ToplingConstants.ToplingConsoleHost} 查看创建进度",
-                    $"登录阿里云，在 VPC: {vpcId} 中创建新 ECS 实例连接 MyTopling 实例",
-                    $"一定在 {vpcId} 下创建实例！{Environment.NewLine}" +
-                    $"一定在 {vpcId} 下创建实例！{Environment.NewLine}" +
-                    $"连接 {ip}:3306 (与 MySQL 使用方式相同)",
-                    $"用户名: admin 密码: password",
-                    $"首次登录后需修改密码使用",
-                    $"如果无法连接，请先尝试 ping {ip} 查看网络是否联通(首次并网可能需要等待几分钟)",
-                    $"同时可尝试重新点击主窗口上的提交(本程序执行结果幂等)"
-                });
-
+        
 
         private void Hyperlink_Click(object sender, RoutedEventArgs e)
         {

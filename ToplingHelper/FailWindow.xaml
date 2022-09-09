@@ -21,7 +21,7 @@
             <FlowDocument  FontFamily="微软雅黑">
 
                 <Paragraph >
-                    <TextBox>并网未成功，请重试。若重试后仍然失败，您可以尝试请手动并网，或联系客服</TextBox>
+                    <TextBlock>并网可能未成功，<Bold>请重新执行</Bold>。若重试后仍然失败，您可以尝试请手动并网，或联系客服</TextBlock>
                     <LineBreak/>
                     <Hyperlink Name="CenUrl" Click="Cen_OnClick">点此前往云企业网控制台中对应项目手动并网</Hyperlink>
                     <LineBreak/>
