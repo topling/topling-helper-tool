@@ -2,40 +2,37 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ToplingHelperMaui.MainPage">
-
-    <ScrollView>
-        <VerticalStackLayout
-            Spacing="25"
-            Padding="30,0"
-            VerticalOptions="Center">
-
-            <Image
-                Source="dotnet_bot.png"
-                SemanticProperties.Description="Cute dot net bot waving hi to you!"
-                HeightRequest="200"
-                HorizontalOptions="Center" />
-
-            <Label
-                Text="Hello, World!"
-                SemanticProperties.HeadingLevel="Level1"
-                FontSize="32"
-                HorizontalOptions="Center" />
-
-            <Label
-                Text="Welcome to .NET Multi-platform App UI"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
-                FontSize="18"
-                HorizontalOptions="Center" />
-
-            <Button
-                x:Name="CounterBtn"
-                Text="Click me"
-                SemanticProperties.Hint="Counts the number of times you click"
-                Clicked="OnCounterClicked"
-                HorizontalOptions="Center" />
-
-        </VerticalStackLayout>
-    </ScrollView>
-
+    <Grid Margin="5"
+          RowDefinitions="30,30,30,30,40,*"
+          RowSpacing="5"
+          ColumnDefinitions="*,*"
+          ColumnSpacing="5">
+        <Label Text="拓扑岭 用户名"
+               Grid.Row="0" Grid.Column="0" />
+        <Entry x:Name="ToplingId"
+               MaxLength="199" ClearButtonVisibility="WhileEditing"
+               Grid.Row="0" Grid.Column="1" />
+        <Label Text="拓扑岭 用户密码"
+               Grid.Row="1" Grid.Column="0" />
+        <Entry x:Name="ToplingPassword"
+               MaxLength="199" IsPassword="True"
+               Grid.Row="1" Grid.Column="1" />
+        <Label Text="阿里云 accessKeyID"
+               Grid.Row="2" Grid.Column="0" />
+        <Entry x:Name="AccessId"
+               MaxLength="199"
+               Grid.Row="2" Grid.Column="1" />
+        <Label Text="阿里云 accessKeySecret (截图时请打码)"
+               Grid.Row="3" Grid.Column="0" />
+        <Entry x:Name="AccessSecret"
+               MaxLength="199" IsPassword="True"
+               Grid.Row="3" Grid.Column="1" />
+        <Editor x:Name="Log"
+                Text="可尝试复制"
+                IsReadOnly="True"
+                Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" />
+        <Button x:Name="Btn"
+                Text="提交"
+                Clicked="Button_Clicked"/>
+    </Grid>
 </ContentPage>
