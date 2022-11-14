@@ -11,7 +11,7 @@
     <Grid Name="ThisGrid">
         <Grid.Resources>
             <local:VisibleConverter x:Key="VisibleConverter"/>
-            <local:MySqlDataContext x:Key="VisibleMysqlKey"/>
+            <models:MySqlDataContext x:Key="VisibleMysqlKey"/>
         </Grid.Resources>
         <Grid.DataContext>
             <Binding Source="{StaticResource VisibleMysqlKey}"/>

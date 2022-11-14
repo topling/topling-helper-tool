@@ -18,6 +18,10 @@ namespace ToplingHelperModels.Models
 
         public string ToplingConsoleHost { get; set; } = "https://console.topling.cn";
 
+        public string ToplingVpcTagKey { get; set; } = "topling-subnet-vpc";
+
+        public int CidrMaxTry { get; set; } = 5;
+
     }
 
     public class ToplingUserData
@@ -38,7 +42,7 @@ namespace ToplingHelperModels.Models
         public bool UserdataCheck(out string error)
         {
             error = string.Empty;
-            
+
             if (AccessId.Length > AccessSecret.Length)
             {
                 error = "阿里云AccessId应短于AccessSecret，请检查是否粘贴错误";

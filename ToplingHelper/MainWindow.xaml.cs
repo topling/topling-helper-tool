@@ -182,6 +182,14 @@ namespace ToplingHelper
 
             try
             {
+                // 使用标签 topling-subnet-vpc 标记并网子网 value example: 10.5.0.0/16
+                // 状况：
+                // 1.服务端可能已经注册了子网但客户端没有对应的VPC，删除子网后重新建立对等连接并注册；
+                // 2.客户端存在对应的VPC，服务端不存在已经注册的子网，
+                //   获取子网的/16地址,向服务器注册。若和现有网段冲突，尝试获取一个新的并修改对应的标签值并创建交换机
+                // 3.两边都存在时，检测交换机的存在性，对每个区域创建交换机
+                // 4.上述2的流程中包含3
+                // 5.创建完成后，需要添加本地VPC到对等连接的路由表: 10.0.0.0/16
                 AppendLog("开始操作...");
                 // 创建云企业网
                 var cenId = GetOrCreateCen(client);
@@ -347,7 +355,7 @@ namespace ToplingHelper
 
         #region 阿里云
 
-        private string GetOrCreateCen(DefaultAcsClient client)
+        private static string GetOrCreateCen(DefaultAcsClient client)
         {
 
             var cenId = client.GetAcsResponse(new DescribeCensRequest()).Cens
