@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
+using System.Net;
 using Aliyun.Acs.Core;
+using Aliyun.Acs.Core.Http;
 using Aliyun.Acs.Ecs.Model.V20140526;
 using ToplingHelperModels.Models;
 using CreateVpcRequest = Aliyun.Acs.Ecs.Model.V20140526.CreateVpcRequest;
@@ -9,12 +11,13 @@ using DescribeVpcsResponse = Aliyun.Acs.Vpc.Model.V20160428.DescribeVpcsResponse
 
 namespace ToplingHelperModels.SubNetLogic;
 
-public class AliYunResources
+public sealed class AliYunResources : IDisposable
 {
     private readonly ToplingConstants _toplingConstants;
     private readonly DefaultAcsClient _client;
     private readonly ToplingUserData _userData;
     private readonly ToplingResources _toplingResources;
+
     private string? _cidr = null;
 
     public AliYunResources(ToplingConstants constants, DefaultAcsClient client, ToplingUserData userData, ToplingResources toplingResources)
@@ -23,18 +26,14 @@ public class AliYunResources
         _client = client;
         _userData = userData;
         _toplingResources = toplingResources;
+
     }
 
-    public string GetOrCreateVpc()
+    public string GetOrCreateVpcAndSubnet()
     {
         // 先处理记录了VPC的情况
         var subNet = _toplingResources.GetDefaultUserSubNet();
-        // 已经注册了连接，查询本地的用户
-        if (subNet != null)
-        {
-
-        }
-
+        AvailableVpc? availableVpc = null;
         var pageNumber = 1;
         DescribeVpcsResponse.DescribeVpcs_Vpc? vpc;
         string? userId = null;
@@ -61,10 +60,40 @@ public class AliYunResources
             }
         }
 
+        var errorMessage = string.Empty;
         // 默认初始状态
         if (subNet == null && vpc == null)
         {
-            // 获取一段cidr并创建vpc和对等连接准备并网
+            // 获取一段合法的cidr并创建vpc和对等连接准备并网
+            var rand = new Random();
+            var second = rand.Next(1, 255);
+
+            for (var i = 0; i < _toplingConstants.CidrMaxTry; ++i)
+            {
+                availableVpc = _toplingResources.GetAvailableVpc(second, out errorMessage);
+                if (availableVpc != null)
+                {
+                    break;
+                }
+            }
+            // 重复后依旧获取不到可用的VPC来并网
+            if (availableVpc == null)
+            {
+                throw new Exception($"未能获取可用的VPC，请重试或联系管理员: {errorMessage}");
+            }
+            // 已经找到可用的VPC与网段，尝试本地创建
+            var vpcId = CreateDefaultVpc($"10.{second}.0.0/16");
+
+            // 创建对等连接&发送并网请求
+            var peerId = CreatePeerAndAddRoute(vpcId, availableVpc);
+            _toplingResources.GrantPeer(peerId, second, vpcId);
+            // 创建交换机(幂等)
+            Task.Delay(TimeSpan.FromSeconds(10)).Wait();
+            CreateIdempotentVSwitch(vpcId);
+            // 创建实例
+            _toplingResources.CreateDefaultInstance(_userData);
+
+
         }
         // 本地创建了但是却没有并网
         if (subNet == null && vpc != null)
@@ -88,7 +117,7 @@ public class AliYunResources
         if (subNet != null && vpc == null)
         {
             // 这是用户并网了之后又把自己的vpc删掉了(或删除了key，或者手动并网的)的情况
-          
+
             if (userId != null && userId == subNet.UserCloudId)
             {
                 // 提示自己到控制台下手工删除这个子网，然后使用自动化工具重新并网
@@ -114,11 +143,11 @@ public class AliYunResources
             // 从数据库中获取对应的实例,以处理手动创建的情况
             if (userId == null)
             {
-                if()
+                //if ()
             }
 
-            int secondCidr = 0;
-            var max
+            //int secondCidr = 0;
+            //var max
             // 重复n次尝试获取一个可用的子网网段
             for (var i = 0; i < _toplingConstants.CidrMaxTry; ++i)
             {
@@ -135,7 +164,7 @@ public class AliYunResources
             // create switches if not exists
             if (!vpc.VSwitchIds.Any())
             {
-                CreateVSwitch(vpc.VpcId);
+                //CreateVSwitch(vpc.VpcId);
             }
 
             CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
@@ -161,7 +190,7 @@ public class AliYunResources
 
         Debug.Assert(vpc.OwnerId != null, "vpc.OwnerId != null");
         _userData.AliYunId = vpc.OwnerId.Value;
-        CreateVSwitch(response.VpcId);
+        //CreateVSwitch(response.VpcId);
         CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
         return vpc.VpcId;
 
@@ -181,6 +210,48 @@ public class AliYunResources
             });
         }
 
+    }
+
+
+
+    private void CreateIdempotentVSwitch(string vpcId)
+    {
+        // 获取所有的可用区
+        // 列出现有的交换机
+        // 查看网段冲突
+        // 对缺少的地址创建实例
+    }
+
+    private string CreatePeerAndAddRoute(string vpcId, AvailableVpc toplingAvailable)
+    {
+        // 创建到topling的对等连接并且添加路由表
+    }
+
+    /// <summary>
+    /// 创建一个VPC用于并网(暂不创建交换机)
+    /// </summary>
+    /// <returns>vpc-id</returns>
+    private string CreateDefaultVpc(string cidr)
+    {
+        var res = _client.GetAcsResponse(new CreateVpcRequest
+        {
+            RegionId = _toplingConstants.ToplingTestRegion,
+            CidrBlock = "10.0.0.0/8"
+        });
+        Task.Delay(TimeSpan.FromSeconds(5)).Wait();
+        var request = new CommonRequest
+        {
+            Method = MethodType.POST,
+            Domain = "vpc.cn-guangzhou.aliyuncs.com",
+            Version = "2016-04-28",
+            Action = "TagResources"
+        };
+        request.AddQueryParameters("ResourceType", "VPC");
+        request.AddQueryParameters("ResourceId.1", res.VpcId);
+        request.AddQueryParameters("Tag.1.Key", _toplingConstants.ToplingVpcTagKey);
+        request.AddQueryParameters("Tag.1.Value", cidr);
+        _client.GetCommonResponse(request);
+        return res.VpcId;
     }
 
     public void CreateDefaultSecurityGroupIfNotExists(string vpcId)
@@ -241,4 +312,11 @@ public class AliYunResources
         }
         private set => _cidr = value;
     }
+
+    public void Dispose()
+    {
+        _toplingResources.Dispose();
+    }
+
+
 }

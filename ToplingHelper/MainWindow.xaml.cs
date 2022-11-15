@@ -256,7 +256,7 @@ namespace ToplingHelper
                     }
 
                     AppendLog("创建实例完成，正在初始化...");
-                    TodisInstance instance;
+                    Instance instance;
                     do
                     {
                         Task.Delay(TimeSpan.FromSeconds(1)).Wait();
@@ -306,7 +306,7 @@ namespace ToplingHelper
                     }
                     AppendLog("创建实例完成，正在初始化...");
 
-                    TodisInstance todis;
+                    Instance todis;
                     do
                     {
                         Task.Delay(TimeSpan.FromSeconds(1)).Wait();
@@ -626,15 +626,7 @@ namespace ToplingHelper
         }
 
 
-        public class TodisInstance
-        {
-            public string TodisPrivateIp { get; set; }
-
-            public string TodisInstanceId { get; set; }
-        }
-
-
-        public TodisInstance WaitingForInstance(HttpClient client)
+        public Instance WaitingForInstance(HttpClient client)
         {
             var uri = $"{ToplingConstants.ToplingConsoleHost}/api/instance";
 
@@ -654,7 +646,7 @@ namespace ToplingHelper
                 throw new Exception("实例创建可能出错，请重新执行本程序");
             }
 
-            return new TodisInstance
+            return new Instance
             {
                 TodisInstanceId = instance.id,
                 TodisPrivateIp = instance.host

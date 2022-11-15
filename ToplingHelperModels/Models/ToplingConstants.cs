@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,6 +22,12 @@ namespace ToplingHelperModels.Models
         public string ToplingVpcTagKey { get; set; } = "topling-subnet-vpc";
 
         public int CidrMaxTry { get; set; } = 5;
+
+        public string DefaultTodisEcsType { get; set; } = "ecs.r6e.large";
+
+        public string DefaultMyToplingEcsType { get; set; } = "ecs.g7.2xlarg";
+
+
 
     }
 
