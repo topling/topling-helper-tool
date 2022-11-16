@@ -17,18 +17,18 @@ namespace ToplingHelperModels.Models
 
         public string ShenzhenCidrFormat { get; init; } = "172.17.{0}.0/24";
 
-        public string ToplingConsoleHost { get; set; } = "https://console.topling.cn";
+        public string ToplingConsoleHost { get; init; } = "https://console.topling.cn";
 
-        public string ToplingVpcTagKey { get; set; } = "topling-subnet-vpc";
+        public string ToplingVpcTagKey { get; init; } = "topling-subnet-vpc";
 
-        public int CidrMaxTry { get; set; } = 5;
+        public int CidrMaxTry { get; init; } = 5;
 
-        public string DefaultTodisEcsType { get; set; } = "ecs.r6e.large";
+        public string DefaultTodisEcsType { get; init; } = "ecs.r6e.large";
 
-        public string DefaultMyToplingEcsType { get; set; } = "ecs.g7.2xlarg";
+        public string DefaultMyToplingEcsType { get; init; } = "ecs.g7.2xlarg";
 
 
-
+        public string ToplingCidr { get; init; } = "10.0.0.0/16";
     }
 
     public class ToplingUserData

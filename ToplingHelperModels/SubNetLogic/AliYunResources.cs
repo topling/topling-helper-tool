@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Text.Json.Nodes;
 using Aliyun.Acs.Core;
 using Aliyun.Acs.Core.Http;
 using Aliyun.Acs.Ecs.Model.V20140526;
+using Newtonsoft.Json.Linq;
 using ToplingHelperModels.Models;
 using CreateVpcRequest = Aliyun.Acs.Ecs.Model.V20140526.CreateVpcRequest;
 using CreateVSwitchRequest = Aliyun.Acs.Ecs.Model.V20140526.CreateVSwitchRequest;
@@ -88,7 +92,8 @@ public sealed class AliYunResources : IDisposable
             // 已经找到可用的VPC与网段，尝试本地创建
             _appendLog("创建阿里云VPC");
             var vpcId = CreateDefaultVpc($"10.{second}.0.0/16");
-
+            _appendLog("为VPC创建默认安全组");
+            CreateDefaultSecurityGroupIfNotExists(vpcId);
             // 创建对等连接&发送并网请求
             _appendLog("对VPC创建对等连接并设置路由");
             var peerId = CreatePeerAndAddRoute(vpcId, availableVpc);
@@ -96,7 +101,7 @@ public sealed class AliYunResources : IDisposable
             _toplingResources.GrantPeer(peerId, second, vpcId);
             // 创建交换机(幂等)
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
-            CreateIdempotentVSwitch(vpcId);
+            CreateIdempotentVSwitch(vpcId, second);
             // 创建实例
             _toplingResources.CreateDefaultInstance(peerId);
 
@@ -122,6 +127,7 @@ public sealed class AliYunResources : IDisposable
                 {
                     throw new Exception($"未能获取可用的VPC，请重试或联系管理员: {errorMessage}");
                 }
+                this.CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
                 AddVpcTag(vpc.VpcId, cidr);
                 peerId = CreatePeerAndAddRoute(vpc.VpcId, availableVpc);
             }
@@ -133,7 +139,7 @@ public sealed class AliYunResources : IDisposable
             _toplingResources.GrantPeer(peerId, second, vpcId);
             // 创建交换机(幂等)
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
-            CreateIdempotentVSwitch(vpcId);
+            CreateIdempotentVSwitch(vpcId, second);
             // 创建实例
             _toplingResources.CreateDefaultInstance(peerId);
             return;
@@ -148,6 +154,7 @@ public sealed class AliYunResources : IDisposable
                 throw new Exception($"已注册注册子网账号{subNet.UserCloudId}和提交AccessKey账号{vpc.OwnerId}不同，请检查");
             }
             // 已经联网完成，添加路由表和交换机
+            CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
             CreateIdempotentVSwitch(vpc.VpcId);
             _toplingResources.CreateDefaultInstance(peerId);
             return;
@@ -182,30 +189,25 @@ public sealed class AliYunResources : IDisposable
         throw new IndexOutOfRangeException("执行错误，请联系客服");
     }
 
-    public void CreateVSwitch(string vpcId)
-    {
-        for (var ch = 'a'; ch <= 'f'; ++ch)
-        {
-            var cidrBlock = string.Format(_toplingConstants.ShenzhenCidrFormat, ch - 'a');
-            _client.GetAcsResponse(new CreateVSwitchRequest
-            {
-                RegionId = _toplingConstants.ToplingTestRegion,
-                VpcId = vpcId,
-                ZoneId = $"{_toplingConstants.ToplingTestRegion}-{ch}",
-                CidrBlock = cidrBlock
-            });
-        }
 
-    }
-
-
-
-    private void CreateIdempotentVSwitch(string vpcId)
+    private void CreateIdempotentVSwitch(string vpcId, int secondCidr)
     {
         // 获取所有的可用区
-        // 列出现有的交换机
-        // 查看网段冲突
-        // 对缺少的地址创建实例
+        var zoneList = _client.GetAcsResponse(new DescribeZonesRequest
+        {
+            RegionId = _toplingConstants.ToplingTestRegion,
+        });
+        foreach (var (index, zoneId) in zoneList.Zones.Select((zone, index) => (index, zone.ZoneId)))
+        {
+            var block = $"10.{secondCidr}.{index}.0/24";
+            _client.GetAcsResponse(new CreateVSwitchRequest
+            {
+                VpcId = vpcId,
+                ZoneId = zoneId,
+                CidrBlock = block,
+                ClientToken = $"{vpcId}_{zoneId}_{block}"
+            });
+        }
     }
 
     private void AddVpcTag(string vpcId, string cidr)
@@ -213,7 +215,7 @@ public sealed class AliYunResources : IDisposable
         var request = new CommonRequest
         {
             Method = MethodType.POST,
-            Domain = "vpc.cn-guangzhou.aliyuncs.com",
+            Domain = "vpc.aliyuncs.com",
             Version = "2016-04-28",
             Action = "TagResources"
         };
@@ -224,10 +226,49 @@ public sealed class AliYunResources : IDisposable
         _client.GetCommonResponse(request);
     }
 
-    private string CreatePeerAndAddRoute(string vpcId, AvailableVpc toplingAvailable)
+    private string CreatePeerAndAddRoute(string vpcId, AvailableVpc toplingAvailable, string cidr)
     {
         // 创建到topling的对等连接并且添加路由表
+        var clientToken = $"pcc_{toplingAvailable.VpcId}_{vpcId}_{cidr}";
 
+        var request = new CommonRequest
+        {
+            Method = MethodType.POST,
+            Domain = "vpcpeer.aliyuncs.com",
+            Version = "2022-01-01",
+            Action = "CreateVpcPeerConnection"
+        };
+        request.AddQueryParameters("ClientToken", clientToken);
+        request.AddQueryParameters("VpcId", vpcId);
+        request.AddQueryParameters("AcceptingAliUid", toplingAvailable.ToplingId);
+        request.AddQueryParameters("AcceptingRegionId", _toplingConstants.ToplingTestRegion);
+        request.AddQueryParameters("AcceptingVpcId", toplingAvailable.VpcId);
+        request.AddQueryParameters("Name", "for-topling");
+        var response = _client.GetCommonResponse(request);
+        if (response.HttpStatus == 400)
+        {
+            throw new Exception(response.Data);
+        }
+
+
+        var routeTableId = _client.GetAcsResponse(new DescribeVpcsRequest
+        {
+            RegionId = _toplingConstants.ToplingTestRegion,
+            VpcId = vpcId,
+        }).Vpcs.First().RouterTableIds.First();
+        var pccId = JObject.Parse(response.Data)["InstanceId"].ToString();
+
+        // add route
+        var routeToken = $"route_{cidr}_{routeTableId}_{pccId}";
+        _client.GetAcsResponse(new CreateRouteEntryRequest
+        {
+            RouteTableId = routeTableId,
+            DestinationCidrBlock = _toplingConstants.ToplingCidr,
+            NextHopId = pccId,
+            NextHopType = "VpcPeer",
+            ClientToken = routeToken
+        });
+        return pccId;
     }
 
     /// <summary>
@@ -286,9 +327,28 @@ public sealed class AliYunResources : IDisposable
 
     //}
 
-    public string? GetCurrentPeering(string vpcId)
+    private string? GetCurrentPeering(string vpcId)
     {
-
+        var request = new CommonRequest
+        {
+            Method = MethodType.POST,
+            Domain = "vpcpeer.aliyuncs.com",
+            Version = "2022-01-01",
+            Action = "ListVpcPeerConnections",
+        };
+        request.AddQueryParameters("MaxResults", "100");
+        // request.Protocol = ProtocolType.HTTP;
+        request.AddQueryParameters("VpcId.1", vpcId);
+        var response = _client.GetCommonResponse(request);
+        var peerList = ((JObject.Parse(response.Data)["Data"]["VpcPeerConnects"] as JArray)!)
+            .Where(peer =>
+            {
+                var status = peer["Status"].ToString();
+                return status.Equals("Creating") || status.Equals("Accepting");
+            }).ToList();
+        // 如果有创建后超时的对等连接或者用户自己创建而未接收的实例会出问题,
+        // TODO 可以针对这种情况提示用户自己检测
+        return peerList.FirstOrDefault()?["InstanceId"].ToString();
     }
 
     private void TestCidrAvailable(string cidr)
@@ -296,19 +356,6 @@ public sealed class AliYunResources : IDisposable
         // 测试在topling上是否存在/是否冲突
         //
 
-    }
-    // 缓存 peering 
-    public string Cidr
-    {
-        get
-        {
-            if (_cidr == null)
-            {
-                throw new NullReferenceException();
-            }
-            return _cidr;
-        }
-        private set => _cidr = value;
     }
 
     public void Dispose()
