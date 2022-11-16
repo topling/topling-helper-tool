@@ -21,13 +21,15 @@ namespace ToplingHelperModels.SubNetLogic
     {
         private readonly ToplingConstants _toplingConstants;
         private readonly ToplingUserData _userData;
+        private readonly Action<string> _logger;
         private readonly HttpClient _httpClient;
         private readonly CookieContainer _cookieContainer;
         private readonly HttpClientHandler _httpClientHandler;
-        public ToplingResources(ToplingConstants constants, ToplingUserData userData)
+        public ToplingResources(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
         {
             _toplingConstants = constants;
             _userData = userData;
+            _logger = logger;
             _cookieContainer = new CookieContainer();
             _httpClientHandler = new HttpClientHandler()
             {
