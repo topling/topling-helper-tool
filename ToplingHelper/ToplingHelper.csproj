@@ -7,12 +7,6 @@
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="aliyun-net-sdk-cbn" Version="1.0.4" />
-    <PackageReference Include="aliyun-net-sdk-ecs" Version="4.24.11" />
-    <PackageReference Include="aliyun-net-sdk-vpc" Version="3.0.8" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ToplingHelperModels\ToplingHelperModels.csproj" />

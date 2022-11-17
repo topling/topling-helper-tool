@@ -18,7 +18,7 @@
                 </Style>
             </StackPanel.Resources>
             <TextBlock Name="CloseTextBox"></TextBlock>
-            <TextBox Name="Url" BorderThickness="0" FontSize="12">https://cen.console.aliyun.com/cen/detail/cen-mmmmmmmmmmmmmmmmmm/attachInstance</TextBox>
+            <TextBox Name="Url" BorderThickness="0" FontSize="12">https://vpcnext.console.aliyun.com/vpc/cn-shenzhen/route-tables/vtb-xxxxxxxxxxxxxxxxxxxxp</TextBox>
             <TextBlock >获取所需内容。</TextBlock>
         </StackPanel>
     </Grid>

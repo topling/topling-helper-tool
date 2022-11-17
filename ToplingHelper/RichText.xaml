@@ -30,7 +30,7 @@
                     <LineBreak/>
                     <TextBox>创建时请为 ECS 添加</TextBox>
                     <TextBox FontWeight="Bold" Foreground="Red">公网 Ip</TextBox>
-                    <TextBox>(一键脚本使用公网安装 oss-util 相关依赖并内网挂载数据集)</TextBox>
+                    <TextBox>(一键脚本使用公网安装 oss-util 相关依赖, 使用内网挂载数据集)</TextBox>
                 </Paragraph>
                 <Paragraph>
                     <TextBox>一定在</TextBox>
@@ -55,37 +55,21 @@
                             如果 ping 不通
                         </Paragraph>
                         <Paragraph Padding="10,10,0,0">
-                            <TextBlock>1. 运行</TextBlock>
+                            <TextBox>1. 运行</TextBox>
                             <TextBox Background="Gainsboro">curl http://100.100.100.200/latest/meta-data/vpc-id</TextBox>
                             <TextBox>查看结果是否为</TextBox>
                             <TextBox FontWeight="Bold" Text="{Binding Source={StaticResource Context},Path=UserVpcId}"/>
                         </Paragraph>
                         <Paragraph Padding="10,10,0,10">
-                            2. 查看云企业网页面(
-                            <Hyperlink  Click="Cen_click">点此跳转</Hyperlink> ，点击返回旧版 )，
-                            应该有两个VPC，分别是：
+                            2. 查看路由表(
+                            <Hyperlink  Click="Route_click">点此跳转</Hyperlink> )，
+                            选择自定义路由条目。应该存在一条目标网段为 10.0.0.0/16, 下一跳为
+                            <TextBox Text="{Binding Source={StaticResource Context},Path= PeerId}"/>
+                            的条目。
                             <LineBreak/>
+                            <TextBlock xml:space="preserve"></TextBlock> 若缺少，请添加自定义路由条目:
                             <TextBox Text="{Binding Source={StaticResource Context},Path=UserVpcId}"/>
-                            <TextBox>和</TextBox>
                             <TextBox Text="{Binding Source={StaticResource Context},Path=ToplingVpcId}"/>
-                            <LineBreak/>
-                            <StackPanel Margin="20,0,0,0">
-                                <TextBlock>
-                                    <TextBox>● 缺少</TextBox> <TextBox Text="{Binding Source={StaticResource Context},Path=UserVpcId}"/>
-                                </TextBlock>
-                                <TextBlock >
-                                    点击 <Bold>加载网络实例</Bold> 按钮，选择<Bold>同账号</Bold>，实例类型选择 <Bold>VPC</Bold>，地域选择<Bold>深圳</Bold>，网络实例选择 <TextBlock FontWeight="Bold" Text="{Binding Source={StaticResource Context},Path=UserVpcId}"/> <LineBreak/>
-                                </TextBlock>
-                                <TextBlock >
-                                    <TextBox>● 缺少</TextBox> <TextBox Text="{Binding Source={StaticResource Context},Path=ToplingVpcId}"/>
-                                </TextBlock>
-
-                                <TextBlock >
-                                    <TextBox>点击</TextBox><TextBox FontWeight="Bold">加载网络实例</TextBox><TextBox>按钮，选择</TextBox><TextBox FontWeight="Bold">跨账号</TextBox><TextBox>，对方账号填写 </TextBox><TextBox FontWeight="Bold">1343819498686551</TextBox> <LineBreak/> 
-                                    实例类型选择  <Bold>VPC</Bold> 地域选择 <Bold>深圳</Bold>
-                                    网络实例选择 <TextBlock FontWeight="Bold" Text="{Binding Source={StaticResource Context},Path=UserVpcId}"/>
-                                </TextBlock>
-                            </StackPanel>
                         </Paragraph>
                     </ListItem>
                     <ListItem>

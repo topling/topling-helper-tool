@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using ToplingHelperModels.Models;
 
 namespace ToplingHelper
 {
@@ -23,14 +24,10 @@ namespace ToplingHelper
 
         public ResultDataContext Context => (ResultDataContext)Viewer.DataContext;
 
-        public MyToplingWindow(string userVpcId, string toplingVpcId, string cenId, string instancePrivateIp, string todisEcsId)
+        public MyToplingWindow(ResultDataContext context)
         {
             InitializeComponent();
-            Context.UserVpcId = userVpcId;
-            Context.ToplingVpcId = toplingVpcId;
-            Context.CenId = cenId;
-            Context.InstancePrivateIp = instancePrivateIp;
-            Context.EcsId = todisEcsId;
+            Viewer.DataContext = context;
         }
 
         private void Engine_OnClick(object sender, RoutedEventArgs e)
@@ -63,16 +60,16 @@ namespace ToplingHelper
             }
         }
 
-        private void Cen_click(object sender, RoutedEventArgs e)
+        private void RouteTable_click(object sender, RoutedEventArgs e)
         {
-            var cenUrl = $"https://cen.console.aliyun.com/cen/detail/{Context.CenId}/attachInstance";
+
             try
             {
-                Process.Start("Explorer", cenUrl);
+                Process.Start("Explorer", Context.RouteUrl);
             }
             catch (Exception)
             {
-                var window = OpenUrlFail.New(cenUrl, this);
+                var window = OpenUrlFail.New(Context.RouteUrl, this);
                 window.Show();
             }
 

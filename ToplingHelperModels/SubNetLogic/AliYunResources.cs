@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using Aliyun.Acs.Core;
 using Aliyun.Acs.Core.Http;
 using Aliyun.Acs.Ecs.Model.V20140526;
@@ -25,18 +26,16 @@ public sealed class AliYunResources : IDisposable
 
     private readonly Action<string> _appendLog;
 
-    private string? _cidr = null;
-
-    public AliYunResources(ToplingConstants constants, DefaultAcsClient client, ToplingUserData userData, ToplingResources toplingResources, Action<string> logger)
+    public AliYunResources(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
     {
         _toplingConstants = constants;
-        _client = client;
+        _client = new DefaultAcsClient();
         _userData = userData;
         _appendLog = logger;
         _toplingResources = new ToplingResources(constants, userData, logger);
     }
 
-    public string GetOrCreateVpcAndSubnet()
+    public Instance CreateInstance()
     {
         // 先处理记录了VPC的情况
         var subNet = _toplingResources.GetDefaultUserSubNet();
@@ -91,25 +90,28 @@ public sealed class AliYunResources : IDisposable
             }
             // 已经找到可用的VPC与网段，尝试本地创建
             _appendLog("创建阿里云VPC");
-            var vpcId = CreateDefaultVpc($"10.{second}.0.0/16");
+            var cidr = $"10.{second}.0.0/16";
+            var vpcId = CreateDefaultVpc(cidr);
             _appendLog("为VPC创建默认安全组");
             CreateDefaultSecurityGroupIfNotExists(vpcId);
             // 创建对等连接&发送并网请求
             _appendLog("对VPC创建对等连接并设置路由");
-            var peerId = CreatePeerAndAddRoute(vpcId, availableVpc);
+            var peerId = CreatePeerAndAddRoute(vpcId, availableVpc, cidr);
             _appendLog("使用对等连接并网");
             _toplingResources.GrantPeer(peerId, second, vpcId);
             // 创建交换机(幂等)
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
             CreateIdempotentVSwitch(vpcId, second);
             // 创建实例
-            _toplingResources.CreateDefaultInstance(peerId);
+            return _toplingResources.CreateDefaultInstance(peerId);
 
-            return;
+
         }
         // 本地创建了但是却没有并网
         if (subNet == null && vpc != null)
         {
+            var rand = new Random();
+            var second = rand.Next(1, 255);
             // 查看现在是否存在请求中的对等连接，尝试并网，(注意确认对等连接一端是否是这个VPC)
             var peerId = GetCurrentPeering(vpc.VpcId);
             if (peerId == null)
@@ -127,37 +129,41 @@ public sealed class AliYunResources : IDisposable
                 {
                     throw new Exception($"未能获取可用的VPC，请重试或联系管理员: {errorMessage}");
                 }
-                this.CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
+                CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
+                var cidr = $"10.{second}.0.0/16";
                 AddVpcTag(vpc.VpcId, cidr);
-                peerId = CreatePeerAndAddRoute(vpc.VpcId, availableVpc);
+                peerId = CreatePeerAndAddRoute(vpc.VpcId, availableVpc, cidr);
             }
             // 如果失败，则删除对等连接并且在这个上面重新尝试新的交换机并且尝试并网
 
 
             _appendLog("使用对等连接并网");
             // 获取peerId和second
-            _toplingResources.GrantPeer(peerId, second, vpcId);
+            _toplingResources.GrantPeer(peerId, second, vpc.VpcId);
             // 创建交换机(幂等)
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
-            CreateIdempotentVSwitch(vpcId, second);
+            CreateIdempotentVSwitch(vpc.VpcId, second);
             // 创建实例
-            _toplingResources.CreateDefaultInstance(peerId);
-            return;
+
+            return _toplingResources.CreateDefaultInstance(peerId);
         }
         // 已经并网了查看是否正确工作
         if (subNet != null && vpc != null)
         {
+
             // 检测对等连接是否是这个账号上的，如果不是，提示核对用户的accessKey
             if (!subNet.UserCloudId.Equals(vpc.OwnerId.ToString()))
             {
                 //提示核对用户的accessKey,两边账号对不上
                 throw new Exception($"已注册注册子网账号{subNet.UserCloudId}和提交AccessKey账号{vpc.OwnerId}不同，请检查");
             }
+            var regex = new Regex(@"10\.(?<second>\d+)\.0\.0/16");
+            var second = int.Parse(regex.Match(subNet.Cidr).Groups["second"].Value);
             // 已经联网完成，添加路由表和交换机
             CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
-            CreateIdempotentVSwitch(vpc.VpcId);
-            _toplingResources.CreateDefaultInstance(peerId);
-            return;
+            CreateIdempotentVSwitch(vpc.VpcId, second);
+
+            return _toplingResources.CreateDefaultInstance(subNet.PeerId);
         }
 
         // 这种情况属于病态
@@ -288,7 +294,7 @@ public sealed class AliYunResources : IDisposable
         return res.VpcId;
     }
 
-    public void CreateDefaultSecurityGroupIfNotExists(string vpcId)
+    private void CreateDefaultSecurityGroupIfNotExists(string vpcId)
     {
         var sgId = _client.GetAcsResponse(new DescribeSecurityGroupsRequest
         {
@@ -320,12 +326,6 @@ public sealed class AliYunResources : IDisposable
         });
     }
 
-    // 子网逻辑
-
-    //public void CreatePeering(string vpcId, string toplingVpcId)
-    //{
-
-    //}
 
     private string? GetCurrentPeering(string vpcId)
     {
@@ -351,12 +351,7 @@ public sealed class AliYunResources : IDisposable
         return peerList.FirstOrDefault()?["InstanceId"].ToString();
     }
 
-    private void TestCidrAvailable(string cidr)
-    {
-        // 测试在topling上是否存在/是否冲突
-        //
 
-    }
 
     public void Dispose()
     {

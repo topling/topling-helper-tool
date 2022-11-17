@@ -23,31 +23,26 @@ namespace ToplingHelper
 
         public ResultDataContext Context => (ResultDataContext)Viewer.DataContext;
 
-        public RichText(string userVpcId, string toplingVpcId, string cenId, string todisPrivateIp, string todisEcsId)
+        public RichText(ResultDataContext context)
         {
             InitializeComponent();
-            Context.ToplingVpcId = toplingVpcId;
-            Context.UserVpcId = userVpcId;
-            Context.CenId = cenId;
-            Context.InstancePrivateIp = todisPrivateIp;
-            Context.EcsId = todisEcsId;
+            Viewer.DataContext = context;
 
             TestPerformance.Text = PreTestText;
-            TestCommands.Text = GetTestText(todisPrivateIp);
+            TestCommands.Text = GetTestText(context.InstancePrivateIp);
 
 
         }
 
-        private void Cen_click(object sender, RoutedEventArgs e)
+        private void Route_click(object sender, RoutedEventArgs e)
         {
-            var cenUrl = $"https://cen.console.aliyun.com/cen/detail/{Context.CenId}/attachInstance";
             try
             {
-                Process.Start("Explorer", cenUrl);
+                Process.Start("Explorer", Context.RouteUrl);
             }
             catch (Exception)
             {
-                var window = OpenUrlFail.New(cenUrl, this);
+                var window = OpenUrlFail.New(Context.RouteUrl, this);
                 window.Show();
             }
 

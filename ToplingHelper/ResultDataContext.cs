@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using ToplingHelper.Annotations;
+using ToplingHelperModels.Models;
 
 namespace ToplingHelper
 {
@@ -14,8 +15,10 @@ namespace ToplingHelper
         private string _toplingVpcId;
         private string _ecsId;
         private string _userVpcId;
-        private string _cenId;
         private string _instancePrivateIp;
+        private string _peerId;
+        private string _routeId;
+        private ToplingConstants _constants;
         public event PropertyChangedEventHandler PropertyChanged;
 
         public string ToplingVpcId
@@ -26,7 +29,17 @@ namespace ToplingHelper
                 _toplingVpcId = value;
                 OnPropertyChanged(nameof(ToplingVpcId));
             }
-            
+
+        }
+
+        public ToplingConstants Constants
+        {
+            get => _constants;
+            set
+            {
+                _constants = value;
+                OnPropertyChanged(nameof(Constants));
+            }
         }
 
         public string EcsId
@@ -49,19 +62,29 @@ namespace ToplingHelper
             }
         }
 
-        public string CenId
+        public string PeerId
         {
-            get => _cenId;
+            get => _peerId;
             set
             {
-                _cenId = value;
-                OnPropertyChanged(nameof(CenId));
-                OnPropertyChanged(nameof(UserCenUrl));
+                _peerId = value;
+                OnPropertyChanged(nameof(PeerId));
             }
         }
 
+        public string RouteId
+        {
+            get => _routeId;
+            set
+            {
+                _routeId = value;
+                OnPropertyChanged(nameof(RouteId));
+                OnPropertyChanged(nameof(RouteUrl));
+            }
+        }
 
-        public string UserCenUrl => $"https://cen.console.aliyun.com/cen/detail/{CenId}/attachInstance";
+        public string RouteUrl =>
+            $"https://vpcnext.console.aliyun.com/vpc/{_constants.ToplingTestRegion}/route-tables/{RouteId}";
 
         public string InstancePrivateIp
         {
