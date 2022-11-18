@@ -8,11 +8,9 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 using ToplingHelperModels.Models;
-using DescribeVpcsResponse = Aliyun.Acs.Vpc.Model.V20160428.DescribeVpcsResponse;
 using Newtonsoft.Json.Linq;
 using static ToplingHelperModels.Models.ToplingUserData;
 using Newtonsoft.Json;
-using System.Security.AccessControl;
 
 namespace ToplingHelperModels.SubNetLogic
 {
@@ -20,15 +18,13 @@ namespace ToplingHelperModels.SubNetLogic
     {
         private readonly ToplingConstants _toplingConstants;
         private readonly ToplingUserData _userData;
-        private readonly Action<string> _logger;
         private readonly HttpClient _httpClient;
         private readonly CookieContainer _cookieContainer;
         private readonly HttpClientHandler _httpClientHandler;
-        public ToplingResources(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
+        public ToplingResources(ToplingConstants constants, ToplingUserData userData)
         {
             _toplingConstants = constants;
             _userData = userData;
-            _logger = logger;
             _cookieContainer = new CookieContainer();
             _httpClientHandler = new HttpClientHandler()
             {
@@ -41,7 +37,7 @@ namespace ToplingHelperModels.SubNetLogic
             var uri = _toplingConstants.ToplingConsoleHost;
 
             var response = _httpClient
-                .PostAsync(new Uri($"{uri}/api/auth?username={_userData.ToplingId}&password={_userData.ToplingPassword}"),
+                .PostAsync(new Uri($"{uri}/api/auth?username={_userData.ToplingUserId}&password={_userData.ToplingPassword}"),
                     null).Result
                 .Content.ReadAsStringAsync().Result;
             if (response.Contains("用户名或密码错误"))
@@ -126,8 +122,8 @@ namespace ToplingHelperModels.SubNetLogic
                 }
                 return new Instance
                 {
-                    TodisPrivateIp = res["host"].ToString(),
-                    TodisInstanceId = res["id"].ToString()
+                    PrivateIp = res["host"].ToString(),
+                    InstanceEcsId = res["id"].ToString()
                 };
             }
             // 创建并等待
@@ -158,7 +154,7 @@ namespace ToplingHelperModels.SubNetLogic
                 Task.Delay(TimeSpan.FromSeconds(1)).Wait();
                 instance = WaitingForInstance();
 
-            } while (instance.TodisPrivateIp == null);
+            } while (instance.PrivateIp == null);
 
             return instance;
         }
@@ -187,8 +183,8 @@ namespace ToplingHelperModels.SubNetLogic
 
             return new Instance
             {
-                TodisInstanceId = instance.id,
-                TodisPrivateIp = instance.host
+                InstanceEcsId = instance.id,
+                PrivateIp = instance.host
             };
 
         }

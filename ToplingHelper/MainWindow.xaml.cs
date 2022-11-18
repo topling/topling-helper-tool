@@ -3,37 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection.Metadata;
-using System.Security.RightsManagement;
 using System.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Markup;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Threading;
-using Aliyun.Acs.Core;
-using Aliyun.Acs.Core.Exceptions;
-using Aliyun.Acs.Core.Http;
-using Aliyun.Acs.Core.Profile;
-using Aliyun.Acs.Ecs.Model.V20140526;
-using Microsoft.Win32;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using ToplingHelperModels.Models;
 using ToplingHelperModels.SubNetLogic;
 
@@ -44,11 +17,6 @@ namespace ToplingHelper
     /// </summary>
     public partial class MainWindow : Window
     {
-
-        private const string Todis = "Pika";
-
-
-        private readonly CookieContainer _container = new();
 
         private readonly StringBuilder _logBuilder = new();
 
@@ -65,7 +33,7 @@ namespace ToplingHelper
             ToplingConstants = toplingConstants;
             AccessSecret.Text = UserData.AccessSecret;
             AccessId.Text = UserData.AccessId;
-            ToplingId.Text = UserData.ToplingId;
+            ToplingUserId.Text = UserData.ToplingUserId;
             ToplingPassword.Password = UserData.ToplingPassword;
 
         }
@@ -85,7 +53,7 @@ namespace ToplingHelper
             if (
                 string.IsNullOrWhiteSpace(AccessSecret.Text) ||
                 string.IsNullOrWhiteSpace(AccessId.Text) ||
-                string.IsNullOrWhiteSpace(ToplingId.Text) ||
+                string.IsNullOrWhiteSpace(ToplingUserId.Text) ||
                 string.IsNullOrWhiteSpace(ToplingPassword.Password)
             )
             {
@@ -108,12 +76,12 @@ namespace ToplingHelper
                 return;
             }
 
-            var context = (MySqlDataContext)ThisGrid.DataContext;
+            var context = (MySqlDataContext)MainWindowGrid.DataContext;
             UserData = new ToplingUserData
             {
                 AccessId = AccessId.Text,
                 AccessSecret = AccessSecret.Text,
-                ToplingId = ToplingId.Text,
+                ToplingUserId = ToplingUserId.Text,
                 ToplingPassword = ToplingPassword.Password,
                 GtidMode = UseGtid.IsChecked ?? false,
                 ServerId = context.EditServerId ? uint.Parse(ServerId.Text) : 0,
@@ -126,21 +94,13 @@ namespace ToplingHelper
                 SetInputs(true);
                 return;
             }
-
-
-
+            
             Dispatcher.BeginInvoke(() => MessageBox.Show("流程约三分钟，请不要关闭窗口!"));
             Task.Run(Worker);
 
         }
 
 
-        private void ShowFail(string vpcId, string cenId)
-        {
-            var window = new FailWindow(vpcId, cenId, $"{ToplingConstants.ToplingAliYunUserId}");
-            window.Show();
-
-        }
         private void Worker()
         {
             var handler = new AliYunResources(ToplingConstants, UserData, AppendLog);
@@ -208,7 +168,7 @@ namespace ToplingHelper
         private void SetInputs(bool status)
         {
             Btn.IsEnabled = status;
-            ToplingId.IsEnabled = status;
+            ToplingUserId.IsEnabled = status;
             ToplingPassword.IsEnabled = status;
             AccessId.IsEnabled = status;
             AccessSecret.IsEnabled = status;
@@ -242,13 +202,13 @@ namespace ToplingHelper
         private void Set_Todis(object sender, RoutedEventArgs e)
         {
             InstanceType = ToplingUserData.InstanceType.Todis;
-            ((MySqlDataContext)ThisGrid.DataContext).IsMySql = false;
+            ((MySqlDataContext)MainWindowGrid.DataContext).IsMySql = false;
         }
 
         private void Set_MyTopling(object sender, RoutedEventArgs e)
         {
             InstanceType = ToplingUserData.InstanceType.MyTopling;
-            ((MySqlDataContext)ThisGrid.DataContext).IsMySql = true;
+            ((MySqlDataContext)MainWindowGrid.DataContext).IsMySql = true;
 
         }
 

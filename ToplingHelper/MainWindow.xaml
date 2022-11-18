@@ -6,9 +6,8 @@
         xmlns:local="clr-namespace:ToplingHelper"
         xmlns:models="clr-namespace:ToplingHelperModels.Models;assembly=ToplingHelperModels"
         mc:Ignorable="d"
-        
         Title="拓扑岭自动化工具" Height="800" Width="800">
-    <Grid Name="ThisGrid">
+    <Grid Name="MainWindowGrid">
         <Grid.Resources>
             <local:VisibleConverter x:Key="VisibleConverter"/>
             <models:MySqlDataContext x:Key="VisibleMysqlKey"/>
@@ -60,11 +59,12 @@
                                 <Setter Property="Width" Value="350"/>
                                 <Setter Property="Height" Value="24"/>
                             </Style>
+
                         </StackPanel.Resources>
-                        <TextBox Style="{StaticResource InputStyle}" Name="ToplingId" TextWrapping="Wrap" />
+                        <TextBox      Style="{StaticResource InputStyle}" Name="ToplingUserId" TextWrapping="Wrap" />
                         <PasswordBox  Style="{StaticResource InputStyle}" Name="ToplingPassword"/>
-                        <TextBox Style="{StaticResource InputStyle}" Name="AccessId" TextWrapping="Wrap" />
-                        <TextBox Style="{StaticResource InputStyle}" Name="AccessSecret" TextWrapping="Wrap"/>
+                        <TextBox      Style="{StaticResource InputStyle}" Name="AccessId" TextWrapping="Wrap" />
+                        <TextBox      Style="{StaticResource InputStyle}" Name="AccessSecret" TextWrapping="Wrap"/>
 
                         <StackPanel Orientation="Horizontal" Style="{StaticResource InputStyle}">
                             <StackPanel.Resources>

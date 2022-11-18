@@ -5,9 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ToplingHelper"
         mc:Ignorable="d"
-        Title="运行成功" Height="700" Width="1000" >
+        Title="运行成功" Height="700" Width="1000" 
+        DataContext="{DynamicResource ContextKey}">
+    <Window.Resources>
+        <local:ResultDataContext x:Key="ContextKey"/>
+    </Window.Resources>
     <Grid>
-        <FlowDocumentScrollViewer Name="Viewer">
+        <FlowDocumentScrollViewer>
             <FlowDocumentScrollViewer.Resources>
                 <Style TargetType="TextBox">
                     <Setter Property="Background" Value="Transparent"/>
@@ -15,15 +19,11 @@
                     <Setter Property="IsReadOnly" Value="True" />
                     <Setter Property="BorderThickness" Value="0"/>
                 </Style>
-                <local:ResultDataContext x:Key="Context"/>
             </FlowDocumentScrollViewer.Resources>
-            <FlowDocumentScrollViewer.DataContext>
-                <Binding Source="{StaticResource Context}"/>
-            </FlowDocumentScrollViewer.DataContext>
             <FlowDocument  FontFamily="微软雅黑">
                 <Paragraph >
                     <TextBox>请登录阿里云，在</TextBox>
-                    <TextBox FontWeight="Bold" Text="{Binding Source={StaticResource Context},Path=UserVpcId}"/>
+                    <TextBox FontWeight="Bold" Text="{Binding Path=UserVpcId}"/>
                     <LineBreak/>
                     <TextBox>下创建新 ECS 实例，操作系统请选择</TextBox>
                     <TextBox  FontWeight="Bold" Foreground="Red">CentOS(7/8)/AliyunOS/Ubuntu(16.04/18.04)</TextBox> ，
@@ -34,7 +34,7 @@
                 </Paragraph>
                 <Paragraph>
                     <TextBox>一定在</TextBox>
-                    <TextBox FontWeight="Bold" FontSize="24" Text="{Binding Source={StaticResource Context},Path=UserVpcId}"></TextBox>
+                    <TextBox FontWeight="Bold" FontSize="24" Text="{Binding Path=UserVpcId}"></TextBox>
                     <TextBox>下创建实例！</TextBox>
                     <LineBreak />
                     <TextBox>操作系统请选择</TextBox>
@@ -42,7 +42,7 @@
                 </Paragraph>
                 <Paragraph FontFamily="微软雅黑">
                     <TextBox>连接</TextBox>
-                    <TextBox Text="{Binding Source={StaticResource Context},Path=TodisPrivateIp}"/>
+                    <TextBox Text="{Binding Path=TodisPrivateIp}"/>
                     <LineBreak/>
                     <Hyperlink Name="Grafana" Click="Grafana_OnClick">查看Grafana监控</Hyperlink>
                     <LineBreak/>
@@ -58,18 +58,18 @@
                             <TextBox>1. 运行</TextBox>
                             <TextBox Background="Gainsboro">curl http://100.100.100.200/latest/meta-data/vpc-id</TextBox>
                             <TextBox>查看结果是否为</TextBox>
-                            <TextBox FontWeight="Bold" Text="{Binding Source={StaticResource Context},Path=UserVpcId}"/>
+                            <TextBox FontWeight="Bold" Text="{Binding Path=UserVpcId}"/>
                         </Paragraph>
                         <Paragraph Padding="10,10,0,10">
                             2. 查看路由表(
                             <Hyperlink  Click="Route_click">点此跳转</Hyperlink> )，
                             选择自定义路由条目。应该存在一条目标网段为 10.0.0.0/16, 下一跳为
-                            <TextBox Text="{Binding Source={StaticResource Context},Path= PeerId}"/>
+                            <TextBox Text="{Binding Path= PeerId}"/>
                             的条目。
                             <LineBreak/>
                             <TextBlock xml:space="preserve"></TextBlock> 若缺少，请添加自定义路由条目:
-                            <TextBox Text="{Binding Source={StaticResource Context},Path=UserVpcId}"/>
-                            <TextBox Text="{Binding Source={StaticResource Context},Path=ToplingVpcId}"/>
+                            <TextBox Text="{Binding Path=UserVpcId}"/>
+                            <TextBox Text="{Binding Path=ToplingVpcId}"/>
                         </Paragraph>
                     </ListItem>
                     <ListItem>

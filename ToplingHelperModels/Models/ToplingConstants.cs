@@ -33,10 +33,9 @@ namespace ToplingHelperModels.Models
 
     public class ToplingUserData
     {
-        public long AliYunId { get; set; }
         public string AccessId { get; set; } = string.Empty;
         public string AccessSecret { get; set; } = string.Empty;
-        public string ToplingId { get; set; } = string.Empty;
+        public string ToplingUserId { get; set; } = string.Empty;
         public string ToplingPassword { get; set; } = string.Empty;
 
         public bool GtidMode { get; set; }

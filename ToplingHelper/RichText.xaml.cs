@@ -21,16 +21,15 @@ namespace ToplingHelper
     public partial class RichText : Window
     {
 
-        public ResultDataContext Context => (ResultDataContext)Viewer.DataContext;
+        private readonly ResultDataContext _context;
 
         public RichText(ResultDataContext context)
         {
             InitializeComponent();
-            Viewer.DataContext = context;
-
             TestPerformance.Text = PreTestText;
             TestCommands.Text = GetTestText(context.InstancePrivateIp);
-
+            Resources["ContextKey"] = context;
+            _context = context;
 
         }
 
@@ -38,11 +37,11 @@ namespace ToplingHelper
         {
             try
             {
-                Process.Start("Explorer", Context.RouteUrl);
+                Process.Start("Explorer", _context.RouteUrl);
             }
             catch (Exception)
             {
-                var window = OpenUrlFail.New(Context.RouteUrl, this);
+                var window = OpenUrlFail.New(_context.RouteUrl, this);
                 window.Show();
             }
 
@@ -77,7 +76,7 @@ zstd -d -c -q /mnt/weibo.zst  |  /mnt/InsertWeiboData -h {privateIp} -t 32 -f /d
 
         private void Engine_OnClick(object sender, RoutedEventArgs e)
         {
-            var ecsUrl = $"http://{Context.EcsId}.aliyun.db.topling.cn:8000";
+            var ecsUrl = $"http://{_context.EcsId}.aliyun.db.topling.cn:8000";
             try
             {
                 Process.Start("Explorer", ecsUrl);
@@ -92,7 +91,7 @@ zstd -d -c -q /mnt/weibo.zst  |  /mnt/InsertWeiboData -h {privateIp} -t 32 -f /d
 
         private void Grafana_OnClick(object sender, RoutedEventArgs e)
         {
-            var ecsUrl = $"http://{Context.EcsId}.aliyun.db.topling.cn:3000";
+            var ecsUrl = $"http://{_context.EcsId}.aliyun.db.topling.cn:3000";
             try
             {
                 Process.Start("Explorer", ecsUrl);

@@ -22,17 +22,18 @@ namespace ToplingHelper
     public partial class MyToplingWindow : Window
     {
 
-        public ResultDataContext Context => (ResultDataContext)Viewer.DataContext;
+        private ResultDataContext _resultDataContext ;
 
         public MyToplingWindow(ResultDataContext context)
         {
             InitializeComponent();
-            Viewer.DataContext = context;
+            _resultDataContext=context;
+            this.Resources["ContextKey"] = context;
         }
 
         private void Engine_OnClick(object sender, RoutedEventArgs e)
         {
-            var ecsUrl = $"http://{Context.EcsId}.aliyun.db.topling.cn:8000";
+            var ecsUrl = $"http://{_resultDataContext.EcsId}.aliyun.db.topling.cn:8000";
             try
             {
                 Process.Start("Explorer", ecsUrl);
@@ -48,7 +49,7 @@ namespace ToplingHelper
 
         private void Grafana_OnClick(object sender, RoutedEventArgs e)
         {
-            var ecsUrl = $"http://{Context.EcsId}.aliyun.db.topling.cn:3000";
+            var ecsUrl = $"http://{_resultDataContext.EcsId}.aliyun.db.topling.cn:3000";
             try
             {
                 Process.Start("Explorer", ecsUrl);
@@ -65,11 +66,11 @@ namespace ToplingHelper
 
             try
             {
-                Process.Start("Explorer", Context.RouteUrl);
+                Process.Start("Explorer", _resultDataContext.RouteUrl);
             }
             catch (Exception)
             {
-                var window = OpenUrlFail.New(Context.RouteUrl, this);
+                var window = OpenUrlFail.New(_resultDataContext.RouteUrl, this);
                 window.Show();
             }
 

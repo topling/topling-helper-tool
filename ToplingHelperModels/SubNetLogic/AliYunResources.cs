@@ -32,7 +32,7 @@ public sealed class AliYunResources : IDisposable
         _client = new DefaultAcsClient();
         _userData = userData;
         _appendLog = logger;
-        _toplingResources = new ToplingResources(constants, userData, logger);
+        _toplingResources = new ToplingResources(constants, userData);
     }
 
     public Instance CreateInstance()
