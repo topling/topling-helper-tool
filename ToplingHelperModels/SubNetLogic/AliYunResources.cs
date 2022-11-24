@@ -6,7 +6,9 @@ using System.Reflection;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Aliyun.Acs.Core;
+using Aliyun.Acs.Core.Exceptions;
 using Aliyun.Acs.Core.Http;
+using Aliyun.Acs.Core.Profile;
 using Aliyun.Acs.Ecs.Model.V20140526;
 using Newtonsoft.Json.Linq;
 using ToplingHelperModels.Models;
@@ -21,7 +23,6 @@ public sealed class AliYunResources : IDisposable
 {
     private readonly ToplingConstants _toplingConstants;
     private readonly DefaultAcsClient _client;
-    private readonly ToplingUserData _userData;
     private readonly ToplingResources _toplingResources;
 
     private readonly Action<string> _appendLog;
@@ -29,8 +30,7 @@ public sealed class AliYunResources : IDisposable
     public AliYunResources(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
     {
         _toplingConstants = constants;
-        _client = new DefaultAcsClient();
-        _userData = userData;
+        _client = new DefaultAcsClient(DefaultProfile.GetProfile(constants.ToplingTestRegion, userData.AccessId, userData.AccessSecret));
         _appendLog = logger;
         _toplingResources = new ToplingResources(constants, userData);
     }
@@ -40,17 +40,25 @@ public sealed class AliYunResources : IDisposable
         // 先处理记录了VPC的情况
         var subNet = _toplingResources.GetDefaultUserSubNet();
         AvailableVpc? availableVpc = null;
-        var pageNumber = 1;
         DescribeVpcsResponse.DescribeVpcs_Vpc? vpc;
         string? userId = null;
-        for (; ; ++pageNumber)
+        for (var pageNumber = 1; ; ++pageNumber)
         {
-            var vpcResponse = _client.GetAcsResponse(new DescribeVpcsRequest
+            DescribeVpcsResponse vpcResponse;
+            try
             {
-                RegionId = _toplingConstants.ToplingTestRegion,
-                PageNumber = pageNumber,
-                PageSize = 50
-            });
+                vpcResponse = _client.GetAcsResponse(new DescribeVpcsRequest
+                {
+                    RegionId = _toplingConstants.ToplingTestRegion,
+                    PageNumber = pageNumber,
+                    PageSize = 50
+                });
+            }
+            catch (ClientException e) when
+                (e.ErrorCode.Equals("SDK.InvalidProfile", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new Exception("请确保您提供的AccessKey Secret有效");
+            }
 
             var vpcList = vpcResponse.Vpcs;
             if (userId == null && vpcList.Any())
@@ -96,13 +104,19 @@ public sealed class AliYunResources : IDisposable
             CreateDefaultSecurityGroupIfNotExists(vpcId);
             // 创建对等连接&发送并网请求
             _appendLog("对VPC创建对等连接并设置路由");
-            var peerId = CreatePeerAndAddRoute(vpcId, availableVpc, cidr);
+            var peerId = CreatePeer(vpcId, availableVpc, cidr);
             _appendLog("使用对等连接并网");
             _toplingResources.GrantPeer(peerId, second, vpcId);
-            // 创建交换机(幂等)
+
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
+            // 添加路由
+            _appendLog("添加路由表项");
+            AddRoute(cidr, vpcId, peerId);
+            // 创建交换机(幂等)
+            _appendLog("创建交换机");
             CreateIdempotentVSwitch(vpcId, second);
             // 创建实例
+            _appendLog("开始创建实例");
             return _toplingResources.CreateDefaultInstance(peerId);
 
 
@@ -110,41 +124,56 @@ public sealed class AliYunResources : IDisposable
         // 本地创建了但是却没有并网
         if (subNet == null && vpc != null)
         {
-            var rand = new Random();
-            var second = rand.Next(1, 255);
+            var cidr = vpc.Tags.FirstOrDefault(v => v.Key.Equals(_toplingConstants.ToplingVpcTagKey))?._Value;
+            var second = GetSecondFromCidr(cidr);
             // 查看现在是否存在请求中的对等连接，尝试并网，(注意确认对等连接一端是否是这个VPC)
             var peerId = GetCurrentPeering(vpc.VpcId);
             if (peerId == null)
             {
-                for (var i = 0; i < _toplingConstants.CidrMaxTry; ++i)
+                if (cidr == null)
                 {
-                    availableVpc = _toplingResources.GetAvailableVpc(second, out errorMessage);
-                    if (availableVpc != null)
+                    Debug.Assert(second == null);
+                    var rand = new Random();
+                    second = rand.Next(1, 255);
+                    for (var i = 0; i < _toplingConstants.CidrMaxTry; ++i)
                     {
-                        break;
+                        availableVpc = _toplingResources.GetAvailableVpc(second.Value, out errorMessage);
+                        if (availableVpc != null)
+                        {
+                            break;
+                        }
+                        second = rand.Next(1, 255);
                     }
+                    // 重复后依旧获取不到可用的VPC来并网
+                    if (availableVpc == null)
+                    {
+                        throw new Exception($"未能获取可用的VPC，请重试或联系管理员: {errorMessage}");
+                    }
+                    cidr = $"10.{second}.0.0/16";
                 }
-                // 重复后依旧获取不到可用的VPC来并网
-                if (availableVpc == null)
-                {
-                    throw new Exception($"未能获取可用的VPC，请重试或联系管理员: {errorMessage}");
-                }
-                CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
-                var cidr = $"10.{second}.0.0/16";
+                Debug.Assert(cidr != null);
+                // 如果有变化则更新cidr
                 AddVpcTag(vpc.VpcId, cidr);
-                peerId = CreatePeerAndAddRoute(vpc.VpcId, availableVpc, cidr);
+                CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
+
+                Debug.Assert(availableVpc != null);
+                peerId = CreatePeer(vpc.VpcId, availableVpc, cidr);
             }
             // 如果失败，则删除对等连接并且在这个上面重新尝试新的交换机并且尝试并网
-
-
             _appendLog("使用对等连接并网");
             // 获取peerId和second
-            _toplingResources.GrantPeer(peerId, second, vpc.VpcId);
+            _toplingResources.GrantPeer(peerId, second!.Value, vpc.VpcId);
             // 创建交换机(幂等)
-            Task.Delay(TimeSpan.FromSeconds(10)).Wait();
-            CreateIdempotentVSwitch(vpc.VpcId, second);
-            // 创建实例
 
+            Task.Delay(TimeSpan.FromSeconds(10)).Wait();
+            // 添加路由
+            Debug.Assert(cidr != null);
+            _appendLog("添加路由表项");
+            AddRoute(cidr, vpc.VpcId, peerId);
+            _appendLog("创建交换机");
+            CreateIdempotentVSwitch(vpc.VpcId, second!.Value);
+            // 创建实例
+            _appendLog("开始创建实例");
             return _toplingResources.CreateDefaultInstance(peerId);
         }
         // 已经并网了查看是否正确工作
@@ -157,12 +186,13 @@ public sealed class AliYunResources : IDisposable
                 //提示核对用户的accessKey,两边账号对不上
                 throw new Exception($"已注册注册子网账号{subNet.UserCloudId}和提交AccessKey账号{vpc.OwnerId}不同，请检查");
             }
-            var regex = new Regex(@"10\.(?<second>\d+)\.0\.0/16");
-            var second = int.Parse(regex.Match(subNet.Cidr).Groups["second"].Value);
+
+            var second = GetSecondFromCidr(subNet.Cidr)!.Value;
             // 已经联网完成，添加路由表和交换机
+            AddRoute(subNet.Cidr, vpc.VpcId, subNet.PeerId);
             CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
             CreateIdempotentVSwitch(vpc.VpcId, second);
-
+            _appendLog("开始创建实例");
             return _toplingResources.CreateDefaultInstance(subNet.PeerId);
         }
 
@@ -195,7 +225,21 @@ public sealed class AliYunResources : IDisposable
         throw new IndexOutOfRangeException("执行错误，请联系客服");
     }
 
+    private int? GetSecondFromCidr(string? cidr)
+    {
+        if (cidr == null)
+        {
+            return null;
+        }
+        var regex = new Regex(@"10\.(?<second>\d+)\.0\.0/16");
 
+        if (int.TryParse(regex.Match(cidr).Groups["second"].Value, out var res))
+        {
+            return res;
+        }
+
+        return null;
+    }
     private void CreateIdempotentVSwitch(string vpcId, int secondCidr)
     {
         // 获取所有的可用区
@@ -206,13 +250,32 @@ public sealed class AliYunResources : IDisposable
         foreach (var (index, zoneId) in zoneList.Zones.Select((zone, index) => (index, zone.ZoneId)))
         {
             var block = $"10.{secondCidr}.{index}.0/24";
-            _client.GetAcsResponse(new CreateVSwitchRequest
+            for (int i = 0; i < 3; ++i)
             {
-                VpcId = vpcId,
-                ZoneId = zoneId,
-                CidrBlock = block,
-                ClientToken = $"{vpcId}_{zoneId}_{block}"
-            });
+                try
+                {
+                    _client.GetAcsResponse(new CreateVSwitchRequest
+                    {
+                        VpcId = vpcId,
+                        ZoneId = zoneId,
+                        CidrBlock = block,
+                        ClientToken = $"{vpcId}_{zoneId}_{block}"
+                    });
+                }
+                catch (ClientException e) when (e.ErrorCode.Equals("InvalidStatus.RouteEntry",
+                                                    StringComparison.OrdinalIgnoreCase))
+                {
+                    if (i < 2)
+                    {
+                        Task.Delay(TimeSpan.FromSeconds(2));
+                        continue;
+                    }
+
+                    throw;
+                }
+            }
+
+
         }
     }
 
@@ -232,7 +295,7 @@ public sealed class AliYunResources : IDisposable
         _client.GetCommonResponse(request);
     }
 
-    private string CreatePeerAndAddRoute(string vpcId, AvailableVpc toplingAvailable, string cidr)
+    private string CreatePeer(string vpcId, AvailableVpc toplingAvailable, string cidr)
     {
         // 创建到topling的对等连接并且添加路由表
         var clientToken = $"pcc_{toplingAvailable.VpcId}_{vpcId}_{cidr}";
@@ -256,14 +319,18 @@ public sealed class AliYunResources : IDisposable
             throw new Exception(response.Data);
         }
 
+        var pccId = JObject.Parse(response.Data)["InstanceId"].ToString();
+        return pccId;
+    }
+
+    private void AddRoute(string cidr, string vpcId, string pccId)
+    {
 
         var routeTableId = _client.GetAcsResponse(new DescribeVpcsRequest
         {
             RegionId = _toplingConstants.ToplingTestRegion,
             VpcId = vpcId,
         }).Vpcs.First().RouterTableIds.First();
-        var pccId = JObject.Parse(response.Data)["InstanceId"].ToString();
-
         // add route
         var routeToken = $"route_{cidr}_{routeTableId}_{pccId}";
         _client.GetAcsResponse(new CreateRouteEntryRequest
@@ -274,7 +341,6 @@ public sealed class AliYunResources : IDisposable
             NextHopType = "VpcPeer",
             ClientToken = routeToken
         });
-        return pccId;
     }
 
     /// <summary>

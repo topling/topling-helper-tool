@@ -74,10 +74,11 @@ namespace ToplingHelperModels.SubNetLogic
             if (res["code"].ToObject<int>() == 0)
             {
                 errorMessage = string.Empty;
+                var data = res["data"];
                 return new AvailableVpc
                 {
-                    VpcId = res["availableVpcId"].ToString(),
-                    ToplingId = res["toplingId"].ToString()
+                    VpcId = data["vpcId"].ToString(),
+                    ToplingId = data["id"].ToString()
                 };
             }
 
@@ -110,7 +111,7 @@ namespace ToplingHelperModels.SubNetLogic
         public Instance CreateDefaultInstance(string subNetId)
         {
 
-            var uri = $"{_toplingConstants.ToplingConsoleHost}/api/SubNet";
+            var uri = $"{_toplingConstants.ToplingConsoleHost}/api/SubNetInstance";
             var res = ((JArray)JObject.Parse(_httpClient.GetStringAsync(uri).Result)["data"]!)
                     .FirstOrDefault();
             // TODO  检测实例类型
@@ -128,7 +129,7 @@ namespace ToplingHelperModels.SubNetLogic
             }
             // 创建并等待
 
-            uri = $"/api/SubNetInstance/aliyun/{_userData.CreatingInstanceType}";
+            uri = $"{_toplingConstants.ToplingConsoleHost}/api/SubNetInstance/aliyun/{_userData.CreatingInstanceType}";
             FlushXsrf();
 
             var bodyContent = JsonConvert.SerializeObject(new
@@ -147,7 +148,8 @@ namespace ToplingHelperModels.SubNetLogic
 
             });
             var body = new StringContent(bodyContent, Encoding.UTF8, "application/json");
-            _httpClient.PostAsync(uri, body).Wait();
+            var response = _httpClient.PostAsync(uri, body).Result;
+            var content = response.Content.ReadAsStringAsync().Result;
             Instance instance;
             do
             {
@@ -161,6 +163,7 @@ namespace ToplingHelperModels.SubNetLogic
 
         public Instance WaitingForInstance()
         {
+
             var uri = $"{_toplingConstants.ToplingConsoleHost}/api/subnetinstance";
 
             var response = _httpClient.GetAsync(uri).Result;

@@ -87,7 +87,7 @@ namespace ToplingHelper
                 ServerId = context.EditServerId ? uint.Parse(ServerId.Text) : 0,
                 CreatingInstanceType = InstanceType.Value,
             };
-
+            
             if (!UserData.UserdataCheck(out var error))
             {
                 MessageBox.Show(error);
