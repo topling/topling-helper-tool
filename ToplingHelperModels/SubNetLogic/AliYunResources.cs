@@ -90,6 +90,8 @@ public sealed class AliYunResources : IDisposable
                 {
                     break;
                 }
+
+                second = rand.Next(1, 255);
             }
             // 重复后依旧获取不到可用的VPC来并网
             if (availableVpc == null)
@@ -118,7 +120,7 @@ public sealed class AliYunResources : IDisposable
             // 创建实例
             _appendLog("开始创建实例");
             var instance = _toplingResources.CreateDefaultInstance(peerId, vpcId);
-            instance.RouteId = vpc!.VRouterId;
+            instance.RouteId = vpc!.RouterTableIds.First();
             return instance;
 
 
@@ -134,7 +136,9 @@ public sealed class AliYunResources : IDisposable
             {
 
                 var rand = new Random();
-                second = rand.Next(1, 255);
+                // 如果分配过，则先尝试现有的网段(否则每次都会创建一组交换机)
+                second ??= rand.Next(1, 255);
+
                 for (var i = 0; i < _toplingConstants.CidrMaxTry; ++i)
                 {
                     availableVpc = _toplingResources.GetAvailableVpc(second.Value, out errorMessage);
@@ -175,7 +179,7 @@ public sealed class AliYunResources : IDisposable
             // 创建实例
             _appendLog("开始创建实例");
             var result = _toplingResources.CreateDefaultInstance(peerId, vpc.VpcId);
-            result.RouteId = vpc.VRouterId;
+            result.RouteId = vpc!.RouterTableIds.First();
             return result;
         }
         // 已经并网了查看是否正确工作
@@ -196,7 +200,7 @@ public sealed class AliYunResources : IDisposable
             CreateIdempotentVSwitch(vpc.VpcId, second);
             _appendLog("开始创建实例");
             var res = _toplingResources.CreateDefaultInstance(subNet.PeerId, vpc.VpcId);
-            res.RouteId = vpc.VRouterId;
+            res.RouteId = vpc!.RouterTableIds.First();
             return res;
         }
 

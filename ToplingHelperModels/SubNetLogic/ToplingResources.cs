@@ -91,7 +91,7 @@ namespace ToplingHelperModels.SubNetLogic
         {
             var uri = $"{_toplingConstants.ToplingConsoleHost}/api/SubNet";
             FlushXsrf();
-            var res = JObject.Parse(_httpClient.PostAsync(uri,
+            var content = _httpClient.PostAsync(uri,
                 JsonContent.Create(new
                 {
                     peerId,
@@ -101,7 +101,8 @@ namespace ToplingHelperModels.SubNetLogic
                     name = "auto-create",
                     provider = "AliYun"
                 })
-                ).Result.Content.ReadAsStringAsync().Result);
+            ).Result.Content.ReadAsStringAsync().Result;
+            var res = JObject.Parse(content);
             if (res["code"].ToObject<int>() != 0)
             {
                 throw new Exception(res["msg"].ToString());
@@ -121,7 +122,15 @@ namespace ToplingHelperModels.SubNetLogic
                     throw new Exception("现在已经存在和待创建实例类型不同的实例，请再控制台中删除实例后直接创建新实例");
                 }
 
-                return WaitingForInstance(vpcId);
+                Instance? instance1;
+                do
+                {
+                    Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+                    instance1 = WaitingForInstance(vpcId);
+                } while (instance1.PrivateIp == null);
+
+                return instance1;
+
             }
             // 创建并等待
 
@@ -152,7 +161,7 @@ namespace ToplingHelperModels.SubNetLogic
                 Task.Delay(TimeSpan.FromSeconds(1)).Wait();
                 instance = WaitingForInstance(vpcId);
 
-            } while (instance.PrivateIp == null);
+            } while (string.IsNullOrWhiteSpace(instance.PrivateIp));
 
             return instance;
         }

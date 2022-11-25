@@ -33,14 +33,29 @@ namespace ToplingHelper
                 EcsId = instance.InstanceEcsId,
                 UserVpcId = instance.VpcId,
                 PeerId = instance.PeerId,
+                RouteId = instance.RouteId,
                 InstancePrivateIp = instance.PrivateIp
             };
             this.Resources["ContextKey"] = _resultDataContext;
         }
 
+        private string BaseDomain
+        {
+            get
+            {
+                var host = (_resultDataContext.Constants.ToplingConsoleHost.StartsWith("http")
+                    ? (new Uri(_resultDataContext.Constants.ToplingConsoleHost)).Host
+                    : _resultDataContext.Constants.ToplingConsoleHost);
+
+                return string.Join(".", host.Split('.').TakeLast(2));
+
+            }
+        }
+
+
         private void Engine_OnClick(object sender, RoutedEventArgs e)
         {
-            var ecsUrl = $"http://{_resultDataContext.EcsId}.aliyun.db.{_resultDataContext.Constants.ToplingConsoleHost}:8000";
+            var ecsUrl = $"http://{_resultDataContext.EcsId}.aliyun.db.{BaseDomain}:8000";
             try
             {
                 Process.Start("Explorer", ecsUrl);
@@ -56,7 +71,7 @@ namespace ToplingHelper
 
         private void Grafana_OnClick(object sender, RoutedEventArgs e)
         {
-            var ecsUrl = $"http://{_resultDataContext.EcsId}.aliyun.db.{_resultDataContext.Constants.ToplingConsoleHost}:3000";
+            var ecsUrl = $"http://{_resultDataContext.EcsId}.aliyun.db.{BaseDomain}:3000";
             try
             {
                 Process.Start("Explorer", ecsUrl);
