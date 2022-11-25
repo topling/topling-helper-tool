@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using ToplingHelperModels.Models;
 
 namespace ToplingHelper
 {
@@ -23,14 +24,21 @@ namespace ToplingHelper
 
         private readonly ResultDataContext _context;
 
-        public RichText(ResultDataContext context)
+        public RichText(Instance instance, ToplingConstants constants)
         {
             InitializeComponent();
+            _context = new ResultDataContext
+            {
+                Constants = constants,
+                EcsId = instance.InstanceEcsId,
+                UserVpcId = instance.VpcId,
+                PeerId = instance.PeerId,
+                InstancePrivateIp = instance.PrivateIp,
+                RouteId = instance.RouteId
+            };
             TestPerformance.Text = PreTestText;
-            TestCommands.Text = GetTestText(context.InstancePrivateIp);
-            Resources["ContextKey"] = context;
-            _context = context;
-
+            TestCommands.Text = GetTestText(_context.InstancePrivateIp);
+            Resources["ContextKey"] = _context;
         }
 
         private void Route_click(object sender, RoutedEventArgs e)

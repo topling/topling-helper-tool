@@ -108,24 +108,20 @@ namespace ToplingHelperModels.SubNetLogic
             }
         }
 
-        public Instance CreateDefaultInstance(string subNetId)
+        public Instance CreateDefaultInstance(string subNetId, string vpcId)
         {
 
             var uri = $"{_toplingConstants.ToplingConsoleHost}/api/SubNetInstance";
             var res = ((JArray)JObject.Parse(_httpClient.GetStringAsync(uri).Result)["data"]!)
                     .FirstOrDefault();
-            // TODO  检测实例类型
             if (res != null)
             {
-                if (_userData.CreatingInstanceType.ToString().Equals(res["instanceType"].ToString(), StringComparison.OrdinalIgnoreCase))
+                if (!_userData.CreatingInstanceType.ToString().Equals(res["instanceType"].ToString(), StringComparison.OrdinalIgnoreCase))
                 {
                     throw new Exception("现在已经存在和待创建实例类型不同的实例，请再控制台中删除实例后直接创建新实例");
                 }
-                return new Instance
-                {
-                    PrivateIp = res["host"].ToString(),
-                    InstanceEcsId = res["id"].ToString()
-                };
+
+                return WaitingForInstance(vpcId);
             }
             // 创建并等待
 
@@ -154,14 +150,14 @@ namespace ToplingHelperModels.SubNetLogic
             do
             {
                 Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                instance = WaitingForInstance();
+                instance = WaitingForInstance(vpcId);
 
             } while (instance.PrivateIp == null);
 
             return instance;
         }
 
-        public Instance WaitingForInstance()
+        public Instance WaitingForInstance(string vpcId)
         {
 
             var uri = $"{_toplingConstants.ToplingConsoleHost}/api/subnetinstance";
@@ -186,6 +182,9 @@ namespace ToplingHelperModels.SubNetLogic
 
             return new Instance
             {
+
+                VpcId = vpcId,
+                PeerId = instance.subNetId,
                 InstanceEcsId = instance.id,
                 PrivateIp = instance.host
             };

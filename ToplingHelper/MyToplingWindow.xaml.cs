@@ -22,18 +22,25 @@ namespace ToplingHelper
     public partial class MyToplingWindow : Window
     {
 
-        private ResultDataContext _resultDataContext ;
+        private readonly ResultDataContext _resultDataContext;
 
-        public MyToplingWindow(ResultDataContext context)
+        public MyToplingWindow(Instance instance, ToplingConstants constants)
         {
             InitializeComponent();
-            _resultDataContext=context;
-            this.Resources["ContextKey"] = context;
+            _resultDataContext = new ResultDataContext
+            {
+                Constants = constants,
+                EcsId = instance.InstanceEcsId,
+                UserVpcId = instance.VpcId,
+                PeerId = instance.PeerId,
+                InstancePrivateIp = instance.PrivateIp
+            };
+            this.Resources["ContextKey"] = _resultDataContext;
         }
 
         private void Engine_OnClick(object sender, RoutedEventArgs e)
         {
-            var ecsUrl = $"http://{_resultDataContext.EcsId}.aliyun.db.topling.cn:8000";
+            var ecsUrl = $"http://{_resultDataContext.EcsId}.aliyun.db.{_resultDataContext.Constants.ToplingConsoleHost}:8000";
             try
             {
                 Process.Start("Explorer", ecsUrl);
@@ -49,7 +56,7 @@ namespace ToplingHelper
 
         private void Grafana_OnClick(object sender, RoutedEventArgs e)
         {
-            var ecsUrl = $"http://{_resultDataContext.EcsId}.aliyun.db.topling.cn:3000";
+            var ecsUrl = $"http://{_resultDataContext.EcsId}.aliyun.db.{_resultDataContext.Constants.ToplingConsoleHost}:3000";
             try
             {
                 Process.Start("Explorer", ecsUrl);

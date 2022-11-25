@@ -8,9 +8,7 @@ public class Instance
 
     public string? VpcId { get; set; }
 
-    public string? ToplingVpcId { get; set; }
-
-    public string? RouterId { get; set; }
     public string? PeerId { get; set; }
 
+    public string? RouteId { get; set; }
 }

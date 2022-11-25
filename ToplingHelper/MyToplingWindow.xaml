@@ -59,7 +59,7 @@
                     <TextBox>1. 运行</TextBox>
                     <TextBox Background="Gainsboro">curl http://100.100.100.200/latest/meta-data/vpc-id</TextBox>
                     <TextBox>查看结果是否为</TextBox>
-                    <TextBox FontWeight="Bold" Text="{Binding Path=ToplingVpcId}"/>
+                    <TextBox FontWeight="Bold" Text="{Binding Path=UserVpcId}"/>
                 </Paragraph>
                 <Paragraph Padding="10,10,0,10">
                     2. 查看路由表(
@@ -70,7 +70,7 @@
                     <LineBreak/>
                     <TextBlock xml:space="preserve">    </TextBlock>若缺少，请添加自定义路由条目:
                     
-                    <TextBox Text="{Binding Path=UserVpcId}"/>
+                    <TextBox Text="{Binding Path=PeerId}"/>
                     <TextBox Text="{Binding Path=ToplingVpcId}"/>
                 </Paragraph>
             </FlowDocument>

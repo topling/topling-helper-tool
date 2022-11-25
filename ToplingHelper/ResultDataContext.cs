@@ -12,7 +12,6 @@ namespace ToplingHelper
 {
     public class ResultDataContext : INotifyPropertyChanged
     {
-        private string _toplingVpcId;
         private string _ecsId;
         private string _userVpcId;
         private string _instancePrivateIp;
@@ -20,18 +19,7 @@ namespace ToplingHelper
         private string _routeId;
         private ToplingConstants _constants;
         public event PropertyChangedEventHandler PropertyChanged;
-
-        public string ToplingVpcId
-        {
-            get => _toplingVpcId;
-            set
-            {
-                _toplingVpcId = value;
-                OnPropertyChanged(nameof(ToplingVpcId));
-            }
-
-        }
-
+        
         public ToplingConstants Constants
         {
             get => _constants;

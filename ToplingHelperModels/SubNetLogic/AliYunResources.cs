@@ -117,7 +117,9 @@ public sealed class AliYunResources : IDisposable
             CreateIdempotentVSwitch(vpcId, second);
             // 创建实例
             _appendLog("开始创建实例");
-            return _toplingResources.CreateDefaultInstance(peerId);
+            var instance = _toplingResources.CreateDefaultInstance(peerId, vpcId);
+            instance.RouteId = vpc!.VRouterId;
+            return instance;
 
 
         }
@@ -130,27 +132,25 @@ public sealed class AliYunResources : IDisposable
             var peerId = GetCurrentPeering(vpc.VpcId);
             if (peerId == null)
             {
-                if (cidr == null)
+
+                var rand = new Random();
+                second = rand.Next(1, 255);
+                for (var i = 0; i < _toplingConstants.CidrMaxTry; ++i)
                 {
-                    Debug.Assert(second == null);
-                    var rand = new Random();
+                    availableVpc = _toplingResources.GetAvailableVpc(second.Value, out errorMessage);
+                    if (availableVpc != null)
+                    {
+                        break;
+                    }
                     second = rand.Next(1, 255);
-                    for (var i = 0; i < _toplingConstants.CidrMaxTry; ++i)
-                    {
-                        availableVpc = _toplingResources.GetAvailableVpc(second.Value, out errorMessage);
-                        if (availableVpc != null)
-                        {
-                            break;
-                        }
-                        second = rand.Next(1, 255);
-                    }
-                    // 重复后依旧获取不到可用的VPC来并网
-                    if (availableVpc == null)
-                    {
-                        throw new Exception($"未能获取可用的VPC，请重试或联系管理员: {errorMessage}");
-                    }
-                    cidr = $"10.{second}.0.0/16";
                 }
+                // 重复后依旧获取不到可用的VPC来并网
+                if (availableVpc == null)
+                {
+                    throw new Exception($"未能获取可用的VPC，请重试或联系管理员: {errorMessage}");
+                }
+                cidr = $"10.{second}.0.0/16";
+
                 Debug.Assert(cidr != null);
                 // 如果有变化则更新cidr
                 AddVpcTag(vpc.VpcId, cidr);
@@ -174,7 +174,9 @@ public sealed class AliYunResources : IDisposable
             CreateIdempotentVSwitch(vpc.VpcId, second!.Value);
             // 创建实例
             _appendLog("开始创建实例");
-            return _toplingResources.CreateDefaultInstance(peerId);
+            var result = _toplingResources.CreateDefaultInstance(peerId, vpc.VpcId);
+            result.RouteId = vpc.VRouterId;
+            return result;
         }
         // 已经并网了查看是否正确工作
         if (subNet != null && vpc != null)
@@ -193,7 +195,9 @@ public sealed class AliYunResources : IDisposable
             CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
             CreateIdempotentVSwitch(vpc.VpcId, second);
             _appendLog("开始创建实例");
-            return _toplingResources.CreateDefaultInstance(subNet.PeerId);
+            var res = _toplingResources.CreateDefaultInstance(subNet.PeerId, vpc.VpcId);
+            res.RouteId = vpc.VRouterId;
+            return res;
         }
 
         // 这种情况属于病态
@@ -406,7 +410,7 @@ public sealed class AliYunResources : IDisposable
         // request.Protocol = ProtocolType.HTTP;
         request.AddQueryParameters("VpcId.1", vpcId);
         var response = _client.GetCommonResponse(request);
-        var peerList = ((JObject.Parse(response.Data)["Data"]["VpcPeerConnects"] as JArray)!)
+        var peerList = ((JObject.Parse(response.Data)?["Data"]?["VpcPeerConnects"] as JArray) ?? new JArray())
             .Where(peer =>
             {
                 var status = peer["Status"].ToString();

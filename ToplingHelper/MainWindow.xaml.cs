@@ -87,14 +87,14 @@ namespace ToplingHelper
                 ServerId = context.EditServerId ? uint.Parse(ServerId.Text) : 0,
                 CreatingInstanceType = InstanceType.Value,
             };
-            
+
             if (!UserData.UserdataCheck(out var error))
             {
                 MessageBox.Show(error);
                 SetInputs(true);
                 return;
             }
-            
+
             Dispatcher.BeginInvoke(() => MessageBox.Show("流程约三分钟，请不要关闭窗口!"));
             Task.Run(Worker);
 
@@ -112,16 +112,7 @@ namespace ToplingHelper
                 {
                     ToplingUserData.InstanceType.Todis => () =>
                     {
-                        var window = new RichText(new ResultDataContext
-                        {
-                            ToplingVpcId = instance.ToplingVpcId,
-                            Constants = ToplingConstants,
-                            EcsId = instance.InstanceEcsId,
-                            UserVpcId = instance.VpcId,
-                            PeerId = instance.PeerId,
-                            RouteId = instance.RouterId,
-                            InstancePrivateIp = instance.PrivateIp
-                        })
+                        var window = new RichText(instance, ToplingConstants)
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             Owner = this
@@ -131,16 +122,7 @@ namespace ToplingHelper
                     ,
                     ToplingUserData.InstanceType.MyTopling => () =>
                     {
-                        var window = new MyToplingWindow(new ResultDataContext
-                        {
-                            ToplingVpcId = instance.ToplingVpcId,
-                            Constants = ToplingConstants,
-                            EcsId = instance.InstanceEcsId,
-                            UserVpcId = instance.VpcId,
-                            PeerId = instance.PeerId,
-                            RouteId = instance.RouterId,
-                            InstancePrivateIp = instance.PrivateIp
-                        })
+                        var window = new MyToplingWindow(instance, ToplingConstants)
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             Owner = this
@@ -156,7 +138,7 @@ namespace ToplingHelper
             catch (Exception e)
             {
                 MessageBox.Show(
-                    $"执行失败:{Environment.NewLine}{e.Data}",
+                    $"执行失败:{Environment.NewLine}{e.Message}",
                     "执行失败");
             }
             finally
