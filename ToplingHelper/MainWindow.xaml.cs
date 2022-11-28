@@ -141,11 +141,15 @@ namespace ToplingHelper
             {
                 if (e.Message.Contains("OperationFailed.CdtNotOpened"))
                 {
-                    MessageBox.Show(@"
-执行失败, 此用户尚未开通对等连接
-点击确定将前往相关页面(https://vpc.console.aliyun.com/vpcpeer/cn-shenzhen/vpcpeers)开通对等连接功能，
-在浏览器打开的页面中点击""开通CDT功能""", "此用户未开通对等连接");
-                    Process.Start("Explorer", "https://vpc.console.aliyun.com/vpcpeer/cn-shenzhen/vpcpeers");
+                    Dispatcher.Invoke(() =>
+                    {
+                        var window = new CdtNotOpened()
+                        {
+                            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                            Owner = this
+                        };
+                        window.Show();
+                    });
                 }
                 else
                 {
