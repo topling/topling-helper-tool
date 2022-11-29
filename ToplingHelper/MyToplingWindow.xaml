@@ -29,11 +29,12 @@
             </FlowDocumentScrollViewer.Resources>
             <FlowDocument>
                 <Paragraph>
-                    <TextBox>请登录阿里云，在
-                    </TextBox>
+                    <TextBox>请登录阿里云，在可用区</TextBox>
+                    <TextBox FontWeight="Bold" >深圳</TextBox>
+                    <TextBox>下，VPC选择</TextBox>
                     <TextBox FontWeight="Bold" Text="{Binding Path=UserVpcId,UpdateSourceTrigger=PropertyChanged}">
                     </TextBox>
-                    <TextBox>下创建新 ECS 实例以连接 MyTopling(MySQL) 服务</TextBox>
+                    <TextBox>创建新 ECS 实例以连接 MyTopling(MySQL) 服务</TextBox>
                 </Paragraph>
                 <Paragraph FontFamily="微软雅黑">
                     <TextBox>连接</TextBox>
@@ -45,7 +46,7 @@
                     <LineBreak/>
                     <TextBlock><TextBlock Foreground="Red">初次连接</TextBlock>必须<TextBlock Foreground="Red">修改密码</TextBlock>后使用:</TextBlock>
                     <LineBreak/>
-                    <TextBox Background="Gainsboro" Margin="0,8,0,0" Text="alter user 'admin'@'%' identified by 'topling';&#10;flush privileges;" />
+                    <TextBox Background="Gainsboro" Margin="0,8,0,0" Text="alter user 'admin'@'%' identified WITH mysql_native_password by 'topling';&#10;flush privileges;" />
                     <LineBreak/>
                     <LineBreak/>
                     <Hyperlink Name="Grafana" Click="Grafana_OnClick">查看Grafana监控</Hyperlink>
@@ -71,7 +72,7 @@
                     <TextBlock xml:space="preserve">    </TextBlock>若缺少，请添加自定义路由条目:
                     
                     <TextBox Text="{Binding Path=PeerId}"/>
-                    <TextBox Text="{Binding Path=ToplingVpcId}"/>
+                    <TextBox Text="{Binding Path=UserVpcId}"/>
                 </Paragraph>
             </FlowDocument>
         </FlowDocumentScrollViewer>

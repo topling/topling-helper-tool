@@ -258,7 +258,7 @@ public sealed class AliYunResources : IDisposable
         foreach (var (index, zoneId) in zoneList.Zones.Select((zone, index) => (index, zone.ZoneId)))
         {
             var block = $"10.{secondCidr}.{index}.0/24";
-            for (int i = 0; i < 3; ++i)
+            for (int i = 0; i < 5; ++i)
             {
                 try
                 {
@@ -269,20 +269,20 @@ public sealed class AliYunResources : IDisposable
                         CidrBlock = block,
                         ClientToken = $"{vpcId}_{zoneId}_{block}"
                     });
+                    break;
                 }
                 catch (ClientException e) when (e.ErrorCode.Equals("InvalidStatus.RouteEntry",
                                                     StringComparison.OrdinalIgnoreCase))
                 {
-                    if (i < 2)
+                    if (i < 4)
                     {
-                        Task.Delay(TimeSpan.FromSeconds(2));
+                        Task.Delay(TimeSpan.FromSeconds(3 * (i + 1)));
                         continue;
                     }
 
                     throw;
                 }
             }
-
 
         }
     }
@@ -341,14 +341,33 @@ public sealed class AliYunResources : IDisposable
         }).Vpcs.First().RouterTableIds.First();
         // add route
         var routeToken = $"route_{cidr}_{routeTableId}_{pccId}";
-        _client.GetAcsResponse(new CreateRouteEntryRequest
+
+        for (int i = 0; i < 5; ++i)
         {
-            RouteTableId = routeTableId,
-            DestinationCidrBlock = _toplingConstants.ToplingCidr,
-            NextHopId = pccId,
-            NextHopType = "VpcPeer",
-            ClientToken = routeToken
-        });
+            try
+            {
+                _client.GetAcsResponse(new CreateRouteEntryRequest
+                {
+                    RouteTableId = routeTableId,
+                    DestinationCidrBlock = _toplingConstants.ToplingCidr,
+                    NextHopId = pccId,
+                    NextHopType = "VpcPeer",
+                    ClientToken = routeToken
+                });
+                break;
+            }
+            catch (ClientException e) when (e.ErrorCode.Equals("InvalidStatus.RouteEntry", StringComparison.OrdinalIgnoreCase))
+            {
+                if (i < 4)
+                {
+                    Task.Delay(TimeSpan.FromSeconds(3)).Wait();
+                    continue;
+                }
+                throw;
+            }
+        }
+
+
     }
 
     /// <summary>

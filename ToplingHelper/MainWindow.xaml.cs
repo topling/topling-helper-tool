@@ -103,7 +103,7 @@ namespace ToplingHelper
 
         private void Worker()
         {
-            
+
             try
             {
                 var handler = new AliYunResources(ToplingConstants, UserData, AppendLog);
@@ -137,6 +137,20 @@ namespace ToplingHelper
 
                 Dispatcher.Invoke(action);
             }
+            catch (ClientException e)
+            {
+                // 后面测试这里是否能够捕获
+                if (e.ErrorCode.Equals("InvalidStatus.RouteEntry"))
+                {
+                    ShowError($"云服务商路由表状态错误，请等待几分钟后重试(不需要关闭自动化工具)。{Environment.NewLine}" +
+                              "如果十分钟后此错误仍然出现，请联系客服");
+                }
+                else
+                {
+                    ShowError(e.Message);
+                }
+
+            }
             catch (Exception e)
             {
                 if (e.Message.Contains("OperationFailed.CdtNotOpened"))
@@ -153,14 +167,7 @@ namespace ToplingHelper
                 }
                 else
                 {
-                    // 保证报错在前台
-                    MessageBox.Show(
-                        $"执行失败:{Environment.NewLine}{e.Message}",
-                        "执行失败",
-                        MessageBoxButton.OK, 
-                        MessageBoxImage.Exclamation,
-                        MessageBoxResult.OK,
-                        MessageBoxOptions.DefaultDesktopOnly);
+                    ShowError(e.Message);
                 }
 
             }
@@ -168,6 +175,18 @@ namespace ToplingHelper
             {
                 Dispatcher.Invoke(() => { SetInputs(true); });
             }
+        }
+
+        private static void ShowError(string message, string caption = "执行失败")
+        {
+            // 保证报错在前台
+            MessageBox.Show(
+                $"执行失败:{Environment.NewLine}{message}",
+                caption,
+                MessageBoxButton.OK,
+                MessageBoxImage.Exclamation,
+                MessageBoxResult.OK,
+                MessageBoxOptions.DefaultDesktopOnly);
         }
 
         private void SetInputs(bool status)
