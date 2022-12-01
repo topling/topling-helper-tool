@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ToplingHelper"
         mc:Ignorable="d"
-        Title="MyToplingWindow" Height="500" Width="1000">
+        Title="MyToplingWindow" Height="500" Width="1200">
 
     <Window.Resources>
         <local:ResultDataContext x:Key="ContextKey"/>
@@ -66,7 +66,7 @@
                     2. 查看路由表(
                     <Hyperlink  Click="RouteTable_click">点此跳转</Hyperlink>  )，
                     选择自定义路由条目。应该存在一条目标网段为 10.0.0.0/16, 下一跳为
-                    <TextBox Text="{Binding Path= PeerId}"/>
+                    <TextBlock Text="{Binding Path= PeerId}"/>
                     的条目。
                     <LineBreak/>
                     <TextBlock xml:space="preserve">    </TextBlock>若缺少，请添加自定义路由条目:

@@ -113,14 +113,14 @@ public sealed class AliYunResources : IDisposable
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
             // 添加路由
             _appendLog("添加路由表项");
-            AddRoute(cidr, vpcId, peerId);
+            var routeId = AddRoute(cidr, vpcId, peerId);
             // 创建交换机(幂等)
             _appendLog("创建交换机");
             CreateIdempotentVSwitch(vpcId, second);
             // 创建实例
             _appendLog("开始创建实例");
             var instance = _toplingResources.CreateDefaultInstance(peerId, vpcId);
-            instance.RouteId = vpc!.RouterTableIds.First();
+            instance.RouteId = routeId;
             return instance;
 
 
@@ -179,7 +179,7 @@ public sealed class AliYunResources : IDisposable
             // 创建实例
             _appendLog("开始创建实例");
             var result = _toplingResources.CreateDefaultInstance(peerId, vpc.VpcId);
-            result.RouteId = vpc!.RouterTableIds.First();
+            result.RouteId = vpc.RouterTableIds.First();
             return result;
         }
         // 已经并网了查看是否正确工作
@@ -200,7 +200,7 @@ public sealed class AliYunResources : IDisposable
             CreateIdempotentVSwitch(vpc.VpcId, second);
             _appendLog("开始创建实例");
             var res = _toplingResources.CreateDefaultInstance(subNet.PeerId, vpc.VpcId);
-            res.RouteId = vpc!.RouterTableIds.First();
+            res.RouteId = vpc.RouterTableIds.First();
             return res;
         }
 
@@ -331,7 +331,7 @@ public sealed class AliYunResources : IDisposable
         return pccId;
     }
 
-    private void AddRoute(string cidr, string vpcId, string pccId)
+    private string AddRoute(string cidr, string vpcId, string pccId)
     {
 
         var routeTableId = _client.GetAcsResponse(new DescribeVpcsRequest
@@ -354,7 +354,7 @@ public sealed class AliYunResources : IDisposable
                     NextHopType = "VpcPeer",
                     ClientToken = routeToken
                 });
-                break;
+                return routeTableId;
             }
             catch (ClientException e) when (e.ErrorCode.Equals("InvalidStatus.RouteEntry", StringComparison.OrdinalIgnoreCase))
             {
@@ -367,6 +367,7 @@ public sealed class AliYunResources : IDisposable
             }
         }
 
+        throw new Exception(("添加路由失败，请重新操作"));
 
     }
 
