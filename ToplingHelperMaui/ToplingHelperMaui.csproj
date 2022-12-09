@@ -49,6 +49,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="aliyun-net-sdk-cbn" Version="1.0.28" />
+	  <PackageReference Include="aliyun-net-sdk-ecs" Version="4.24.18" />
+	  <PackageReference Include="aliyun-net-sdk-vpc" Version="3.0.12" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\ToplingHelperModels\ToplingHelperModels.csproj" />
 	</ItemGroup>
 

@@ -1,9 +1,17 @@
 ﻿using System.Net;
 using System.Text;
-using System.Net;
+using System.Diagnostics;
 using ToplingHelperModels.Models;
 using Microsoft.Maui.Controls;
 using System.Net.Http.Headers;
+using Aliyun.Acs.Core;
+using Aliyun.Acs.Core.Profile;
+using Aliyun.Acs.Core.Exceptions;
+using Newtonsoft.Json.Linq;
+using Aliyun.Acs.Cbn.Model.V20170912;
+using DescribeVpcsRequest = Aliyun.Acs.Vpc.Model.V20160428.DescribeVpcsRequest;
+using CreateVSwitchRequest = Aliyun.Acs.Vpc.Model.V20160428.CreateVSwitchRequest;
+using CreateVpcRequest = Aliyun.Acs.Vpc.Model.V20160428.CreateVpcRequest;
 
 namespace ToplingHelperMaui
 {
@@ -21,40 +29,31 @@ namespace ToplingHelperMaui
         private ToplingConstants ToplingConstants { get; init; }
         private ToplingUserData UserData { get; set; }
         private long _aliyunId;
-        private string _accessId;
-        private string _accessSecret;
-        private string _toplingId;
-        private string _toplingPassword;
+        //private string _accessId;
+        //private string _accessSecret;
+        //private string _toplingId;
+        //private string _toplingPassword;
 
-        private readonly StringBuilder LogBuilder = new StringBuilder();
-
-        public MainPage()
+        public MainPage(ToplingConstants toplingConstants, ToplingUserData toplingUserData)
         {
             InitializeComponent();
+            UserData= toplingUserData;
+            ToplingConstants = toplingConstants;
+            AccessSecret.Text = UserData.AccessSecret;
+            AccessId.Text = UserData.AccessId;
+            ToplingId.Text = UserData.ToplingId;
+            ToplingPassword.Text = UserData.ToplingPassword;
         }
 
-        private void OnCounterClicked(object sender, EventArgs e)
+        private async void Button_Clicked(object sender, EventArgs e)
         {
-            //count++;
-
-            //if (count == 1)
-            //	CounterBtn.Text = $"Clicked {count} time";
-            //else
-            //	CounterBtn.Text = $"Clicked {count} times";
-
-            //SemanticScreenReader.Announce(CounterBtn.Text);
-        }
-
-        private void Button_Clicked(object sender, EventArgs e)
-        {
-            LogBuilder.Clear();
+            _logBuilder.Clear();
             Log.Text = "";
             SetInputs(false);
 
             if (InstanceType == null)
             {
-                // fixing
-                MessageBox.Show("请选择创建 Todis 服务或 MyTopling 服务");
+                await DisplayAlert("错误", "请选择创建 Todis 服务或 MyTopling 服务", "OK");
                 SetInputs(true);
                 return;
             }
@@ -62,46 +61,42 @@ namespace ToplingHelperMaui
                 string.IsNullOrWhiteSpace(AccessSecret.Text) ||
                 string.IsNullOrWhiteSpace(AccessId.Text) ||
                 string.IsNullOrWhiteSpace(ToplingId.Text) ||
-                string.IsNullOrWhiteSpace(ToplingPassword.Password)
-            )
-            {
-                // fixing
-                MessageBox.Show("请检查是否全部输入");
+                string.IsNullOrWhiteSpace(ToplingPassword.Text)
+            ) {
+                await DisplayAlert("错误", "请检查是否全部输入", "OK");
                 SetInputs(true);
                 return;
             }
 
             if (InstanceType == null)
             {
-                // fixing
-                MessageBox.Show("请选服务类型");
+                await DisplayAlert("错误", "请选择服务类型", "OK");
                 SetInputs(true);
                 return;
             }
 
             if (!uint.TryParse(ServerId.Text, out var serverId) || serverId == 0)
             {
-                // fixing
-                MessageBox.Show("自定义 server-id 输入不合法");
+                await DisplayAlert("错误", "自定义 server-id 输入不合法", "OK");
                 SetInputs(true);
                 return;
             }
 
-            var context = (MySqlDataContext)ThisGrid.DataContext;
+            var context = (MySqlDataContext)InputGrid.BindingContext;
             UserData = new ToplingUserData
             {
                 AccessId = AccessId.Text,
                 AccessSecret = AccessSecret.Text,
                 ToplingId = ToplingId.Text,
-                ToplingPassword = ToplingPassword.Password,
-                GtidMode = UseGtid.IsChecked ?? false,
+                ToplingPassword = ToplingPassword.Text,
+                GtidMode = UseGtid.IsChecked,  // 可疑的 Boolean
                 ServerId = context.EditServerId ? uint.Parse(ServerId.Text) : 0,
                 CreatingInstanceType = InstanceType.Value,
             };
 
             if (!UserData.UserdataCheck(out var error))
             {
-                MessageBox.Show(error);
+                await DisplayAlert("错误", error, "OK");
                 SetInputs(true);
                 return;
             }
@@ -136,7 +131,7 @@ namespace ToplingHelperMaui
             window.Show();
 
         }
-        private void Worker()
+        private async void Worker()
         {
 
 
@@ -215,9 +210,7 @@ namespace ToplingHelperMaui
                         }
                         else
                         {
-                            MessageBox.Show(
-                                $"执行失败:{Environment.NewLine}{res.Content}",
-                                "执行失败");
+                            await DisplayAlert("执行失败", $"执行失败:{Environment.NewLine}{res.Content}", "OK");
                         }
 
                         return;
@@ -265,9 +258,7 @@ namespace ToplingHelperMaui
                         }
                         else
                         {
-                            MessageBox.Show(
-                                $"执行失败:{Environment.NewLine}{res.Content}",
-                                "执行失败");
+                            await DisplayAlert("执行失败", $"执行失败:{Environment.NewLine}{res.Content}", "OK");
                         }
 
                         return;
@@ -293,14 +284,12 @@ namespace ToplingHelperMaui
                               $"{exception.ErrorMessage}{Environment.NewLine}" +
                               "AccessKeyId和AccessKeySecret是否有效?";
                 AppendLog(content);
-                MessageBox.Show(content, "执行失败");
+                await DisplayAlert("执行失败", content, "OK");
                 return;
             }
             catch (Exception exception)
             {
-                MessageBox.Show(
-                    $"执行失败:{Environment.NewLine}{exception.Message}",
-                    "执行失败");
+                await DisplayAlert("执行失败", $"执行失败:{Environment.NewLine}{exception.Message}", "OK");
                 return;
             }
             finally
@@ -359,7 +348,7 @@ namespace ToplingHelperMaui
                 CreateDefaultSecurityGroupIfNotExists(client, vpc.VpcId);
                 return vpc.VpcId;
             }
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
             // create vpc;
             var response = client.GetAcsResponse(new CreateVpcRequest
             {
@@ -788,13 +777,13 @@ namespace ToplingHelperMaui
         private void Set_Todis(object sender, RoutedEventArgs e)
         {
             InstanceType = ToplingUserData.InstanceType.Todis;
-            ((MySqlDataContext)ThisGrid.DataContext).IsMySql = false;
+            ((MySqlDataContext)InputGrid.BindingContext).IsMySql = false;
         }
 
         private void Set_MyTopling(object sender, RoutedEventArgs e)
         {
             InstanceType = ToplingUserData.InstanceType.MyTopling;
-            ((MySqlDataContext)ThisGrid.DataContext).IsMySql = true;
+            ((MySqlDataContext)InputGrid.BindingContext).IsMySql = true;
 
         }
     }

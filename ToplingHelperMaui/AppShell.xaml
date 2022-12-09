@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:ToplingHelperMaui"
     Shell.FlyoutBehavior="Disabled">
-
+    <!--修改以支持多页面-->
     <ShellContent
         Title="Home"
         ContentTemplate="{DataTemplate local:MainPage}"

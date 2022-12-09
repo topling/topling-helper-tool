@@ -1,38 +1,66 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:ToplingHelperMaui"
+             xmlns:models="clr-namespace:ToplingHelperModels.Models;assembly=ToplingHelperModels"
              x:Class="ToplingHelperMaui.MainPage">
-    <Grid Margin="5"
-          RowDefinitions="30,30,30,30,40,*"
-          RowSpacing="5"
-          ColumnDefinitions="*,*"
-          ColumnSpacing="5">
-        <Label Text="拓扑岭 用户名"
-               Grid.Row="0" Grid.Column="0" />
-        <Entry x:Name="ToplingId"
-               MaxLength="199" ClearButtonVisibility="WhileEditing"
-               Grid.Row="0" Grid.Column="1" />
-        <Label Text="拓扑岭 用户密码"
-               Grid.Row="1" Grid.Column="0" />
-        <Entry x:Name="ToplingPassword"
-               MaxLength="199" IsPassword="True"
-               Grid.Row="1" Grid.Column="1" />
-        <Label Text="阿里云 accessKeyID"
-               Grid.Row="2" Grid.Column="0" />
-        <Entry x:Name="AccessId"
-               MaxLength="199"
-               Grid.Row="2" Grid.Column="1" />
-        <Label Text="阿里云 accessKeySecret (截图时请打码)"
-               Grid.Row="3" Grid.Column="0" />
-        <Entry x:Name="AccessSecret"
-               MaxLength="199" IsPassword="True"
-               Grid.Row="3" Grid.Column="1" />
-        <Editor x:Name="Log"
-                Text="可尝试复制"
-                IsReadOnly="True"
-                Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" />
+    <VerticalStackLayout>
+        <VerticalStackLayout.Resources>
+            <local:VisibleConverter x:Key="VisibleConverter" />
+            <local:MySqlDataContext x:Key="VisibleMysqlKey" />
+        </VerticalStackLayout.Resources>
+        <Grid x:Name="InputGrid"
+              Margin="5"
+              RowDefinitions="30,30,30,30,*"
+              RowSpacing="5"
+              ColumnDefinitions="*,*"
+              ColumnSpacing="5"
+              BindingContext="{StaticResource VisibleMysqlKey}">
+            <Label Text="拓扑岭 用户名"
+                   Grid.Row="0" Grid.Column="0" />
+            <Entry x:Name="ToplingId"
+                   MaxLength="199" ClearButtonVisibility="WhileEditing"
+                   Grid.Row="0" Grid.Column="1" />
+            <Label Text="拓扑岭 用户密码"
+                   Grid.Row="1" Grid.Column="0" />
+            <Entry x:Name="ToplingPassword"
+                   MaxLength="199" IsPassword="True"
+                   Grid.Row="1" Grid.Column="1" />
+            <Label Text="阿里云 accessKeyID"
+                   Grid.Row="2" Grid.Column="0" />
+            <Entry x:Name="AccessId"
+                   MaxLength="199"
+                   Grid.Row="2" Grid.Column="1" />
+            <Label Text="阿里云 accessKeySecret (截图时请打码)"
+                   Grid.Row="3" Grid.Column="0" />
+            <Entry x:Name="AccessSecret"
+                   MaxLength="199" IsPassword="True"
+                   Grid.Row="3" Grid.Column="1" />
+            <StackLayout Grid.Row="4" Grid.Column="0">
+                <Label>服务选择</Label>
+                <Label IsVisible="{Binding IsMySql, Converter={StaticResource VisibleConverter}, Mode=OneWay}">MySQL 使用 Gtid</Label>
+                <Label IsVisible="{Binding IsMySql, Converter={StaticResource VisibleConverter}, Mode=OneWay}">自定义 server-id</Label>
+                <Label IsVisible="{Binding VisibleEditServerId, Converter={StaticResource VisibleConverter}, Mode=OneWay}">自定义 server-id 值</Label>
+            </StackLayout>
+            <StackLayout Grid.Row="4" Grid.Column="1">
+                <StackLayout Orientation="Horizontal">
+                    <RadioButton Content="Todis (Redis 服务)" CheckedChanged="Set_Todis" />
+                    <RadioButton Content="MyTopling (MySQL 服务)" CheckedChanged="Set_MyTopling" />
+                </StackLayout>
+                <CheckBox x:Name="UseGtid"
+                          IsVisible="{Binding IsMySql, Converter={StaticResource VisibleConverter}, Mode=OneWay}" />
+                <CheckBox IsChecked="{Binding EditServerId}"
+                          IsVisible="{Binding IsMySql, Converter={StaticResource VisibleConverter}, Mode=OneWay}" />
+                <Entry x:Name="ServerId"
+                       MaxLength="10"
+                       IsVisible="{Binding VisibleEditServerId, Converter={StaticResource VisibleConverter}, Mode=OneWay}" />
+            </StackLayout>
+        </Grid>
         <Button x:Name="Btn"
                 Text="提交"
-                Clicked="Button_Clicked"/>
-    </Grid>
+                Clicked="Button_Clicked" />
+        <Editor x:Name="Log"
+                Text="可尝试复制"
+                IsReadOnly="True" />
+    </VerticalStackLayout>
 </ContentPage>
