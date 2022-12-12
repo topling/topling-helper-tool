@@ -142,7 +142,7 @@ namespace ToplingHelper
                 // 后面测试这里是否能够捕获
                 if (e.ErrorCode.Equals("InvalidStatus.RouteEntry"))
                 {
-                    ShowError($"云服务商路由表状态错误，请等待几分钟后重试(不需要关闭自动化工具)。{Environment.NewLine}" +
+                    ShowError($"云服务商路由表状态错误，请重试(不需要关闭自动化工具)。{Environment.NewLine}" +
                               "如果十分钟后此错误仍然出现，请联系客服");
                 }
                 else

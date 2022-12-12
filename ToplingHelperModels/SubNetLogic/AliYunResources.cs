@@ -258,7 +258,7 @@ public sealed class AliYunResources : IDisposable
         foreach (var (index, zoneId) in zoneList.Zones.Select((zone, index) => (index, zone.ZoneId)))
         {
             var block = $"10.{secondCidr}.{index}.0/24";
-            for (int i = 0; i < 5; ++i)
+            for (int i = 0; i < 10; ++i)
             {
                 try
                 {
@@ -274,9 +274,9 @@ public sealed class AliYunResources : IDisposable
                 catch (ClientException e) when (e.ErrorCode.Equals("InvalidStatus.RouteEntry",
                                                     StringComparison.OrdinalIgnoreCase))
                 {
-                    if (i < 4)
+                    if (i < 9)
                     {
-                        Task.Delay(TimeSpan.FromSeconds(3 * (i + 1)));
+                        Task.Delay(TimeSpan.FromSeconds(3 * (i + 1))).Wait();
                         continue;
                     }
 
@@ -342,7 +342,7 @@ public sealed class AliYunResources : IDisposable
         // add route
         var routeToken = $"route_{cidr}_{routeTableId}_{pccId}";
 
-        for (int i = 0; i < 5; ++i)
+        for (int i = 0; i < 10; ++i)
         {
             try
             {
@@ -358,9 +358,9 @@ public sealed class AliYunResources : IDisposable
             }
             catch (ClientException e) when (e.ErrorCode.Equals("InvalidStatus.RouteEntry", StringComparison.OrdinalIgnoreCase))
             {
-                if (i < 4)
+                if (i < 9)
                 {
-                    Task.Delay(TimeSpan.FromSeconds(3)).Wait();
+                    Task.Delay(TimeSpan.FromSeconds(3) * (i + 1)).Wait();
                     continue;
                 }
                 throw;
