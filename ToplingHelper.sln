@@ -8,6 +8,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToplingHelperModels", "ToplingHelperModels\ToplingHelperModels.csproj", "{D6F31FE7-00F1-4F54-8948-531516FDD650}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToplingHelperMaui", "ToplingHelperMaui\ToplingHelperMaui.csproj", "{7CB1D0E1-42B3-4BB7-8C60-E56F7C9F6B6E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D6F31FE7-00F1-4F54-8948-531516FDD650} = {D6F31FE7-00F1-4F54-8948-531516FDD650}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
