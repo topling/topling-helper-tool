@@ -52,4 +52,13 @@
 	  <ProjectReference Include="..\ToplingHelperModels\ToplingHelperModels.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <MauiXaml Update="MyToplingPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="RichText.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
 </Project>

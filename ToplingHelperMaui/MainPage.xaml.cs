@@ -20,7 +20,8 @@
 
         private void Button_Clicked(object sender, EventArgs e)
         {
-
+            Shell.Current.GoToAsync(nameof(RichText));
+            //Application.Current!.OpenWindow(new Window(new RichText()));
         }
     }
 }

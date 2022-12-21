@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:ToplingHelperMaui"
+             x:Class="ToplingHelperMaui.RichText"
+             Title="RichText">
+    <ContentPage.Resources>
+        <local:ResultDataContext x:Key="ContextKey" />
+    </ContentPage.Resources>
+    <VerticalStackLayout BindingContext="{StaticResource ContextKey}">
+        <Label>请登录阿里云，在</Label>
+        <Label Text="{Binding UserVpcId}" />
+        <Label>下创见新 ECS 实例，操作系统请选择 CentOS(7/8)/AliyunOS/Ubuntu(16.04/18.04)</Label>
+        <Label>创建时请为 ECS 添加公网IP</Label>
+        <Label>(一键脚本使用公网安装 oss-util 相关依赖，使用内网挂在数据集)</Label>
+
+        <Label>一定在</Label>
+        <Label Text="{Binding UserVpcId}" />
+        <Label>下创建实例</Label>
+        <Label>操作系统请选择 CentOS(7/8)/AliyunOS/Ubuntu(16.04/18.04)</Label>
+
+        <Label>连接</Label>
+        <Label Text="{Binding TodisPrivateIp}" />
+        <Label>查看Grafana监控</Label>
+        <Label>查看引擎监控</Label>
+        <Label 
+            Text="Welcome to .NET MAUI!"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center" />
+    </VerticalStackLayout>
+</ContentPage>
