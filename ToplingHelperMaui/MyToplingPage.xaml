@@ -3,11 +3,84 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:ToplingHelperMaui"
              x:Class="ToplingHelperMaui.MyToplingPage"
-             Title="MyToplingPage">
+             Title="MyTopling 创建成功">
     <ContentPage.Resources>
         <local:ResultDataContext x:Key="ContextKey" />
     </ContentPage.Resources>
-    <VerticalStackLayout BindingContext="{StaticResource ContextKey}">
+    <VerticalStackLayout BindingContext="{DynamicResource ContextKey}">
+        <Label>
+            <Label.FormattedText>
+                <FormattedString>
+                    <Span>请登录阿里云，在可用区域</Span>
+                    <Span FontAttributes="Bold" Text="深圳" />
+                    <Span>下，VPC 选择</Span>
+                    <Span FontAttributes="Bold" Text="{Binding UserVpcId, UpdateSourceEventName=PropertyChanged}" />
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+        <Label>
+            <Label.FormattedText>
+                <FormattedString>
+                    <Span>下创建新 ECS 实例以连接 MyTopling(MySQL) 服务</Span>
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+        <Label>
+            <Label.FormattedText>
+                <FormattedString>
+                    <Span>连接</Span>
+                    <Span Text="{Binding InstancePrivateIp}" />
+                    <Span>用户名：admin 初始密码：123456</Span>
+                    <Span FontAttributes="Bold" TextColor="Red">CentOS(7/8)/AliyunOS/Ubuntu(16.04/18.04)</Span>
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+        <Label>
+            <Label.FormattedText>
+                <FormattedString>
+                    <Span FontAttributes="Bold" TextColor="Red">初次连接</Span>
+                    <Span>必须</Span>
+                    <Span FontAttributes="Bold" TextColor="Red">修改密码</Span>
+                    <Span>后使用：</Span>
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+        <Label>
+            <Label.FormattedText>
+                <FormattedString>
+                    <Span FontAttributes="Bold" BackgroundColor="Gainsboro" Text="alter user 'admin'@'%' identified WITH mysql_native_password by 'topling';&#10;flush privileges;" />
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+        <Label TextColor="Blue" TextDecorations="Underline">查看Grafana监控</Label>
+        <Label TextColor="Blue" TextDecorations="Underline">查看引擎监控</Label>
+
+        <Label>· 如果ping不通</Label>
+        <Label>
+            <Label.FormattedText>
+                <FormattedString>
+                    <Span>1. 运行</Span>
+                    <Span BackgroundColor="Gainsboro" Text="curl http://100.100.100.200/latest/meta-data/vpc-id" />
+                    <Span>查看结果是否为</Span>
+                    <Span FontAttributes="Bold" Text="{Binding UserVpcId}" />
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+        <Label>
+            <Label.FormattedText>
+                <FormattedString>
+                    <Span>2. 查看路由表 (</Span>
+                    <Span TextColor="Blue" TextDecorations="Underline" Text="点此跳转" />
+                    <Span>)，选择自定义路由条目。应该存在一条目标网段为 10.0.0.0/16, 下一跳为</Span>
+                    <Span Text="{Binding PeerId}" />
+                    <Span>的条目。若缺少，请添加自定义路由条目：</Span>
+                    <Span Text="{Binding UserVpcId}" />
+                    <Span Text="{Binding ToplingVpcId}" />
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+    </VerticalStackLayout>
+    <!--<VerticalStackLayout BindingContext="{StaticResource ContextKey}">
         <Label>请登录阿里云，在可用区</Label>
         <Label>深圳</Label>
         <Label>下，VPC选择</Label>
@@ -28,5 +101,5 @@
             Text="Welcome to .NET MAUI!"
             VerticalOptions="Center" 
             HorizontalOptions="Center" />
-    </VerticalStackLayout>
+    </VerticalStackLayout>-->
 </ContentPage>

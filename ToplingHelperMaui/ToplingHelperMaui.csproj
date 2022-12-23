@@ -53,7 +53,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="CdtNotOpened.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="MyToplingPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="OpenUrlFail.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="RichText.xaml">
