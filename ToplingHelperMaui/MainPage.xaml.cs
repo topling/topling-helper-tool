@@ -1,6 +1,8 @@
 ﻿using Aliyun.Acs.Core.Exceptions;
 using Microsoft.Maui.Controls.Shapes;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using ToplingHelperModels.Models;
 using ToplingHelperModels.SubNetLogic;
 
@@ -28,12 +30,33 @@ namespace ToplingHelperMaui
         public MainPage(/*ToplingConstants toplingConstants, ToplingUserData toplingUserData*/)
         {
             InitializeComponent();
-            //ToplingUserData = toplingUserData;
-            //ToplingConstants = toplingConstants;
-            //AccessSecret.Text = ToplingUserData.AccessSecret;
-            //AccessId.Text = ToplingUserData.AccessId;
-            //ToplingId.Text = ToplingUserData.ToplingUserId;
-            //ToplingPassword.Text = ToplingUserData.ToplingPassword;
+            
+            var args = Environment.GetCommandLineArgs();
+            var userData = new ToplingUserData();
+            var constants = new ToplingConstants();
+            if (args.Length > 1 && File.Exists(args[1]))
+            {
+                var content = File.ReadAllText(args[1], Encoding.UTF8);
+                try
+                {
+                    var json = JsonNode.Parse(content);
+
+                    userData = json?["ToplingUserData"]?.Deserialize<ToplingUserData>() ?? userData;
+                    constants = json?["ToplingConstants"]?.Deserialize<ToplingConstants>() ?? constants;
+                }
+                catch (Exception e1)
+                {
+                    DisplayAlert("错误", e1.ToString(), "OK");
+                    //Dispatcher.Invoke(() => MessageBox.Show(e1.ToString()));
+                }
+
+            }
+            ToplingUserData = userData;
+            ToplingConstants = constants;
+            AccessSecret.Text = ToplingUserData.AccessSecret;
+            AccessId.Text = ToplingUserData.AccessId;
+            ToplingId.Text = ToplingUserData.ToplingUserId;
+            ToplingPassword.Text = ToplingUserData.ToplingPassword;
 
         }
 
@@ -112,7 +135,7 @@ namespace ToplingHelperMaui
             //Application.Current!.OpenWindow(new Window(new RichText()));
         }
 
-        private void Worker()
+        private async void Worker()
         {
             try
             {
@@ -120,7 +143,7 @@ namespace ToplingHelperMaui
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
                 DisplayAlert("提示", "流程约三分钟，请不要关闭窗口!", "OK");
                 //Dispatcher.BeginInvoke(() => MessageBox.Show("流程约三分钟，请不要关闭窗口!"));
-                var instance = handler.CreateInstance();
+                var instance = await handler.CreateInstance();
                 Action action = ToplingUserData.CreatingInstanceType switch
                 {
                     ToplingUserData.InstanceType.Todis => () =>
@@ -194,10 +217,15 @@ namespace ToplingHelperMaui
             DisplayAlert(caption, $"执行失败:{Environment.NewLine}{message}", "OK");
         }
 
-        private void AppendLog(string line)
+        private Task AppendLog(string line)
         {
-            _logBuilder.AppendLine(line);
-            Dispatcher.Dispatch(() => { Log.Text = _logBuilder.ToString(); });
+
+            return MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                _logBuilder.AppendLine(line);
+                Log.Text = _logBuilder.ToString();
+            });
+
         }
 
         private void SetInputs(bool status)
