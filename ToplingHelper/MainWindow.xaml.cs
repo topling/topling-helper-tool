@@ -200,16 +200,12 @@ namespace ToplingHelper
 
 
 
-        private Task AppendLog(string line)
+        private void AppendLog(string line)
         {
-            return Task.Run(() =>
+            Dispatcher.Invoke(() =>
             {
-                Dispatcher.Invoke(() =>
-                {
-                    _logBuilder.AppendLine(line);
-                    Log.Text = _logBuilder.ToString();
-
-                });
+                _logBuilder.AppendLine(line);
+                Log.Text = _logBuilder.ToString();
             });
         }
 

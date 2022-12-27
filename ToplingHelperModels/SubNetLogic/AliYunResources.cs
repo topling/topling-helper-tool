@@ -25,9 +25,9 @@ public sealed class AliYunResources : IDisposable
     private readonly DefaultAcsClient _client;
     private readonly ToplingResources _toplingResources;
 
-    private readonly Func<string, Task> _appendLog;
+    private readonly Action<string> _appendLog;
 
-    public AliYunResources(ToplingConstants constants, ToplingUserData userData, Func<string, Task> logger)
+    public AliYunResources(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
     {
         _toplingConstants = constants;
         _client = new DefaultAcsClient(DefaultProfile.GetProfile(constants.ToplingTestRegion, userData.AccessId, userData.AccessSecret));
@@ -80,7 +80,7 @@ public sealed class AliYunResources : IDisposable
         {
 
 
-            await _appendLog("尝试获取可用网段创建子网.");
+            _appendLog("尝试获取可用网段创建子网.");
             // 获取一段合法的cidr并创建vpc和对等连接准备并网
             var rand = new Random();
             var second = rand.Next(1, 255);
@@ -101,26 +101,26 @@ public sealed class AliYunResources : IDisposable
                 throw new Exception($"未能获取可用的VPC，请重试或联系管理员: {errorMessage}");
             }
             // 已经找到可用的VPC与网段，尝试本地创建
-            await _appendLog("创建阿里云VPC");
+            _appendLog("创建阿里云VPC");
             var cidr = $"10.{second}.0.0/16";
             var vpcId = CreateDefaultVpc(cidr);
-            await _appendLog("为VPC创建默认安全组");
+            _appendLog("为VPC创建默认安全组");
             CreateDefaultSecurityGroupIfNotExists(vpcId);
             // 创建对等连接&发送并网请求
-            await _appendLog("对VPC创建对等连接并设置路由");
+            _appendLog("对VPC创建对等连接并设置路由");
             var peerId = CreatePeer(vpcId, availableVpc, cidr);
-            await _appendLog("使用对等连接并网");
+            _appendLog("使用对等连接并网");
             _toplingResources.GrantPeer(peerId, second, vpcId);
 
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
             // 添加路由
-            await _appendLog("添加路由表项");
+            _appendLog("添加路由表项");
             var routeId = AddRoute(cidr, vpcId, peerId);
             // 创建交换机(幂等)
-            await _appendLog("创建交换机");
+            _appendLog("创建交换机");
             CreateIdempotentVSwitch(vpcId, second);
             // 创建实例
-            await _appendLog("开始创建实例");
+            _appendLog("开始创建实例");
             var instance = _toplingResources.CreateDefaultInstance(peerId, vpcId);
             instance.RouteId = routeId;
             return instance;
@@ -166,7 +166,7 @@ public sealed class AliYunResources : IDisposable
                 peerId = CreatePeer(vpc.VpcId, availableVpc, cidr);
             }
             // 如果失败，则删除对等连接并且在这个上面重新尝试新的交换机并且尝试并网
-            await _appendLog("使用对等连接并网");
+            _appendLog("使用对等连接并网");
             // 获取peerId和second
             _toplingResources.GrantPeer(peerId, second!.Value, vpc.VpcId);
             // 创建交换机(幂等)
@@ -174,12 +174,12 @@ public sealed class AliYunResources : IDisposable
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
             // 添加路由
             Debug.Assert(cidr != null);
-            await _appendLog("添加路由表项");
+            _appendLog("添加路由表项");
             AddRoute(cidr, vpc.VpcId, peerId);
-            await _appendLog("创建交换机");
+            _appendLog("创建交换机");
             CreateIdempotentVSwitch(vpc.VpcId, second!.Value);
             // 创建实例
-            await _appendLog("开始创建实例");
+            _appendLog("开始创建实例");
             var result = _toplingResources.CreateDefaultInstance(peerId, vpc.VpcId);
             result.RouteId = vpc.RouterTableIds.First();
             return result;
@@ -200,7 +200,7 @@ public sealed class AliYunResources : IDisposable
             AddRoute(subNet.Cidr, vpc.VpcId, subNet.PeerId);
             CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
             CreateIdempotentVSwitch(vpc.VpcId, second);
-            await _appendLog("开始创建实例");
+            _appendLog("开始创建实例");
             var res = _toplingResources.CreateDefaultInstance(subNet.PeerId, vpc.VpcId);
             res.RouteId = vpc.RouterTableIds.First();
             return res;
