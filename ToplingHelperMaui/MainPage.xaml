@@ -39,22 +39,26 @@
                    Grid.Row="3" Grid.Column="1" />
             <StackLayout Grid.Row="4" Grid.Column="0">
                 <Label>服务选择</Label>
-                <Label IsVisible="{Binding IsMySql, Converter={StaticResource VisibleConverter}, Mode=OneWay}">MySQL 使用 Gtid</Label>
-                <Label IsVisible="{Binding IsMySql, Converter={StaticResource VisibleConverter}, Mode=OneWay}">自定义 server-id</Label>
-                <Label IsVisible="{Binding VisibleEditServerId, Converter={StaticResource VisibleConverter}, Mode=OneWay}">自定义 server-id 值</Label>
+                <Label IsVisible="{Binding IsMySql, Mode=OneWay}">MySQL 使用 Gtid</Label>
+                <Label IsVisible="{Binding IsMySql, Mode=OneWay}">自定义 server-id</Label>
+                <Label IsVisible="{Binding VisibleEditServerId, Mode=OneWay}">自定义 server-id 值</Label>
             </StackLayout>
             <StackLayout Grid.Row="4" Grid.Column="1">
                 <StackLayout Orientation="Horizontal">
-                    <RadioButton Content="Todis (Redis 服务)" CheckedChanged="Set_Todis" />
-                    <RadioButton Content="MyTopling (MySQL 服务)" CheckedChanged="Set_MyTopling" />
+                    <RadioButton Content="Todis (Redis 服务)"
+                                 Value="Todis"
+                                 CheckedChanged="Set_InstanceType" />
+                    <RadioButton Content="MyTopling (MySQL 服务)"
+                                 Value="MyTopling"
+                                 CheckedChanged="Set_InstanceType" />
                 </StackLayout>
                 <CheckBox x:Name="UseGtid"
-                          IsVisible="{Binding IsMySql, Converter={StaticResource VisibleConverter}, Mode=OneWay}" />
+                          IsVisible="{Binding IsMySql, Mode=OneWay}" />
                 <CheckBox IsChecked="{Binding EditServerId}"
-                          IsVisible="{Binding IsMySql, Converter={StaticResource VisibleConverter}, Mode=OneWay}" />
+                          IsVisible="{Binding IsMySql, Mode=OneWay}" />
                 <Entry x:Name="ServerId"
                        MaxLength="10"
-                       IsVisible="{Binding VisibleEditServerId, Converter={StaticResource VisibleConverter}, Mode=OneWay}" />
+                       IsVisible="{Binding VisibleEditServerId, Mode=OneWay}" />
             </StackLayout>
         </Grid>
         <Button x:Name="Btn"
@@ -63,7 +67,11 @@
                 Clicked="Button_Clicked" />
         <Editor x:Name="Log"
                 Margin="5"
-                Text="可尝试复制"
-                IsReadOnly="True" />
+                IsReadOnly="True"
+                AutoSize="TextChanges">
+            <Editor.Text>
+                日志输出：
+            </Editor.Text>
+        </Editor>
     </VerticalStackLayout>
 </ContentPage>

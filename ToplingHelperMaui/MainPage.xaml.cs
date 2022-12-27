@@ -60,16 +60,21 @@ namespace ToplingHelperMaui
 
         }
 
-        private void Set_Todis(object sender, CheckedChangedEventArgs e)
+        private void Set_InstanceType(object sender, CheckedChangedEventArgs e)
         {
-            InstanceType = ToplingUserData.InstanceType.Todis;
-            ((MySqlDataContext)InputGrid.BindingContext).IsMySql = false;
-        }
-
-        private void Set_MyTopling(object sender, CheckedChangedEventArgs e)
-        {
-            InstanceType = ToplingUserData.InstanceType.MyTopling;
-            ((MySqlDataContext)InputGrid.BindingContext).IsMySql = true;
+            RadioButton button = sender as RadioButton;
+            if (button.IsChecked)
+            {
+                InstanceType = button.Value.ToString() switch { 
+                    "MyTopling" => ToplingUserData.InstanceType.MyTopling,
+                    "Todis" => ToplingUserData.InstanceType.Todis,
+                    _ => null
+                };
+                ((MySqlDataContext)InputGrid.BindingContext).IsMySql = (
+                    InstanceType == ToplingUserData.InstanceType.MyTopling
+                );
+            }
+            
         }
 
         private async void Button_Clicked(object sender, EventArgs e)
