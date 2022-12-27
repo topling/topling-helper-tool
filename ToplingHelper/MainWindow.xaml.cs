@@ -101,15 +101,15 @@ namespace ToplingHelper
         }
 
 
-        private void Worker()
+        private async Task Worker()
         {
 
             try
             {
                 var handler = new AliYunResources(ToplingConstants, UserData, AppendLog);
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
-                Dispatcher.BeginInvoke(() => MessageBox.Show("流程约三分钟，请不要关闭窗口!"));
-                var instance = handler.CreateInstance();
+                await Dispatcher.BeginInvoke(() => MessageBox.Show("流程约三分钟，请不要关闭窗口!"));
+                var instance = await handler.CreateInstance();
                 Action action = UserData.CreatingInstanceType switch
                 {
                     ToplingUserData.InstanceType.Todis => () =>
@@ -200,10 +200,17 @@ namespace ToplingHelper
 
 
 
-        private void AppendLog(string line)
+        private Task AppendLog(string line)
         {
-            _logBuilder.AppendLine(line);
-            Dispatcher.Invoke(() => { Log.Text = _logBuilder.ToString(); });
+            return Task.Run(() =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    _logBuilder.AppendLine(line);
+                    Log.Text = _logBuilder.ToString();
+
+                });
+            });
         }
 
 

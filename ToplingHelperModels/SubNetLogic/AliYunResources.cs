@@ -25,9 +25,9 @@ public sealed class AliYunResources : IDisposable
     private readonly DefaultAcsClient _client;
     private readonly ToplingResources _toplingResources;
 
-    private readonly Action<string> _appendLog;
+    private readonly Func<string, Task> _appendLog;
 
-    public AliYunResources(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
+    public AliYunResources(ToplingConstants constants, ToplingUserData userData, Func<string, Task> logger)
     {
         _toplingConstants = constants;
         _client = new DefaultAcsClient(DefaultProfile.GetProfile(constants.ToplingTestRegion, userData.AccessId, userData.AccessSecret));
@@ -35,7 +35,7 @@ public sealed class AliYunResources : IDisposable
         _toplingResources = new ToplingResources(constants, userData);
     }
 
-    public Instance CreateInstance()
+    public async Task<Instance> CreateInstance()
     {
         // 先处理记录了VPC的情况
         var subNet = _toplingResources.GetDefaultUserSubNet();
@@ -78,7 +78,9 @@ public sealed class AliYunResources : IDisposable
         // 默认初始状态
         if (subNet == null && vpc == null)
         {
-            _appendLog("尝试获取可用网段创建子网.");
+
+
+            await _appendLog("尝试获取可用网段创建子网.");
             // 获取一段合法的cidr并创建vpc和对等连接准备并网
             var rand = new Random();
             var second = rand.Next(1, 255);
@@ -99,26 +101,26 @@ public sealed class AliYunResources : IDisposable
                 throw new Exception($"未能获取可用的VPC，请重试或联系管理员: {errorMessage}");
             }
             // 已经找到可用的VPC与网段，尝试本地创建
-            _appendLog("创建阿里云VPC");
+            await _appendLog("创建阿里云VPC");
             var cidr = $"10.{second}.0.0/16";
             var vpcId = CreateDefaultVpc(cidr);
-            _appendLog("为VPC创建默认安全组");
+            await _appendLog("为VPC创建默认安全组");
             CreateDefaultSecurityGroupIfNotExists(vpcId);
             // 创建对等连接&发送并网请求
-            _appendLog("对VPC创建对等连接并设置路由");
+            await _appendLog("对VPC创建对等连接并设置路由");
             var peerId = CreatePeer(vpcId, availableVpc, cidr);
-            _appendLog("使用对等连接并网");
+            await _appendLog("使用对等连接并网");
             _toplingResources.GrantPeer(peerId, second, vpcId);
 
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
             // 添加路由
-            _appendLog("添加路由表项");
+            await _appendLog("添加路由表项");
             var routeId = AddRoute(cidr, vpcId, peerId);
             // 创建交换机(幂等)
-            _appendLog("创建交换机");
+            await _appendLog("创建交换机");
             CreateIdempotentVSwitch(vpcId, second);
             // 创建实例
-            _appendLog("开始创建实例");
+            await _appendLog("开始创建实例");
             var instance = _toplingResources.CreateDefaultInstance(peerId, vpcId);
             instance.RouteId = routeId;
             return instance;
@@ -164,7 +166,7 @@ public sealed class AliYunResources : IDisposable
                 peerId = CreatePeer(vpc.VpcId, availableVpc, cidr);
             }
             // 如果失败，则删除对等连接并且在这个上面重新尝试新的交换机并且尝试并网
-            _appendLog("使用对等连接并网");
+            await _appendLog("使用对等连接并网");
             // 获取peerId和second
             _toplingResources.GrantPeer(peerId, second!.Value, vpc.VpcId);
             // 创建交换机(幂等)
@@ -172,12 +174,12 @@ public sealed class AliYunResources : IDisposable
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
             // 添加路由
             Debug.Assert(cidr != null);
-            _appendLog("添加路由表项");
+            await _appendLog("添加路由表项");
             AddRoute(cidr, vpc.VpcId, peerId);
-            _appendLog("创建交换机");
+            await _appendLog("创建交换机");
             CreateIdempotentVSwitch(vpc.VpcId, second!.Value);
             // 创建实例
-            _appendLog("开始创建实例");
+            await _appendLog("开始创建实例");
             var result = _toplingResources.CreateDefaultInstance(peerId, vpc.VpcId);
             result.RouteId = vpc.RouterTableIds.First();
             return result;
@@ -198,7 +200,7 @@ public sealed class AliYunResources : IDisposable
             AddRoute(subNet.Cidr, vpc.VpcId, subNet.PeerId);
             CreateDefaultSecurityGroupIfNotExists(vpc.VpcId);
             CreateIdempotentVSwitch(vpc.VpcId, second);
-            _appendLog("开始创建实例");
+            await _appendLog("开始创建实例");
             var res = _toplingResources.CreateDefaultInstance(subNet.PeerId, vpc.VpcId);
             res.RouteId = vpc.RouterTableIds.First();
             return res;
