@@ -4,47 +4,62 @@
              xmlns:local="clr-namespace:ToplingHelperMaui"
              xmlns:models="clr-namespace:ToplingHelperModels.Models;assembly=ToplingHelperModels"
              x:Class="ToplingHelperMaui.MainPage"
-             Title="拓扑岭自动化工具">
-    <VerticalStackLayout>
-        <VerticalStackLayout.Resources>
-            <local:VisibleConverter x:Key="VisibleConverter" />
-            <models:MySqlDataContext x:Key="VisibleMysqlKey" />
-        </VerticalStackLayout.Resources>
-        <Grid x:Name="InputGrid"
-              Margin="5"
-              RowDefinitions="30,30,30,30,*"
+             Title="拓扑岭自动化工具"
+             WidthRequest="650">
+    <ContentPage.Resources>
+        <local:VisibleConverter x:Key="VisibleConverter" />
+        <models:MySqlDataContext x:Key="VisibleMysqlKey" />
+    </ContentPage.Resources>
+    <VerticalStackLayout x:Name="InputGrid"
+                         BindingContext="{StaticResource VisibleMysqlKey}">
+        <Grid Margin="15"
+              RowDefinitions="40,40,40,40"
               RowSpacing="5"
-              ColumnDefinitions="*,*"
-              ColumnSpacing="5"
-              BindingContext="{StaticResource VisibleMysqlKey}">
+              ColumnDefinitions="270,340"
+              ColumnSpacing="5">
             <Label Text="拓扑岭 用户名"
-                   Grid.Row="0" Grid.Column="0" />
+                   Grid.Row="0" Grid.Column="0"
+                   VerticalOptions="Center" />
             <Entry x:Name="ToplingId"
-                   MaxLength="199" ClearButtonVisibility="WhileEditing"
+                   MaxLength="199"
+                   ClearButtonVisibility="WhileEditing"
+                   VerticalOptions="Center"
                    Grid.Row="0" Grid.Column="1" />
             <Label Text="拓扑岭 用户密码"
-                   Grid.Row="1" Grid.Column="0" />
+                   Grid.Row="1" Grid.Column="0"
+                   VerticalOptions="Center" />
             <Entry x:Name="ToplingPassword"
                    MaxLength="199" IsPassword="True"
+                   ClearButtonVisibility="WhileEditing"
+                   VerticalOptions="Center"
                    Grid.Row="1" Grid.Column="1" />
             <Label Text="阿里云 accessKeyID"
-                   Grid.Row="2" Grid.Column="0" />
+                   Grid.Row="2" Grid.Column="0"
+                   VerticalOptions="Center" />
             <Entry x:Name="AccessId"
                    MaxLength="199"
+                   ClearButtonVisibility="WhileEditing"
+                   VerticalOptions="Center"
                    Grid.Row="2" Grid.Column="1" />
             <Label Text="阿里云 accessKeySecret (截图时请打码)"
-                   Grid.Row="3" Grid.Column="0" />
+                   Grid.Row="3" Grid.Column="0"
+                   VerticalOptions="Center" />
             <Entry x:Name="AccessSecret"
-                   MaxLength="199" IsPassword="True"
+                   MaxLength="199" IsPassword="False"
+                   ClearButtonVisibility="WhileEditing"
+                   VerticalOptions="Center"
                    Grid.Row="3" Grid.Column="1" />
-            <StackLayout Grid.Row="4" Grid.Column="0">
-                <Label>服务选择</Label>
-                <Label IsVisible="{Binding IsMySql, Mode=OneWay}">MySQL 使用 Gtid</Label>
-                <Label IsVisible="{Binding IsMySql, Mode=OneWay}">自定义 server-id</Label>
-                <Label IsVisible="{Binding VisibleEditServerId, Mode=OneWay}">自定义 server-id 值</Label>
-            </StackLayout>
-            <StackLayout Grid.Row="4" Grid.Column="1">
-                <StackLayout Orientation="Horizontal">
+        </Grid>
+        <StackLayout Margin="15,0"
+                     Spacing="5">
+            <Grid ColumnDefinitions="270,340"
+                  ColumnSpacing="5">
+                <Label VerticalOptions="Center">
+                    服务选择
+                </Label>
+                <StackLayout Grid.Column="1"
+                             Orientation="Horizontal"
+                             Spacing="10">
                     <RadioButton Content="Todis (Redis 服务)"
                                  Value="Todis"
                                  CheckedChanged="Set_InstanceType" />
@@ -52,26 +67,45 @@
                                  Value="MyTopling"
                                  CheckedChanged="Set_InstanceType" />
                 </StackLayout>
+            </Grid>
+            <Grid ColumnDefinitions="270,340"
+                  ColumnSpacing="5">
+                <Label VerticalOptions="Center"
+                       IsVisible="{Binding IsMySql, Mode=OneWay}">MySQL 使用 Gtid</Label>
                 <CheckBox x:Name="UseGtid"
+                          Grid.Column="1"
+                          VerticalOptions="Center"
                           IsVisible="{Binding IsMySql, Mode=OneWay}" />
+            </Grid>
+            <Grid ColumnDefinitions="270,340"
+                  ColumnSpacing="5">
+                <Label VerticalOptions="Center"
+                       IsVisible="{Binding IsMySql, Mode=OneWay}">自定义 server-id</Label>
                 <CheckBox IsChecked="{Binding EditServerId}"
+                          Grid.Column="1"
+                          VerticalOptions="Center"
                           IsVisible="{Binding IsMySql, Mode=OneWay}" />
+            </Grid>
+            <Grid ColumnDefinitions="270,340"
+                  ColumnSpacing="5">
+                <Label VerticalOptions="Center"
+                       IsVisible="{Binding VisibleEditServerId, Mode=OneWay}">自定义 server-id 值</Label>
                 <Entry x:Name="ServerId"
+                       Grid.Column="1"
                        MaxLength="10"
+                       VerticalOptions="Center"
                        IsVisible="{Binding VisibleEditServerId, Mode=OneWay}" />
-            </StackLayout>
-        </Grid>
+            </Grid>
+        </StackLayout>
         <Button x:Name="Btn"
-                Margin="5"
+                Margin="15"
                 Text="提交"
-                Clicked="Button_Clicked" />
+                Clicked="Button_Clicked"
+                HorizontalOptions="Center" />
         <Editor x:Name="Log"
-                Margin="5"
+                Margin="15"
+                Placeholder="日志输出"
                 IsReadOnly="True"
-                AutoSize="TextChanges">
-            <Editor.Text>
-                日志输出：
-            </Editor.Text>
-        </Editor>
+                AutoSize="TextChanges" />
     </VerticalStackLayout>
 </ContentPage>
