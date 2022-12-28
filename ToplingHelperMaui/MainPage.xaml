@@ -4,7 +4,7 @@
              xmlns:local="clr-namespace:ToplingHelperMaui"
              xmlns:models="clr-namespace:ToplingHelperModels.Models;assembly=ToplingHelperModels"
              x:Class="ToplingHelperMaui.MainPage"
-             Title="拓扑岭自动化工具"
+             Title="用户登录"
              WidthRequest="650">
     <ContentPage.Resources>
         <local:VisibleConverter x:Key="VisibleConverter" />

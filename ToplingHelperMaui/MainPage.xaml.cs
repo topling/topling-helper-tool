@@ -30,7 +30,6 @@ namespace ToplingHelperMaui
         public MainPage(/*ToplingConstants toplingConstants, ToplingUserData toplingUserData*/)
         {
             InitializeComponent();
-            SetMainWindowStartSize(650, 600);
             var args = Environment.GetCommandLineArgs();
             var userData = new ToplingUserData();
             var constants = new ToplingConstants();
@@ -58,29 +57,6 @@ namespace ToplingHelperMaui
             ToplingId.Text = ToplingUserData.ToplingUserId;
             ToplingPassword.Text = ToplingUserData.ToplingPassword;
 
-        }
-
-        private void SetMainWindowStartSize(int width, int height)
-        {
-#if MACCATALYST
-            Microsoft.Maui.Handlers.WindowHandler.Mapper.AppendToMapping(
-                nameof(IWindow), (handler, view) =>
-                {
-                    var size = new CoreGraphics.CGSize(width, height);
-                    handler.PlatformView.WindowScene.SizeRestrictions.MinimumSize = size;
-                    handler.PlatformView.WindowScene.SizeRestrictions.MaximumSize = size;
-                    Task.Run(() =>
-                    {
-                        Thread.Sleep(1000);
-                        MainThread.BeginInvokeOnMainThread(() =>
-                        {
-                            handler.PlatformView.WindowScene.SizeRestrictions.MinimumSize = new CoreGraphics.CGSize(100, 100);
-                            handler.PlatformView.WindowScene.SizeRestrictions.MaximumSize = new CoreGraphics.CGSize(5000, 5000);
-                        });
-                    });
-
-                });
-#endif
         }
 
         private void Set_InstanceType(object sender, CheckedChangedEventArgs e)
@@ -245,10 +221,10 @@ namespace ToplingHelperMaui
             DisplayAlert(caption, $"执行失败:{Environment.NewLine}{message}", "OK");
         }
 
-        private Task AppendLog(string line)
+        private void AppendLog(string line)
         {
 
-            return MainThread.InvokeOnMainThreadAsync(() =>
+            Dispatcher.Dispatch(() =>
             {
                 _logBuilder.AppendLine(line);
                 Log.Text = _logBuilder.ToString();
