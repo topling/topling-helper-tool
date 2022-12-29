@@ -5,7 +5,7 @@
              xmlns:models="clr-namespace:ToplingHelperModels.Models;assembly=ToplingHelperModels"
              x:Class="ToplingHelperMaui.MainPage"
              Title="用户登录"
-             WidthRequest="650">
+             WidthRequest="640">
     <ContentPage.Resources>
         <local:VisibleConverter x:Key="VisibleConverter" />
         <models:MySqlDataContext x:Key="VisibleMysqlKey" />
@@ -13,9 +13,9 @@
     <VerticalStackLayout x:Name="InputGrid"
                          BindingContext="{StaticResource VisibleMysqlKey}">
         <Grid Margin="15"
-              RowDefinitions="40,40,40,40"
+              RowDefinitions="40,40,40,50"
               RowSpacing="5"
-              ColumnDefinitions="270,340"
+              ColumnDefinitions="220,380"
               ColumnSpacing="5">
             <Label Text="拓扑岭 用户名"
                    Grid.Row="0" Grid.Column="0"
@@ -41,7 +41,7 @@
                    ClearButtonVisibility="WhileEditing"
                    VerticalOptions="Center"
                    Grid.Row="2" Grid.Column="1" />
-            <Label Text="阿里云 accessKeySecret (截图时请打码)"
+            <Label Text="阿里云 accessKeySecret&#10;(截图时请打码)"
                    Grid.Row="3" Grid.Column="0"
                    VerticalOptions="Center" />
             <Entry x:Name="AccessSecret"
@@ -52,7 +52,7 @@
         </Grid>
         <StackLayout Margin="15,0"
                      Spacing="5">
-            <Grid ColumnDefinitions="270,340"
+            <Grid ColumnDefinitions="220,380"
                   ColumnSpacing="5">
                 <Label VerticalOptions="Center">
                     服务选择
@@ -68,7 +68,7 @@
                                  CheckedChanged="Set_InstanceType" />
                 </StackLayout>
             </Grid>
-            <Grid ColumnDefinitions="270,340"
+            <Grid ColumnDefinitions="220,380"
                   ColumnSpacing="5">
                 <Label VerticalOptions="Center"
                        IsVisible="{Binding IsMySql, Mode=OneWay}">MySQL 使用 Gtid</Label>
@@ -77,7 +77,7 @@
                           VerticalOptions="Center"
                           IsVisible="{Binding IsMySql, Mode=OneWay}" />
             </Grid>
-            <Grid ColumnDefinitions="270,340"
+            <Grid ColumnDefinitions="220,380"
                   ColumnSpacing="5">
                 <Label VerticalOptions="Center"
                        IsVisible="{Binding IsMySql, Mode=OneWay}">自定义 server-id</Label>
@@ -86,7 +86,7 @@
                           VerticalOptions="Center"
                           IsVisible="{Binding IsMySql, Mode=OneWay}" />
             </Grid>
-            <Grid ColumnDefinitions="270,340"
+            <Grid ColumnDefinitions="220,380"
                   ColumnSpacing="5">
                 <Label VerticalOptions="Center"
                        IsVisible="{Binding VisibleEditServerId, Mode=OneWay}">自定义 server-id 值</Label>
@@ -106,6 +106,7 @@
                 Margin="15"
                 Placeholder="日志输出"
                 IsReadOnly="True"
+                HeightRequest="200"
                 AutoSize="TextChanges" />
     </VerticalStackLayout>
 </ContentPage>
