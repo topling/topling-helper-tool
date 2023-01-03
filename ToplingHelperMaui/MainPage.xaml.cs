@@ -15,19 +15,9 @@ namespace ToplingHelperMaui
         private ToplingUserData.InstanceType? InstanceType { get; set; }
 
         public ToplingConstants ToplingConstants { get; set; }
-        public ToplingUserData ToplingUserData {
-            get => _toplingUserData;
-            set {
-                _toplingUserData = value;
-                AccessSecret.Text = value.AccessSecret;
-                AccessId.Text = value.AccessId;
-                ToplingId.Text = value.ToplingUserId;
-                ToplingPassword.Text = value.ToplingPassword;
-            } 
-        }
-        private ToplingUserData _toplingUserData;
+        public ToplingUserData ToplingUserData { get; set; }
 
-        public MainPage(/*ToplingConstants toplingConstants, ToplingUserData toplingUserData*/)
+        public MainPage()
         {
             InitializeComponent();
             var args = Environment.GetCommandLineArgs();
@@ -46,7 +36,7 @@ namespace ToplingHelperMaui
                 catch (Exception e1)
                 {
                     DisplayAlert("错误", e1.ToString(), "OK");
-                    //Dispatcher.Invoke(() => MessageBox.Show(e1.ToString()));
+                    // 可疑的alert用法
                 }
 
             }
@@ -107,8 +97,10 @@ namespace ToplingHelperMaui
                 return;
             }
 
-            if (!uint.TryParse(ServerId.Text, out var serverId) || serverId == 0)
-            {
+            if (
+                ((MySqlDataContext)InputGrid.BindingContext).EditServerId &&
+                (!uint.TryParse(ServerId.Text, out var serverId) || serverId == 0)
+            ) {
                 await DisplayAlert("错误", "自定义 server-id 输入不合法", "OK");
                 SetInputs(true);
                 return;
@@ -139,14 +131,13 @@ namespace ToplingHelperMaui
             //Application.Current!.OpenWindow(new Window(new RichText()));
         }
 
-        private async void Worker()
+        private async Task Worker()
         {
             try
             {
                 var handler = new AliYunResources(ToplingConstants, ToplingUserData, AppendLog);
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
-                DisplayAlert("提示", "流程约三分钟，请不要关闭窗口!", "OK");
-                //Dispatcher.BeginInvoke(() => MessageBox.Show("流程约三分钟，请不要关闭窗口!"));
+                Dispatcher.Dispatch(() => DisplayAlert("提示", "流程约三分钟，请不要关闭窗口!", "OK"));
                 var instance = await handler.CreateInstance();
                 Action action = ToplingUserData.CreatingInstanceType switch
                 {
@@ -218,7 +209,7 @@ namespace ToplingHelperMaui
 
         private void ShowError(string message, string caption = "执行失败")
         {
-            DisplayAlert(caption, $"执行失败:{Environment.NewLine}{message}", "OK");
+            Dispatcher.Dispatch(() => DisplayAlert(caption, $"执行失败:{Environment.NewLine}{message}", "OK"));
         }
 
         private void AppendLog(string line)
@@ -234,7 +225,7 @@ namespace ToplingHelperMaui
 
         private void SetInputs(bool status)
         {
-            Btn.IsEnabled = status;
+            //Btn.IsEnabled = status;
             ToplingId.IsEnabled = status;
             ToplingPassword.IsEnabled = status;
             AccessId.IsEnabled = status;
