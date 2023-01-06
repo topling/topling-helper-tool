@@ -4,18 +4,18 @@
              xmlns:local="clr-namespace:ToplingHelperMaui"
              xmlns:models="clr-namespace:ToplingHelperModels.Models;assembly=ToplingHelperModels"
              x:Class="ToplingHelperMaui.MainPage"
-             Title="用户登录"
-             WidthRequest="640">
+             Title="用户登录">
     <ContentPage.Resources>
         <local:VisibleConverter x:Key="VisibleConverter" />
         <models:MySqlDataContext x:Key="VisibleMysqlKey" />
     </ContentPage.Resources>
     <VerticalStackLayout x:Name="InputGrid"
-                         BindingContext="{StaticResource VisibleMysqlKey}">
-        <Grid Margin="15"
-              RowDefinitions="40,40,40,50"
+                         BindingContext="{StaticResource VisibleMysqlKey}"
+                         HorizontalOptions="Fill">
+        <Grid Margin="25,15"
+              RowDefinitions="40,40,40,50,40,35,35,35"
               RowSpacing="5"
-              ColumnDefinitions="220,380"
+              ColumnDefinitions="*,2*"
               ColumnSpacing="5">
             <Label Text="拓扑岭 用户名"
                    Grid.Row="0" Grid.Column="0"
@@ -49,61 +49,68 @@
                    ClearButtonVisibility="WhileEditing"
                    VerticalOptions="Center"
                    Grid.Row="3" Grid.Column="1" />
+            <Label VerticalOptions="Center"
+                   Grid.Row="4" Grid.Column="0">
+                服务选择
+            </Label>
+            <StackLayout Grid.Row="4" Grid.Column="1"
+                         Orientation="Horizontal"
+                         Spacing="10">
+                <RadioButton Content="MyTopling (MySQL 服务)"
+                             Value="MyTopling"
+                             CheckedChanged="Set_InstanceType" />
+                <RadioButton Content="Todis (Redis 服务)"
+                             Value="Todis"
+                             CheckedChanged="Set_InstanceType" />
+            </StackLayout>
+            <Label VerticalOptions="Center"
+                   Grid.Row="5" Grid.Column="0"
+                   IsVisible="{Binding IsMySql, Mode=OneWay}">MySQL 使用 Gtid</Label>
+            <CheckBox x:Name="UseGtid"
+                      Margin="3,0,0,0"
+                      Grid.Row="5" Grid.Column="1"
+                      VerticalOptions="Center"
+                      IsVisible="{Binding IsMySql, Mode=OneWay}" />
+            <Label VerticalOptions="Center"
+                   Grid.Row="6" Grid.Column="0"
+                   IsVisible="{Binding IsMySql, Mode=OneWay}">自定义 server-id</Label>
+            <CheckBox IsChecked="{Binding EditServerId}"
+                      Margin="3,0,0,0"
+                      Grid.Row="6" Grid.Column="1"
+                      VerticalOptions="Center"
+                      IsVisible="{Binding IsMySql, Mode=OneWay}" />
+            <Label VerticalOptions="Center"
+                   Grid.Row="7" Grid.Column="0"
+                   IsVisible="{Binding VisibleEditServerId, Mode=OneWay}">自定义 server-id 值</Label>
+            <Entry x:Name="ServerId"
+                   Grid.Row="7" Grid.Column="1"
+                   MaxLength="10"
+                   VerticalOptions="Center"
+                   IsVisible="{Binding VisibleEditServerId, Mode=OneWay}" />
         </Grid>
-        <StackLayout Margin="15,0"
+        <!--<StackLayout Margin="25,0"
                      Spacing="5">
-            <Grid ColumnDefinitions="220,380"
+            <Grid ColumnDefinitions="*,2*"
                   ColumnSpacing="5">
-                <Label VerticalOptions="Center">
-                    服务选择
-                </Label>
-                <StackLayout Grid.Column="1"
-                             Orientation="Horizontal"
-                             Spacing="10">
-                    <RadioButton Content="Todis (Redis 服务)"
-                                 Value="Todis"
-                                 CheckedChanged="Set_InstanceType" />
-                    <RadioButton Content="MyTopling (MySQL 服务)"
-                                 Value="MyTopling"
-                                 CheckedChanged="Set_InstanceType" />
-                </StackLayout>
             </Grid>
-            <Grid ColumnDefinitions="220,380"
+            <Grid ColumnDefinitions="*,2*"
                   ColumnSpacing="5">
-                <Label VerticalOptions="Center"
-                       IsVisible="{Binding IsMySql, Mode=OneWay}">MySQL 使用 Gtid</Label>
-                <CheckBox x:Name="UseGtid"
-                          Grid.Column="1"
-                          VerticalOptions="Center"
-                          IsVisible="{Binding IsMySql, Mode=OneWay}" />
             </Grid>
-            <Grid ColumnDefinitions="220,380"
+            <Grid ColumnDefinitions="*,2*"
                   ColumnSpacing="5">
-                <Label VerticalOptions="Center"
-                       IsVisible="{Binding IsMySql, Mode=OneWay}">自定义 server-id</Label>
-                <CheckBox IsChecked="{Binding EditServerId}"
-                          Grid.Column="1"
-                          VerticalOptions="Center"
-                          IsVisible="{Binding IsMySql, Mode=OneWay}" />
             </Grid>
-            <Grid ColumnDefinitions="220,380"
+            <Grid ColumnDefinitions="*,2*"
                   ColumnSpacing="5">
-                <Label VerticalOptions="Center"
-                       IsVisible="{Binding VisibleEditServerId, Mode=OneWay}">自定义 server-id 值</Label>
-                <Entry x:Name="ServerId"
-                       Grid.Column="1"
-                       MaxLength="10"
-                       VerticalOptions="Center"
-                       IsVisible="{Binding VisibleEditServerId, Mode=OneWay}" />
             </Grid>
-        </StackLayout>
+        </StackLayout>-->
         <Button x:Name="Btn"
-                Margin="15"
-                Text="提交"
+                Margin="25,10"
+                WidthRequest="110"
+                Text="提   交"
                 Clicked="Button_Clicked"
                 HorizontalOptions="Center" />
         <Editor x:Name="Log"
-                Margin="15"
+                Margin="25,10"
                 Placeholder="日志输出"
                 IsReadOnly="True"
                 HeightRequest="200"

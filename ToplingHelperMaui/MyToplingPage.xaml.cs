@@ -22,6 +22,10 @@ public partial class MyToplingPage : ContentPage
             InstancePrivateIp = instance.PrivateIp
         };
         this.Resources["ContextKey"] = _resultDataContext;
+
+        GrafanaLink.Url = $"http://{_resultDataContext.EcsId}.aliyun.db.{BaseDomain}:3000";
+        EngineLink.Url = $"http://{_resultDataContext.EcsId}.aliyun.db.{BaseDomain}:8000";
+        RouteLink.Url = _resultDataContext.RouteUrl;
     }
 
     private string BaseDomain

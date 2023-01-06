@@ -11,7 +11,7 @@ namespace ToplingHelperMaui
         public App()
         {
             InitializeComponent();
-            SetMainWindowStartSize(1000, 1000);
+            SetMainWindowStartSize(880, 960);
             MainPage = new AppShell();
         }
 

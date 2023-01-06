@@ -6,6 +6,10 @@
              Title="MyTopling 创建成功">
     <ContentPage.Resources>
         <local:ResultDataContext x:Key="ContextKey" />
+        <Style TargetType="Label" ApplyToDerivedTypes="True">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Margin" Value="10,10,10,0" />
+        </Style>
     </ContentPage.Resources>
     <VerticalStackLayout BindingContext="{DynamicResource ContextKey}">
         <Label>
@@ -21,7 +25,7 @@
         <Label>
             <Label.FormattedText>
                 <FormattedString>
-                    <Span>下创建新 ECS 实例以连接 MyTopling(MySQL) 服务</Span>
+                    <Span>创建新 ECS 实例以连接 MyTopling(MySQL) 服务</Span>
                 </FormattedString>
             </Label.FormattedText>
         </Label>
@@ -30,8 +34,7 @@
                 <FormattedString>
                     <Span>连接</Span>
                     <Span Text="{Binding InstancePrivateIp}" />
-                    <Span>用户名：admin 初始密码：123456</Span>
-                    <Span FontAttributes="Bold" TextColor="Red">CentOS(7/8)/AliyunOS/Ubuntu(16.04/18.04)</Span>
+                    <Span Text=" 用户名：admin 初始密码：123456"></Span>
                 </FormattedString>
             </Label.FormattedText>
         </Label>
@@ -52,8 +55,8 @@
                 </FormattedString>
             </Label.FormattedText>
         </Label>
-        <Label TextColor="Blue" TextDecorations="Underline">查看Grafana监控</Label>
-        <Label TextColor="Blue" TextDecorations="Underline">查看引擎监控</Label>
+        <local:HyperlinkLabel x:Name="GrafanaLink">查看Grafana监控</local:HyperlinkLabel>
+        <local:HyperlinkLabel x:Name="EngineLink">查看引擎监控</local:HyperlinkLabel>
 
         <Label>· 如果ping不通</Label>
         <Label>
@@ -69,9 +72,8 @@
         <Label>
             <Label.FormattedText>
                 <FormattedString>
-                    <Span>2. 查看路由表 (</Span>
-                    <Span TextColor="Blue" TextDecorations="Underline" Text="点此跳转" />
-                    <Span>)，选择自定义路由条目。应该存在一条目标网段为 10.0.0.0/16, 下一跳为</Span>
+                    <Span>2. 查看路由表</Span>
+                    <Span>(点击下方链接跳转)，选择自定义路由条目。应该存在一条目标网段为 10.0.0.0/16, 下一跳为</Span>
                     <Span Text="{Binding PeerId}" />
                     <Span>的条目。若缺少，请添加自定义路由条目：</Span>
                     <Span Text="{Binding UserVpcId}" />
@@ -79,6 +81,7 @@
                 </FormattedString>
             </Label.FormattedText>
         </Label>
+        <local:HyperlinkLabel x:Name="RouteLink" Margin="10,0" Text="跳转路由表" />
     </VerticalStackLayout>
     <!--<VerticalStackLayout BindingContext="{StaticResource ContextKey}">
         <Label>请登录阿里云，在可用区</Label>

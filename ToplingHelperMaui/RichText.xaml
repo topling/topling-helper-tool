@@ -6,91 +6,97 @@
              Title="运行成功">
     <ContentPage.Resources>
         <local:ResultDataContext x:Key="ContextKey" />
+        <Style TargetType="Label" ApplyToDerivedTypes="True">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Margin" Value="10,10,10,0" />
+        </Style>
     </ContentPage.Resources>
-    <VerticalStackLayout BindingContext="{DynamicResource ContextKey}">
-        <Label>
-            <Label.FormattedText>
-                <FormattedString>
-                    <Span>请登录阿里云，在</Span>
-                    <Span FontAttributes="Bold" Text="{Binding UserVpcId}" />
-                </FormattedString>
-            </Label.FormattedText>
-        </Label>
-        <Label>
-            <Label.FormattedText>
-                <FormattedString>
-                    <Span>下创建新 ECS 实例，操作系统请选择</Span>
-                    <Span FontAttributes="Bold" TextColor="Red">CentOS(7/8)/AliyunOS/Ubuntu(16.04/18.04)</Span>
-                </FormattedString>
-            </Label.FormattedText>
-        </Label>
-        <Label>
-            <Label.FormattedText>
-                <FormattedString>
-                    <Span>创建时请为 ECS 添加</Span>
-                    <Span FontAttributes="Bold" TextColor="Red">公网IP</Span>
-                    <Span>(一键脚本使用公网安装 oss-util 相关依赖，使用内网挂在数据集)</Span>
-                </FormattedString>
-            </Label.FormattedText>
-        </Label>
+    <ScrollView>
+        <VerticalStackLayout BindingContext="{DynamicResource ContextKey}">
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span>请登录阿里云，在</Span>
+                        <Span FontAttributes="Bold" Text="{Binding UserVpcId}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span>下创建新 ECS 实例，操作系统请选择</Span>
+                        <Span FontAttributes="Bold" TextColor="Red">CentOS(7/8)/AliyunOS/Ubuntu(16.04/18.04)</Span>
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span>创建时请为 ECS 添加</Span>
+                        <Span FontAttributes="Bold" TextColor="Red">公网IP</Span>
+                        <Span>(一键脚本使用公网安装 oss-util 相关依赖，使用内网挂在数据集)</Span>
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
 
-        <Label>
-            <Label.FormattedText>
-                <FormattedString>
-                    <Span>一定在</Span>
-                    <Span FontAttributes="Bold" Text="{Binding UserVpcId}" />
-                    <Span>下创建实例！</Span>
-                </FormattedString>
-            </Label.FormattedText>
-        </Label>
-        <Label>
-            <Label.FormattedText>
-                <FormattedString>
-                    <Span>操作系统请选择</Span>
-                    <Span FontAttributes="Bold" TextColor="Red">CentOS(7/8)/AliyunOS/Ubuntu(16.04/18.04)</Span>
-                </FormattedString>
-            </Label.FormattedText>
-        </Label>
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span>一定在</Span>
+                        <Span FontAttributes="Bold" Text="{Binding UserVpcId}" />
+                        <Span>下创建实例！</Span>
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span>操作系统请选择</Span>
+                        <Span FontAttributes="Bold" TextColor="Red">CentOS(7/8)/AliyunOS/Ubuntu(16.04/18.04)</Span>
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
 
-        <Label>
-            <Label.FormattedText>
-                <FormattedString>
-                    <Span>连接</Span>
-                    <Span Text="{Binding TodisPrivateIp}" />
-                </FormattedString>
-            </Label.FormattedText>
-        </Label>
-        <Label TextColor="Blue" TextDecorations="Underline">查看Grafana监控</Label>
-        <Label TextColor="Blue" TextDecorations="Underline">查看引擎监控</Label>
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span>连接</Span>
+                        <Span Text="{Binding TodisPrivateIp}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+            <local:HyperlinkLabel x:Name="GrafanaLink">查看Grafana监控</local:HyperlinkLabel>
+            <local:HyperlinkLabel x:Name="EngineLink">查看引擎监控</local:HyperlinkLabel>
 
-        <Label>· 如果ping不通</Label>
-        <Label>
-            <Label.FormattedText>
-                <FormattedString>
-                    <Span>1. 运行</Span>
-                    <Span BackgroundColor="Gainsboro" Text="curl http://100.100.100.200/latest/meta-data/vpc-id" />
-                    <Span>查看结果是否为</Span>
-                    <Span FontAttributes="Bold" Text="{Binding UserVpcId}" />
-                </FormattedString>
-            </Label.FormattedText>
-        </Label>
-        <Label>
-            <Label.FormattedText>
-                <FormattedString>
-                    <Span>2. 查看路由表 (</Span>
-                    <Span TextColor="Blue" TextDecorations="Underline" Text="点此跳转" />
-                    <Span>)，选择自定义路由条目。应该存在一条目标网段为 10.0.0.0/16, 下一跳为</Span>
-                    <Span Text="{Binding PeerId}" />
-                    <Span>的条目。若缺少，请添加自定义路由条目：</Span>
-                    <Span Text="{Binding UserVpcId}" />
-                    <Span Text="{Binding ToplingVpcId}" />
-                </FormattedString>
-            </Label.FormattedText>
-        </Label>
-        
-        <Label>· 测试性能</Label>
-        <Label BackgroundColor="Gainsboro" x:Name="TestPerformance"></Label>
-        <Label>  测试指令</Label>
-        <Label BackgroundColor="Gainsboro" x:Name="TestCommands"></Label>
-    </VerticalStackLayout>
+            <Label>· 如果ping不通</Label>
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span>1. 运行</Span>
+                        <Span BackgroundColor="Gainsboro" Text="curl http://100.100.100.200/latest/meta-data/vpc-id" />
+                        <Span>查看结果是否为</Span>
+                        <Span FontAttributes="Bold" Text="{Binding UserVpcId}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span>2. 查看路由表</Span>
+                        <Span>(点击下方链接跳转)，选择自定义路由条目。应该存在一条目标网段为 10.0.0.0/16, 下一跳为</Span>
+                        <Span Text="{Binding PeerId}" />
+                        <Span>的条目。若缺少，请添加自定义路由条目：</Span>
+                        <Span Text="{Binding UserVpcId}" />
+                        <Span Text="{Binding ToplingVpcId}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+            <local:HyperlinkLabel x:Name="RouteLink" Margin="10,0" Text="跳转路由表" />
+
+            <Label>· 测试性能</Label>
+            <Label BackgroundColor="Gainsboro" x:Name="TestPerformance"></Label>
+            <Label>测试指令</Label>
+            <Label BackgroundColor="Gainsboro" x:Name="TestCommands"></Label>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

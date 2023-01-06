@@ -125,6 +125,26 @@ namespace ToplingHelperMaui
                 return;
             }
 
+            //var instance = new Instance
+            //{
+            //    InstanceEcsId = "123",
+            //    PeerId = "456",
+            //    PrivateIp = "127.0.0.1",
+            //    RouteId = "789",
+            //    VpcId = "012"
+            //};
+            //var window = new Window(new MyToplingPage(instance, ToplingConstants))
+            //{
+            //    //WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            //    //Owner = this,
+
+            //};
+
+
+            //Dispatcher.Dispatch(() => { SetInputs(true); });
+            //Application.Current.OpenWindow(window);
+            //return;
+
             await Task.Run(Worker);
 
             //await Shell.Current.GoToAsync(nameof(RichText));
@@ -164,7 +184,7 @@ namespace ToplingHelperMaui
                     ,
                     _ => throw new ArgumentOutOfRangeException()
                 };
-
+                Dispatcher.Dispatch(() => { SetInputs(true); });
                 Dispatcher.Dispatch(action);
             }
             catch (ClientException e)
@@ -203,7 +223,11 @@ namespace ToplingHelperMaui
             }
             finally
             {
-                Dispatcher.Dispatch(() => { SetInputs(true); });
+                if(!Btn.IsEnabled)
+                {
+                    Dispatcher.Dispatch(() => { SetInputs(true); });
+                }
+            
             }
         }
 
@@ -223,9 +247,12 @@ namespace ToplingHelperMaui
 
         }
 
-        private void SetInputs(bool status)
+        private async void SetInputs(bool status)
         {
-            //Btn.IsEnabled = status;
+            if (status) { 
+                await Task.Yield();
+            }
+            Btn.IsEnabled = status;
             ToplingId.IsEnabled = status;
             ToplingPassword.IsEnabled = status;
             AccessId.IsEnabled = status;

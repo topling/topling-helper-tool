@@ -25,6 +25,10 @@ public partial class RichText : ContentPage
         TestPerformance.Text = PreTestText;
         TestCommands.Text = GetTestText(_context.InstancePrivateIp);
         Resources["ContextKey"] = _context;
+
+        GrafanaLink.Url = $"http://{_context.EcsId}.aliyun.db.topling.cn:3000";
+        EngineLink.Url = $"http://{_context.EcsId}.aliyun.db.topling.cn:8000";
+        RouteLink.Url = _context.RouteUrl;
     }
 
     private const string PreTestText = @"# 请首先确保测试实例为CentOS/AliOS
