@@ -56,10 +56,11 @@
             <StackLayout Grid.Row="4" Grid.Column="1"
                          Orientation="Horizontal"
                          Spacing="10">
-                <RadioButton Content="MyTopling (MySQL 服务)"
+                <RadioButton Content=" MyTopling (MySQL 服务)"
                              Value="MyTopling"
-                             CheckedChanged="Set_InstanceType" />
-                <RadioButton Content="Todis (Redis 服务)"
+                             CheckedChanged="Set_InstanceType"
+                             />
+                <RadioButton Content=" Todis (Redis 服务)"
                              Value="Todis"
                              CheckedChanged="Set_InstanceType" />
             </StackLayout>
@@ -67,42 +68,30 @@
                    Grid.Row="5" Grid.Column="0"
                    IsVisible="{Binding IsMySql, Mode=OneWay}">MySQL 使用 Gtid</Label>
             <CheckBox x:Name="UseGtid"
-                      Margin="3,0,0,0"
+                      Margin="{OnPlatform MacCatalyst='-5,0,0,0', WinUI='3,0,0,0'}"
                       Grid.Row="5" Grid.Column="1"
+                      HorizontalOptions="Start"
                       VerticalOptions="Center"
                       IsVisible="{Binding IsMySql, Mode=OneWay}" />
             <Label VerticalOptions="Center"
                    Grid.Row="6" Grid.Column="0"
                    IsVisible="{Binding IsMySql, Mode=OneWay}">自定义 server-id</Label>
             <CheckBox IsChecked="{Binding EditServerId}"
-                      Margin="3,0,0,0"
+                      Margin="{OnPlatform MacCatalyst='-5,0,0,0', WinUI='3,0,0,0'}"
                       Grid.Row="6" Grid.Column="1"
+                      HorizontalOptions="Start"
                       VerticalOptions="Center"
                       IsVisible="{Binding IsMySql, Mode=OneWay}" />
             <Label VerticalOptions="Center"
                    Grid.Row="7" Grid.Column="0"
                    IsVisible="{Binding VisibleEditServerId, Mode=OneWay}">自定义 server-id 值</Label>
             <Entry x:Name="ServerId"
+                   Margin="{OnPlatform MacCatalyst='8,0,0,0'}"
                    Grid.Row="7" Grid.Column="1"
                    MaxLength="10"
                    VerticalOptions="Center"
                    IsVisible="{Binding VisibleEditServerId, Mode=OneWay}" />
         </Grid>
-        <!--<StackLayout Margin="25,0"
-                     Spacing="5">
-            <Grid ColumnDefinitions="*,2*"
-                  ColumnSpacing="5">
-            </Grid>
-            <Grid ColumnDefinitions="*,2*"
-                  ColumnSpacing="5">
-            </Grid>
-            <Grid ColumnDefinitions="*,2*"
-                  ColumnSpacing="5">
-            </Grid>
-            <Grid ColumnDefinitions="*,2*"
-                  ColumnSpacing="5">
-            </Grid>
-        </StackLayout>-->
         <Button x:Name="Btn"
                 Margin="25,10"
                 WidthRequest="110"

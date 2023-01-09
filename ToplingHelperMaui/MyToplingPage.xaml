@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:ToplingHelperMaui"
@@ -83,26 +83,4 @@
         </Label>
         <local:HyperlinkLabel x:Name="RouteLink" Margin="10,0" Text="跳转路由表" />
     </VerticalStackLayout>
-    <!--<VerticalStackLayout BindingContext="{StaticResource ContextKey}">
-        <Label>请登录阿里云，在可用区</Label>
-        <Label>深圳</Label>
-        <Label>下，VPC选择</Label>
-        <Label Text="{Binding UserVpcId, UpdateSourceEventName=PropertyChanged}" />
-        <Label>创建新 ECS 实例以连接 MyTopling(MySQL) 服务</Label>
-
-        <Label>连接</Label>
-        <Label Text="{Binding InstancePrivateIp}"/>
-        <Label>用户名：</Label>
-        <Label>admin</Label>
-        <Label>初始密码：</Label>
-        <Label>123456</Label>
-        <Label>初次连接必须修改密码后使用</Label>
-
-        <Label>查看Grafana监控</Label>
-        <Label>查看引擎监控</Label>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>-->
 </ContentPage>

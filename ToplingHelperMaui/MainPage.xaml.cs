@@ -125,30 +125,7 @@ namespace ToplingHelperMaui
                 return;
             }
 
-            //var instance = new Instance
-            //{
-            //    InstanceEcsId = "123",
-            //    PeerId = "456",
-            //    PrivateIp = "127.0.0.1",
-            //    RouteId = "789",
-            //    VpcId = "012"
-            //};
-            //var window = new Window(new MyToplingPage(instance, ToplingConstants))
-            //{
-            //    //WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            //    //Owner = this,
-
-            //};
-
-
-            //Dispatcher.Dispatch(() => { SetInputs(true); });
-            //Application.Current.OpenWindow(window);
-            //return;
-
             await Task.Run(Worker);
-
-            //await Shell.Current.GoToAsync(nameof(RichText));
-            //Application.Current!.OpenWindow(new Window(new RichText()));
         }
 
         private async Task Worker()
@@ -163,22 +140,13 @@ namespace ToplingHelperMaui
                 {
                     ToplingUserData.InstanceType.Todis => () =>
                     {
-                        var window = new Window(new RichText(instance, ToplingConstants))
-                        {
-                            //WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                            //Owner = this,
-
-                        };
+                        var window = new Window(new RichText(instance, ToplingConstants)) { };
                         Application.Current.OpenWindow(window);
                     }
                     ,
                     ToplingUserData.InstanceType.MyTopling => () =>
                     {
-                        var window = new Window(new MyToplingPage(instance, ToplingConstants))
-                        {
-                            //WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                            //Owner = this
-                        };
+                        var window = new Window(new MyToplingPage(instance, ToplingConstants)) { };
                         Application.Current.OpenWindow(window);
                     }
                     ,
