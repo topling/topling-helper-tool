@@ -257,9 +257,18 @@ public sealed class AliYunResources : IDisposable
         {
             RegionId = _toplingConstants.ToplingTestRegion,
         });
+        var switchCidrList = _client.GetAcsResponse(new DescribeVSwitchesRequest
+        {
+            VpcId = vpcId,
+        }).VSwitches.Select(s => s.CidrBlock).ToList();
         foreach (var (index, zoneId) in zoneList.Zones.Select((zone, index) => (index, zone.ZoneId)))
         {
             var block = $"10.{secondCidr}.{index}.0/24";
+            // 阿里云幂等性不做长时间保证,这里手动判定
+            if (switchCidrList.Contains(block))
+            {
+                continue;
+            }
             for (int i = 0; i < 10; ++i)
             {
                 try
@@ -358,14 +367,21 @@ public sealed class AliYunResources : IDisposable
                 });
                 return routeTableId;
             }
-            catch (ClientException e) when (e.ErrorCode.Equals("InvalidStatus.RouteEntry", StringComparison.OrdinalIgnoreCase))
+            catch (ClientException e) when (e.ErrorCode.Equals("InvalidStatus.RouteEntry",
+                                                StringComparison.OrdinalIgnoreCase))
             {
                 if (i < 9)
                 {
                     Task.Delay(TimeSpan.FromSeconds(3) * (i + 1)).Wait();
                     continue;
                 }
+
                 throw;
+            }
+            catch (ClientException e) when (e.ErrorMessage.Equals("Specified CIDR block is already exists.",
+                                                StringComparison.OrdinalIgnoreCase))
+            {
+                return routeTableId;
             }
         }
 
