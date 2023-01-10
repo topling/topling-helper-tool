@@ -134,7 +134,8 @@ namespace ToplingHelperMaui
             {
                 var handler = new AliYunResources(ToplingConstants, ToplingUserData, AppendLog);
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
-                Dispatcher.Dispatch(() => DisplayAlert("提示", "流程约三分钟，请不要关闭窗口!", "OK"));
+                AppendLog("提示: 流程约三分钟，请不要关闭窗口!");
+                //Dispatcher.Dispatch(() => DisplayAlert("提示", "流程约三分钟，请不要关闭窗口!", "OK"));
                 var instance = await handler.CreateInstance();
                 Action action = ToplingUserData.CreatingInstanceType switch
                 {

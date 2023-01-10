@@ -22,7 +22,7 @@
                    VerticalOptions="Center" />
             <Entry x:Name="ToplingId"
                    MaxLength="199"
-                   ClearButtonVisibility="WhileEditing"
+                   ClearButtonVisibility="Never"
                    VerticalOptions="Center"
                    Grid.Row="0" Grid.Column="1" />
             <Label Text="拓扑岭 用户密码"
@@ -30,7 +30,7 @@
                    VerticalOptions="Center" />
             <Entry x:Name="ToplingPassword"
                    MaxLength="199" IsPassword="True"
-                   ClearButtonVisibility="WhileEditing"
+                   ClearButtonVisibility="Never"
                    VerticalOptions="Center"
                    Grid.Row="1" Grid.Column="1" />
             <Label Text="阿里云 accessKeyID"
@@ -38,7 +38,7 @@
                    VerticalOptions="Center" />
             <Entry x:Name="AccessId"
                    MaxLength="199"
-                   ClearButtonVisibility="WhileEditing"
+                   ClearButtonVisibility="Never"
                    VerticalOptions="Center"
                    Grid.Row="2" Grid.Column="1" />
             <Label Text="阿里云 accessKeySecret&#10;(截图时请打码)"
@@ -46,7 +46,7 @@
                    VerticalOptions="Center" />
             <Entry x:Name="AccessSecret"
                    MaxLength="199" IsPassword="False"
-                   ClearButtonVisibility="WhileEditing"
+                   ClearButtonVisibility="Never"
                    VerticalOptions="Center"
                    Grid.Row="3" Grid.Column="1" />
             <Label VerticalOptions="Center"
