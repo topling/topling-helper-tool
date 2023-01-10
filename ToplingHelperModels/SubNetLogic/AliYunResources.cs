@@ -37,6 +37,10 @@ public sealed class AliYunResources : IDisposable
 
     public async Task<Instance> CreateInstance()
     {
+        return await Task.Run(CreateInstanceSync);
+    }
+    private Instance CreateInstanceSync()
+    {
         // 先处理记录了VPC的情况
         var subNet = _toplingResources.GetDefaultUserSubNet();
         AvailableVpc? availableVpc = null;

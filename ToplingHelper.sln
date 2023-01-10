@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToplingHelper", "ToplingHelper\ToplingHelper.csproj", "{5D381B5C-8050-4401-AD68-E078C15C2069}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToplingHelperModels", "ToplingHelperModels\ToplingHelperModels.csproj", "{D6F31FE7-00F1-4F54-8948-531516FDD650}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToplingHelperMaui", "ToplingHelperMaui\ToplingHelperMaui.csproj", "{7CB1D0E1-42B3-4BB7-8C60-E56F7C9F6B6E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToplingHelperMaui", "ToplingHelperMaui\ToplingHelperMaui.csproj", "{7CB1D0E1-42B3-4BB7-8C60-E56F7C9F6B6E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{D6F31FE7-00F1-4F54-8948-531516FDD650} = {D6F31FE7-00F1-4F54-8948-531516FDD650}
 	EndProjectSection
@@ -18,10 +16,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5D381B5C-8050-4401-AD68-E078C15C2069}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5D381B5C-8050-4401-AD68-E078C15C2069}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5D381B5C-8050-4401-AD68-E078C15C2069}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5D381B5C-8050-4401-AD68-E078C15C2069}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D6F31FE7-00F1-4F54-8948-531516FDD650}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D6F31FE7-00F1-4F54-8948-531516FDD650}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6F31FE7-00F1-4F54-8948-531516FDD650}.Release|Any CPU.ActiveCfg = Release|Any CPU
