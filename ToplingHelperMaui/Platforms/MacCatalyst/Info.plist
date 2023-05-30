@@ -2,6 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>
@@ -28,20 +33,20 @@
 	<string>Assets.xcassets/appicon.appiconset</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
-	<key>UIApplicationSupportsMultipleScenes</key>
-	<true/>
-	<key>UISceneConfigurations</key>
-	<dict>
-		<key>UIWindowSceneSessionRoleApplication</key>
-		<array>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<true/>
+		<key>UISceneConfigurations</key>
 		<dict>
-			<key>UISceneConfigurationName</key>
-			<string>__MAUI_DEFAULT_SCENE_CONFIGURATION__</string>
-			<key>UISceneDelegateClassName</key>
-			<string>SceneDelegate</string>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>__MAUI_DEFAULT_SCENE_CONFIGURATION__</string>
+					<key>UISceneDelegateClassName</key>
+					<string>SceneDelegate</string>
+				</dict>
+			</array>
 		</dict>
-		</array>
-	</dict>
 	</dict>
 </dict>
 </plist>
