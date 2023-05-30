@@ -46,7 +46,7 @@ namespace ToplingHelperMaui
             AccessId.Text = ToplingUserData.AccessId;
             ToplingId.Text = ToplingUserData.ToplingUserId;
             ToplingPassword.Text = ToplingUserData.ToplingPassword;
-
+            InstanceType = ToplingUserData.CreatingInstanceType;
         }
 
         private void Set_InstanceType(object sender, CheckedChangedEventArgs e)
@@ -142,13 +142,13 @@ namespace ToplingHelperMaui
                     ToplingUserData.InstanceType.Todis => () =>
                     {
                         var window = new Window(new RichText(instance, ToplingConstants)) { };
-                        Application.Current.OpenWindow(window);
+                        Application.Current!.OpenWindow(window);
                     }
                     ,
                     ToplingUserData.InstanceType.MyTopling => () =>
                     {
                         var window = new Window(new MyToplingPage(instance, ToplingConstants)) { };
-                        Application.Current.OpenWindow(window);
+                        Application.Current!.OpenWindow(window);
                     }
                     ,
                     _ => throw new ArgumentOutOfRangeException()

@@ -5,6 +5,17 @@
              xmlns:models="clr-namespace:ToplingHelperModels.Models;assembly=ToplingHelperModels"
              x:Class="ToplingHelperMaui.MainPage"
              Title="用户登录">
+
+    <Shell.TitleView>
+        <Grid>
+            <Label 
+                Text="用户登录"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                TextColor="White"
+                FontSize="Title" />
+        </Grid>
+    </Shell.TitleView>
     <ContentPage.Resources>
         <local:VisibleConverter x:Key="VisibleConverter" />
         <models:MySqlDataContext x:Key="VisibleMysqlKey" />
