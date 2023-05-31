@@ -203,7 +203,7 @@ namespace ToplingHelperModels.SubNetLogic
         private void FlushXsrf()
         {
             var xsrf = _cookieContainer.GetCookies(new Uri(_toplingConstants.ToplingConsoleHost)).Cast<Cookie>()
-                .First(i => i.Name == "admin-XSRF-TOKEN").Value;
+                .FirstOrDefault(i => i.Name == "admin-XSRF-TOKEN")?.Value ?? string.Empty;
             _httpClient.DefaultRequestHeaders.Remove("xsrf-token");
             _httpClient.DefaultRequestHeaders.Add("xsrf-token", xsrf);
         }

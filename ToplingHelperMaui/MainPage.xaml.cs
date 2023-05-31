@@ -181,7 +181,7 @@ namespace ToplingHelperMaui
                             //WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             //Owner = this
                         };
-                        Application.Current.OpenWindow(window);
+                        Application.Current!.OpenWindow(window);
                     });
                 }
                 else
