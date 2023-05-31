@@ -6,13 +6,13 @@
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   IgnorableNamespaces="uap rescap">
 
-  <Identity Name="topling-helper" Publisher="CN=User Name" Version="0.4.0.0" />
+  <Identity Name="topling-helper" Publisher="CN=北京拓扑岭科技有限公司, O=北京拓扑岭科技有限公司, S=北京市, C=CN" Version="0.5.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="FDCF4BD1-F464-4569-97F5-7A17BC8EAC56" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>$placeholder$</DisplayName>
-    <PublisherDisplayName>User Name</PublisherDisplayName>
+    <PublisherDisplayName>北京拓扑岭科技有限公司</PublisherDisplayName>
     <Logo>$placeholder$.png</Logo>
   </Properties>
 
@@ -41,6 +41,7 @@
 
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
+    <Capability Name="internetClient"/>
   </Capabilities>
 
 </Package>
