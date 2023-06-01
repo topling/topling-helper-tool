@@ -28,9 +28,10 @@
 		<DefaultLanguage>zh-cn</DefaultLanguage>
 	</PropertyGroup>
 	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' and '$(Configuration)' == 'Release'">
-		<AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
-		<AppxPackageSigningTimestampServerUrl>http://ts.ssl.com</AppxPackageSigningTimestampServerUrl>
-		<PackageCertificateThumbprint>652298E27FBDFDD0312360C93E9922DC05863299</PackageCertificateThumbprint>
+		<!--<AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>-->
+		<!--<AppxPackageSigningTimestampServerUrl>http://ts.ssl.com</AppxPackageSigningTimestampServerUrl>-->
+		<!--<PackageCertificateThumbprint>652298E27FBDFDD0312360C93E9922DC05863299</PackageCertificateThumbprint>-->
+
 	</PropertyGroup>
 	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' and '$(RuntimeIdentifierOverride)' != ''">
 		<RuntimeIdentifier>$(RuntimeIdentifierOverride)</RuntimeIdentifier>
@@ -54,22 +55,22 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\ToplingHelperModels\ToplingHelperModels.csproj" />
+		<ProjectReference Include="..\ToplingHelperModels\ToplingHelperModels.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="CdtNotOpened.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="MyToplingPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="OpenUrlFail.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="RichText.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
+		<MauiXaml Update="CdtNotOpened.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="MyToplingPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="OpenUrlFail.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="RichText.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
 	</ItemGroup>
 
 </Project>

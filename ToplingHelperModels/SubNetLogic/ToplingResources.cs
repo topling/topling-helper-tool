@@ -138,7 +138,7 @@ namespace ToplingHelperModels.SubNetLogic
             FlushXsrf();
 
             var bodyContent = JsonConvert.SerializeObject(new
-            {
+            {   
                 subNetId,
                 ecsType = _userData.CreatingInstanceType switch
                 {
@@ -203,7 +203,7 @@ namespace ToplingHelperModels.SubNetLogic
         private void FlushXsrf()
         {
             var xsrf = _cookieContainer.GetCookies(new Uri(_toplingConstants.ToplingConsoleHost)).Cast<Cookie>()
-                .FirstOrDefault(i => i.Name == "admin-XSRF-TOKEN")?.Value ?? string.Empty;
+                .FirstOrDefault(i => i.Name.Equals("XSRF-TOKEN",StringComparison.OrdinalIgnoreCase))?.Value ?? string.Empty;
             _httpClient.DefaultRequestHeaders.Remove("xsrf-token");
             _httpClient.DefaultRequestHeaders.Add("xsrf-token", xsrf);
         }

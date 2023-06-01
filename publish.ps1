@@ -1,21 +1,13 @@
-﻿Remove-Item publish -Recurse -Force
-dotnet publish ToplingHelper --runtime win-x64   /p:PublishSingleFile=true --self-contained false  /p:IncludeNativeLibrariesForSelfExtract=true  -c release -o publish/x64-lite
-dotnet publish ToplingHelper --runtime win-x86   /p:PublishSingleFile=true --self-contained false  /p:IncludeNativeLibrariesForSelfExtract=true  -c release -o publish/x86-lite
-dotnet publish ToplingHelper --runtime win-x64   /p:PublishSingleFile=true --self-contained true   /p:IncludeNativeLibrariesForSelfExtract=true  -c release -o publish/x64-full
-dotnet publish ToplingHelper --runtime win-x86   /p:PublishSingleFile=true --self-contained true   /p:IncludeNativeLibrariesForSelfExtract=true  -c release -o publish/x86-full
-Move-Item publish/x64-lite/ToplingHelper.exe publish/ToplingHelper-lite-x64.exe
-Move-Item publish/x86-lite/ToplingHelper.exe publish/ToplingHelper-lite-x86.exe
-Move-Item publish/x64-full/ToplingHelper.exe publish/ToplingHelper-full-x64.exe
-Move-Item publish/x86-full/ToplingHelper.exe publish/ToplingHelper-full-x86.exe
+﻿$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+chcp 65001
 
-&"${env:ProgramFiles(x86)}\Microsoft SDKs\ClickOnce\SignTool\signtool.exe" sign /tr http://ts.ssl.com /sha1  652298E27FBDFDD0312360C93E9922DC05863299 /fd sha256 .\publish\*.exe
+$fileX86 = (dotnet publish ToplingHelperMaui -f net6.0-windows10.0.19041.0 -c Release -p:RuntimeIdentifierOverride=win10-x86 | Select-Object -Last 1).Split()[-1]
 
-Get-ChildItem publish -Directory | Remove-Item -Recurse -Force
+$fileX64 = (dotnet publish ToplingHelperMaui -f net6.0-windows10.0.19041.0 -c Release -p:RuntimeIdentifierOverride=win10-x64 | Select-Object -Last 1).Split()[-1]
+Remove-Item ./*.msix
+move-Item $fileX86 ToplingHelperMaui-x86.msix
+move-Item $fileX64 ToplingHelperMaui-x64.msix
 
-Get-ChildItem publish | Foreach-Object {   
-    $output = "publish/" + $_.BaseName + ".zip";
-    $input_ = "publish/" + $_.Name;
-    zip -j1 $output $input_
-}
-
-explorer.exe ./publish
+$signtoolPath = "${env:ProgramFiles(x86)}\Windows Kits\10\App Certification Kit\signtool.exe"
+& $signtoolPath sign /tr http://ts.ssl.com /sha1  652298E27FBDFDD0312360C93E9922DC05863299 /fd sha256 *.msix
