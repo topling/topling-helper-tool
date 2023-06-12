@@ -60,6 +60,7 @@ namespace ToplingHelperModels.Models
 
         public enum InstanceType
         {
+            Unknown,
             Todis,
             MyTopling
         }
