@@ -1,4 +1,4 @@
-using ToplingHelperModels.Models;
+ï»¿using ToplingHelperModels.Models;
 
 namespace ToplingHelperMaui;
 
@@ -31,29 +31,29 @@ public partial class RichText : ContentPage
         RouteLink.Url = _context.RouteUrl;
     }
 
-    private const string PreTestText = @"# ÇëÊ×ÏÈÈ·±£²âÊÔÊµÀıÎªCentOS/AliOS
-# ÏÂÔØ×Ô¶¯½Å±¾
+    private const string PreTestText = @"# è¯·é¦–å…ˆç¡®ä¿æµ‹è¯•å®ä¾‹ä¸ºCentOS/AliOS
+# ä¸‹è½½è‡ªåŠ¨è„šæœ¬
 wget https://topling.cn/downloads/mount-test.sh && chmod +x ./mount-test.sh
 
-# ¹ÒÔØ²âÊÔ³ÌĞò¼°Ô´Êı¾İµ½ /mnt
+# æŒ‚è½½æµ‹è¯•ç¨‹åºåŠæºæ•°æ®åˆ° /mnt
 sudo bash mount-test.sh /mnt
 ";
-    private static string GetTestText(string privateIp) => $@"# Ö±½ÓÖ´ĞĞ²é¿´°ïÖú
+    private static string GetTestText(string privateIp) => $@"# ç›´æ¥æ‰§è¡ŒæŸ¥çœ‹å¸®åŠ©
 /mnt/InsertKeys
 
-# ²åÈëË³ĞòÊı¾İ(Ô´ÎÄ¼ş¹ı´ó£¬ÒÑÊ¹ÓÃ zstd Ñ¹Ëõ)
+# æ’å…¥é¡ºåºæ•°æ®(æºæ–‡ä»¶è¿‡å¤§ï¼Œå·²ä½¿ç”¨ zstd å‹ç¼©)
 zstd -d -c -q /mnt/wikipedia-flat-seq.zst | /mnt/InsertKeys -h {privateIp} -t 8 --multi-set 8 -f /dev/stdin
 
-# ²åÈëÂÒĞòÊı¾İ(Ô´ÎÄ¼ş¹ı´ó£¬ÒÑÊ¹ÓÃ zstd Ñ¹Ëõ)
+# æ’å…¥ä¹±åºæ•°æ®(æºæ–‡ä»¶è¿‡å¤§ï¼Œå·²ä½¿ç”¨ zstd å‹ç¼©)
 zstd -d -c -q /mnt/wikipedia-flat-rand.zst | /mnt/InsertKeys -h {privateIp} -t 8 --multi-set 8 -f /dev/stdin
 
-# ¶ÁÈ¡Êı¾İ(Ë³Ğò)
+# è¯»å–æ•°æ®(é¡ºåº)
 /mnt/GetKeysQps -t 32 -n 8 -f /mnt/wikipedia-flat-key-seq.txt -h {privateIp}
 
-# ¶ÁÈ¡Êı¾İ(ÂÒĞò)
+# è¯»å–æ•°æ®(ä¹±åº)
 /mnt/GetKeysQps -t 32 -n 8 -f /mnt/wikipedia-flat-key-rand.txt -h {privateIp}
 
-# ²âÊÔ hash Ğ´ĞÔÄÜ
+# æµ‹è¯• hash å†™æ€§èƒ½
 zstd -d -c -q /mnt/weibo.zst  |  /mnt/InsertWeiboData -h {privateIp} -t 32 -f /dev/stdin  --disabled_seekg --ignore_logs
 ";
 }
