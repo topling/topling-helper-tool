@@ -31,6 +31,11 @@ public partial class RichText : ContentPage
         RouteLink.Url = _context.RouteUrl;
     }
 
+    private void HandleTextChanged(object sender, EventArgs args)
+    {
+        (sender as Editor).Text = PreTestText;
+    }
+
     private const string PreTestText = @"# 请首先确保测试实例为CentOS/AliOS
 # 下载自动脚本
 wget https://topling.cn/downloads/mount-test.sh && chmod +x ./mount-test.sh

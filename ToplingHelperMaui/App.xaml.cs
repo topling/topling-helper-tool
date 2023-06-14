@@ -26,7 +26,8 @@ namespace ToplingHelperMaui
                     IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
                     WindowId windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(windowHandle);
                     AppWindow appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
-                    appWindow.Resize(new SizeInt32(width, height)); 
+                    var a = DeviceDisplay.Current.MainDisplayInfo.Density;
+                    appWindow.Resize(new SizeInt32(width / 96 * a, height / 96 * a)); 
 #endif
 #if MACCATALYST
                     var size = new CoreGraphics.CGSize(width, height);

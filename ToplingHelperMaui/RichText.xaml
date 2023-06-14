@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:ToplingHelperMaui"
@@ -94,9 +94,9 @@
             <local:HyperlinkLabel x:Name="RouteLink" Margin="10,0" Text="跳转路由表" />
 
             <Label>· 测试性能</Label>
-            <Label BackgroundColor="Gainsboro" x:Name="TestPerformance"></Label>
+            <Editor TextChanged="HandleTextChanged" BackgroundColor="Gainsboro" x:Name="TestPerformance"></Editor>
             <Label>测试指令</Label>
-            <Label BackgroundColor="Gainsboro" x:Name="TestCommands"></Label>
+            <Editor TextChanged="HandleTextChanged" BackgroundColor="Gainsboro" x:Name="TestCommands"></Editor>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
