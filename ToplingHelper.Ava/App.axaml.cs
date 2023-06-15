@@ -25,39 +25,43 @@ namespace ToplingHelper.Ava
 
         public override void OnFrameworkInitializationCompleted()
         {
-            var desktopLifetime = (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!;
-            desktopLifetime.Startup += (sender, e) =>
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                var userData = new ToplingUserData();
-                var constants = new ToplingConstants();
-
-                if (e.Args.Length > 0 && File.Exists(e.Args[0]))
+                desktop.Startup += (sender, e) =>
                 {
-                    var content = File.ReadAllText(e.Args[0]);
-                    try
+                    var userData = new ToplingUserData();
+                    var constants = new ToplingConstants();
+    
+                    if (e.Args.Length > 0 && File.Exists(e.Args[0]))
                     {
-                        var json = JsonNode.Parse(content);
-
-                        userData = json?["ToplingUserData"]?.Deserialize<ToplingUserData>() ?? userData;
-                        constants = json?["ToplingConstants"]?.Deserialize<ToplingConstants>() ?? constants;
-                    }
-                    catch (Exception e1)
-                    {
-                        Dispatcher.UIThread.Post(() =>
+                        var content = File.ReadAllText(e.Args[0]);
+                        try
                         {
-                            var messageBoxStandardWindow = MessageBox.Avalonia.MessageBoxManager
-                                .GetMessageBoxStandardWindow("参数错误", JsonConvert.SerializeObject(e1.Data, Formatting.Indented));
-                            messageBoxStandardWindow.Show();
-                        });
+                            var json = JsonNode.Parse(content);
+    
+                            userData = json?["ToplingUserData"]?.Deserialize<ToplingUserData>() ?? userData;
+                            constants = json?["ToplingConstants"]?.Deserialize<ToplingConstants>() ?? constants;
+                        }
+                        catch (Exception e1)
+                        {
+                            Dispatcher.UIThread.Post(() =>
+                            {
+                                var messageBoxStandardWindow = MessageBox.Avalonia.MessageBoxManager
+                                    .GetMessageBoxStandardWindow("参数错误", JsonConvert.SerializeObject(e1.Data, Formatting.Indented));
+                                messageBoxStandardWindow.Show();
+                            });
+                        }
                     }
-                }
-
-                desktopLifetime.MainWindow = new MainWindow()
-                {
-                    ToplingConstants = constants,
-                    DataContext = new ToplingUserDataBinding(userData)
+    
+                    userData.AccessId = "123";
+                    desktop.MainWindow = new SuccessfulResult()
+                    {
+                        // ToplingConstants = constants,
+                        // DataContext = new ToplingUserDataBinding(userData)
+                    };
                 };
-            };
+            }
+            
 
             base.OnFrameworkInitializationCompleted();
         }
