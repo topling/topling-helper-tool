@@ -186,7 +186,7 @@ namespace ToplingHelperModels.SubNetLogic
 
             if (instance == null)
             {
-                throw new Exception("实例创建可能出错，请重新执行本程序");
+                throw new Exception("实例创建可能出错，请重新执行本程序。");
             }
 
             return new Instance
