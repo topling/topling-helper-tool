@@ -13,25 +13,29 @@ namespace ToplingHelper.Ava.Models
 {
     internal sealed class ToplingUserDataBinding : ToplingUserData, INotifyPropertyChanged
     {
-        public ToplingUserDataBinding(ToplingUserData userData)
+        public ToplingUserDataBinding()
+        {
+
+        }
+
+    public ToplingUserDataBinding(ToplingUserData userData)
         {
             var props = typeof(ToplingUserData)
-                .GetProperties(BindingFlags.Instance | BindingFlags.Instance).ToList();
+                .GetProperties().ToList();
             foreach (var prop in props)
             {
-                prop.SetValue(this, prop.GetValue(userData));
-                OnPropertyChanged(prop.Name);
+                var propInfo = typeof(ToplingUserDataBinding)
+                    .GetProperty(prop.Name)!;
+                propInfo.SetValue(this, prop.GetValue(userData));
+                OnPropertyChanged(propInfo.Name);
             }
         }
+
 
         private bool _editServerId = false;
 
         private bool _useGtid;
 
-        public ToplingUserDataBinding()
-        {
-           
-        }
 
 
         public bool UseGtid

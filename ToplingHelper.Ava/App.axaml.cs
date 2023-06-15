@@ -52,7 +52,6 @@ namespace ToplingHelper.Ava
                     }
                 }
 
-                userData.AccessId = "123";
                 desktopLifetime.MainWindow = new MainWindow()
                 {
                     ToplingConstants = constants,

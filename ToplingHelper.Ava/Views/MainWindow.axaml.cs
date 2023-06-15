@@ -19,20 +19,19 @@ namespace ToplingHelper.Ava.Views
     {
         private readonly StringBuilder _logBuilder = new();
 
-        public ToplingUserData UserData { get; set; } = new();
 
         private ToplingUserDataBinding Context => (DataContext as ToplingUserDataBinding)!;
         public ToplingConstants ToplingConstants { get; init; } = default!;
 
-        //public MainWindow()
-        //{
-        //    InitializeComponent();
-        //}
         public MainWindow()
+        {
+            InitializeComponent();
+        }
+        public MainWindow(ToplingUserData userData)
         {
 
             InitializeComponent();
-
+            DataContext = new ToplingUserDataBinding(userData);
         }
 
         private void ChangeServiceInstanceType(object? sender, RoutedEventArgs e)
@@ -51,7 +50,7 @@ namespace ToplingHelper.Ava.Views
         }
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
-
+            
             _logBuilder.Clear();
             Log.Text = "";
             SetInputs(false);
@@ -88,7 +87,8 @@ namespace ToplingHelper.Ava.Views
                 SetInputs(true);
                 return;
             }
-
+            SetInputs(true);
+            return;
             _ = Dispatcher.UIThread.InvokeAsync(Worker, DispatcherPriority.Background);
 
         }

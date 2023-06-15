@@ -5,29 +5,26 @@
         xmlns:controls="clr-namespace:HyperText.Avalonia.Controls;assembly=HyperText.Avalonia"
         xmlns:avalonia="clr-namespace:HyperText.Avalonia;assembly=HyperText.Avalonia"
         xmlns:vm="clr-namespace:ToplingHelperModels.Models;assembly=ToplingHelperModels"
+        xmlns:models="clr-namespace:ToplingHelper.Ava.Models"
         Width="800" Height="600"
         x:Class="ToplingHelper.Ava.Views.MainWindow"
         x:DataType="vm:ToplingUserData"
         Icon="/Assets/avalonia-logo.ico"
-        Title="ToplingHelper.Ava">
+        Title="拓扑岭自动化工具">
 	<Window.Styles>
 		<avalonia:HyperLinkStyle/>
 	</Window.Styles>
-    
-	<!--<Window.DataContext>-->
-	<!--<Binding Source="" />-->
-	<!--<DynamicResource ResourceKey="ContextKey"/>-->
-	<!--</Window.DataContext>-->
-	<!--<Design.DataContext>-->
+
+	<Design.DataContext>
 	<!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
 
-	<!--<models:ToplingUserDataBinding />-->
-	<!--</Design.DataContext>-->
+	<models:ToplingUserDataBinding />
+	</Design.DataContext>
 	<Grid>
 		<Viewbox Stretch="Uniform">
-			<Canvas Height="650" Width="900" >
-				<Grid ColumnDefinitions="400,300" RowDefinitions="Auto,50,50,50,50,50,auto,auto,auto,auto" Margin="50,0,0,0">
+			<Canvas Height="750" Width="900" >
+                <Grid ColumnDefinitions="400,300" RowDefinitions="Auto,50,50,50,50,50,auto,auto,auto,auto" Margin="50,0,0,0">
 					<Grid.Styles>
 						<Style Selector="TextBlock,controls|Hyperlink">
 							<!--<Setter Property="Margin" Value="0,10,0,0"/>-->
@@ -96,13 +93,18 @@
                                IsVisible="{Binding Path=EditServerId,Mode=OneWay}">自定义 server-id 值</TextBlock>
 					<TextBox Grid.Column="1" Grid.Row="8" Name="ServerId"
                               MaxLength="10" IsVisible="{Binding Path=VisibleEditServerId,Mode=OneWay}">1</TextBox>
-					<Button Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="9" Name="Btn"
-							>开始创建</Button>
-					<TextBox Grid.Column="0" Grid.Row="9"  Margin="0,20,0,0"
-                             Grid.ColumnSpan="2" Name="Log"  Height="320" Width="750" TextWrapping="Wrap" IsReadOnly="True" />
-				</Grid>
+                </Grid>
+				<Canvas Canvas.Top="370" Canvas.Left="50">
+                    <StackPanel >
+                        <Button Name="Btn" FontSize="24" HorizontalAlignment="Center" Click="Submit_Click">开始创建</Button>
+                        <TextBox Name="Log" Margin="0,20,0,0" Height="320" Width="750" TextWrapping="Wrap" IsReadOnly="True" />
+                    </StackPanel>
+				</Canvas>
+
+
 			</Canvas>
 		</Viewbox>
 	</Grid>
+
 
 </Window>
