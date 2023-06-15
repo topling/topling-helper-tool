@@ -3,11 +3,14 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using MessageBox.Avalonia.DTO;
+using MessageBox.Avalonia.Models;
 using Newtonsoft.Json;
 using ToplingHelper.Ava.Models;
 using ToplingHelper.Ava.ViewModels;
@@ -47,17 +50,25 @@ namespace ToplingHelper.Ava
                             Dispatcher.UIThread.Post(() =>
                             {
                                 var messageBoxStandardWindow = MessageBox.Avalonia.MessageBoxManager
-                                    .GetMessageBoxStandardWindow("参数错误", JsonConvert.SerializeObject(e1.Data, Formatting.Indented));
+                                    .GetMessageBoxCustomWindow(new MessageBoxCustomParams
+                                    {
+                                        ContentTitle = "json注入错误",
+                                        ContentMessage = JsonConvert.SerializeObject(e1.Data),
+                                        FontFamily = "Microsoft YaHei,Simsun",
+                                        ButtonDefinitions = new[]
+                                            { new ButtonDefinition { Name = "确定", IsDefault = true }, },
+                                        WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                                    });
                                 messageBoxStandardWindow.Show();
                             });
                         }
                     }
     
                     userData.AccessId = "123";
-                    desktop.MainWindow = new SuccessfulResult()
+                    desktop.MainWindow = new MainWindow()
                     {
-                        // ToplingConstants = constants,
-                        // DataContext = new ToplingUserDataBinding(userData)
+                        ToplingConstants = constants,
+                        DataContext = new ToplingUserDataBinding(userData)
                     };
                 };
             }

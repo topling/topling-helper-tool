@@ -8,6 +8,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using MessageBox.Avalonia.DTO;
+using MessageBox.Avalonia.Models;
 using ToplingHelper.Ava.Models;
 using ToplingHelperModels.Models;
 using ToplingHelperModels.SubNetLogic;
@@ -50,7 +52,7 @@ namespace ToplingHelper.Ava.Views
         }
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
-            
+
             _logBuilder.Clear();
             Log.Text = "";
             SetInputs(false);
@@ -201,9 +203,19 @@ namespace ToplingHelper.Ava.Views
         {
             Dispatcher.UIThread.Post(() =>
             {
+
                 var messageBoxStandardWindow = MessageBox.Avalonia.MessageBoxManager
-                    .GetMessageBoxStandardWindow(string.Empty, text);
-                messageBoxStandardWindow.Show();
+                    .GetMessageBoxCustomWindow(new MessageBoxCustomParams
+                    {
+                        ContentTitle = caption,
+                        ContentMessage = text,
+                        FontFamily = "Microsoft YaHei,Simsun",
+                        ButtonDefinitions = new[]
+                            { new ButtonDefinition { Name = "确定", IsDefault = true }, },
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                        Width = 200
+                    });
+                messageBoxStandardWindow.ShowDialog(this);
             });
         }
 

@@ -6,14 +6,18 @@
         xmlns:avalonia="clr-namespace:HyperText.Avalonia;assembly=HyperText.Avalonia"
         xmlns:vm="clr-namespace:ToplingHelperModels.Models;assembly=ToplingHelperModels"
         xmlns:models="clr-namespace:ToplingHelper.Ava.Models"
-        Width="800" Height="600"
         x:Class="ToplingHelper.Ava.Views.MainWindow"
         x:DataType="vm:ToplingUserData"
         Icon="/Assets/avalonia-logo.ico"
+		Width="750"
+		Height="900"
         Title="拓扑岭自动化工具">
 	<Window.Styles>
 		<avalonia:HyperLinkStyle/>
-	</Window.Styles>
+		<Style Selector=":is(TemplatedControl)">
+            <Setter Property="FontFamily" Value="Microsoft YaHei,苹方-简,宋体-简"/>
+        </Style>
+    </Window.Styles>
 
 	<Design.DataContext>
 	<!-- This only sets the DataContext for the previewer in an IDE,
@@ -23,8 +27,8 @@
 	</Design.DataContext>
 	<Grid>
 		<Viewbox Stretch="Uniform">
-			<Canvas Height="750" Width="900" >
-                <Grid ColumnDefinitions="400,300" RowDefinitions="Auto,50,50,50,50,50,auto,auto,auto,auto" Margin="50,0,0,0">
+			<Canvas Height="900" Width="700" Margin="50">
+                <Grid ColumnDefinitions="250,300" RowDefinitions="auto,50,50,50,50,50,50,auto,auto,auto" Margin="0,0,0,0">
 					<Grid.Styles>
 						<Style Selector="TextBlock,controls|Hyperlink">
 							<!--<Setter Property="Margin" Value="0,10,0,0"/>-->
@@ -59,8 +63,8 @@
 					<TextBox Grid.Column="1" Grid.Row="3" Name="AccessId"
                              Text="{Binding AccessId}"   TextWrapping="Wrap" />
 
-					<controls:Hyperlink Grid.Column="0" Grid.Row="4" Url="https://ram.console.aliyun.com/manage" Alias="阿里云 accessKeySecret(截图请打码)"/>
-					<TextBox Grid.Column="1" Grid.Row="4" Name="AccessSecret"
+					<controls:Hyperlink Grid.Column="0" Grid.Row="4" Url="https://ram.console.aliyun.com/manage" Alias="阿里云 accessKeySecret"/>
+					<TextBox Grid.Column="1" Grid.Row="4" Name="AccessSecret" PasswordChar="*"
                              Text="{Binding AccessSecret }"  TextWrapping="Wrap"/>
 
 
@@ -86,18 +90,19 @@
 
 					<TextBlock Grid.Column="0" Grid.Row="7"
                                IsVisible="{Binding Path=IsMySql,Mode=OneWay}">自定义 server-id</TextBlock>
-					<CheckBox Grid.Column="1" Grid.Row="7"  Name="EditServerId"
+                    <StackPanel Grid.Column="1" Grid.Row="7" Orientation="Horizontal">
+					<CheckBox  Name="EditServerId" 
                               IsChecked="{Binding Path=EditServerId}" IsVisible="{Binding Path=IsMySql,Mode=OneWay}"/>
+                    <TextBox  Name="ServerId" MaxLength="10" Margin="50,0,0,0" MaxWidth="100"
+                              IsVisible="{Binding Path=VisibleEditServerId,Mode=OneWay}"/>
+					</StackPanel>
 
-					<TextBlock Grid.Column="0" Grid.Row="8"
-                               IsVisible="{Binding Path=EditServerId,Mode=OneWay}">自定义 server-id 值</TextBlock>
-					<TextBox Grid.Column="1" Grid.Row="8" Name="ServerId"
-                              MaxLength="10" IsVisible="{Binding Path=VisibleEditServerId,Mode=OneWay}">1</TextBox>
-                </Grid>
-				<Canvas Canvas.Top="370" Canvas.Left="50">
+				</Grid>
+				<Canvas Canvas.Top="400" Canvas.Left="00">
                     <StackPanel >
-                        <Button Name="Btn" FontSize="24" HorizontalAlignment="Center" Click="Submit_Click">开始创建</Button>
-                        <TextBox Name="Log" Margin="0,20,0,0" Height="320" Width="750" TextWrapping="Wrap" IsReadOnly="True" />
+                        <Button Name="Btn" FontSize="24"
+                                HorizontalAlignment="Center" Click="Submit_Click">开始创建</Button>
+                        <TextBox Name="Log" Margin="0,20,0,0" Height="350" Width="700" TextWrapping="Wrap" IsReadOnly="True" />
                     </StackPanel>
 				</Canvas>
 
