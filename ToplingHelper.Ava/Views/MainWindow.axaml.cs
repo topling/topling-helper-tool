@@ -86,8 +86,6 @@ namespace ToplingHelper.Ava.Views
                 SetInputs(true);
                 return;
             }
-            SetInputs(true);
-            return;
             _ = Dispatcher.UIThread.InvokeAsync(Worker, DispatcherPriority.Background);
 
         }
@@ -135,7 +133,7 @@ namespace ToplingHelper.Ava.Views
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             ToplingConstants = ToplingConstants,
-                            Instance = instance,
+                            DataContext = instance,
                         };
                         window.Show();
                     }
@@ -146,7 +144,7 @@ namespace ToplingHelper.Ava.Views
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             ToplingConstants = ToplingConstants,
-                            Instance = instance
+                            DataContext = instance
                         };
                         window.Show();
                     },

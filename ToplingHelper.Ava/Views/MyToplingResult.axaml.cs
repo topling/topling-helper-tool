@@ -7,7 +7,6 @@ namespace ToplingHelper.Ava.Views;
 
 public partial class MyToplingResult : Window
 {
-    public Instance Instance { get; init; } = default!;
     public ToplingConstants ToplingConstants { get; init; } = default!;
 
     public MyToplingResult()
