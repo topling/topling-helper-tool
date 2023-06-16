@@ -11,9 +11,6 @@ public partial class MyToplingResult : Window
     public MyToplingResult()
     {
         InitializeComponent();
-#if DEBUG
-        this.AttachDevTools();
-#endif
     }
 
 }

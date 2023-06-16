@@ -25,7 +25,10 @@
 		</models:Instance>
 	</Design.DataContext>
 	<ScrollViewer>
-		<StackPanel>
+		<ScrollViewer.Margin>
+			20
+		</ScrollViewer.Margin>
+        <StackPanel>
 			<StackPanel>
 				<WrapPanel>
 					<TextBlock>请登录阿里云，在可用区</TextBlock>

@@ -5,84 +5,95 @@
         xmlns:models="clr-namespace:ToplingHelperModels.Models;assembly=ToplingHelperModels"
         xmlns:controls="clr-namespace:HyperText.Avalonia.Controls;assembly=HyperText.Avalonia"
         xmlns:avalonia="clr-namespace:HyperText.Avalonia;assembly=HyperText.Avalonia"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="850"
         x:Class="ToplingHelper.Ava.Views.TodisResult"
         Title="创建成功">
-    <Design.DataContext>
-        <models:Instance>
-            <models:Instance.VpcId>vpc-xxxxxxxxxx</models:Instance.VpcId>
-            <models:Instance.PeerId>pcC-5vlns760$3p4uj988h</models:Instance.PeerId>
-            <models:Instance.PrivateIp>192.168.31.00</models:Instance.PrivateIp>
-        </models:Instance>
-    </Design.DataContext>
-    <Window.Styles>
-        <avalonia:HyperLinkStyle />
-        <Style Selector=":is(TemplatedControl)">
-            <Setter Property="FontFamily" Value="Microsoft YaHei,苹方-简,宋体-简"></Setter>
-        </Style>
-    </Window.Styles>
-    <Window.DataContext>
-        <models:Instance />
-    </Window.DataContext>
-    <ScrollViewer>
-        <StackPanel>
-            <StackPanel>
-                <WrapPanel>
-                    <TextBlock>请登录阿里云，在</TextBlock>
-                    <TextBlock FontWeight="Bold" Text="{Binding VpcId}" />
-                    <TextBlock>下创建新ECS实例，操作系统请选择</TextBlock>
-                    <TextBlock FontWeight="Bold" Foreground="Red">Centos(7/8)/AliyunOS/Ubuntu(16.04/18.04)</TextBlock>
-                </WrapPanel>
-                <WrapPanel>
-                    <TextBlock>创建时请为ECS实例添加</TextBlock>
-                    <TextBlock FontWeight="Bold" Foreground="Red">公网IP</TextBlock>
-                    <TextBlock>(一键脚本使用公网安装 oss-util 相关依赖，使用内网挂载数据集)</TextBlock>
-                </WrapPanel>
-                <WrapPanel>
-                    <TextBlock>一定在</TextBlock>
-                    <TextBlock FontWeight="Bold" Text="{Binding VpcId}" />
-                    <TextBlock>下创建实例！</TextBlock>
-                </WrapPanel>
-                <WrapPanel>
-                    <TextBlock>操作系统请选择</TextBlock>
-                    <TextBlock FontWeight="Bold" Foreground="Red">Centos(7/8)/AliyunOS/Ubuntu(16.04/18.04)</TextBlock>
-                </WrapPanel>
-                <WrapPanel>
-                    <TextBlock>连接</TextBlock>
-                    <TextBlock Text="{Binding PrivateIp}" />
-                </WrapPanel>
-                <controls:Hyperlink>查看Grafana监控</controls:Hyperlink>
-                <controls:Hyperlink>查看引擎监控</controls:Hyperlink>
-            </StackPanel>
-            <StackPanel>
-                <TextBlock>· 如果ping不通</TextBlock>
-                <WrapPanel>
-                    <TextBlock>1. 运行</TextBlock>
-                    <TextBox IsReadOnly="True" Background="Gainsboro">curl http://100.100.100.200/latest/meta-data/vpc-id</TextBox>
-                    <TextBlock>查看结果是否为</TextBlock>
-                    <TextBlock Text="{Binding VpcId}" />
-                </WrapPanel>
-                <WrapPanel>
-                    <TextBlock>2. 查看路由表(</TextBlock>
-                    <controls:Hyperlink>跳转链接</controls:Hyperlink>
-                    <TextBlock>)，选择自定义路由条目，应该存在一条目标网段为为 10.0.0.0/16，下一跳为</TextBlock>
-                    <TextBlock Text="{Binding PeerId}" />
-                    <TextBlock>的条目。若缺少，请添加自定义路由条目：</TextBlock>
-                    <TextBlock Text="{Binding VpcId}"/>
-                    <TextBlock Text="{Binding ToplingConstants.ToplingAliYunUserId, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" />
-                </WrapPanel>
-            </StackPanel>
-            <StackPanel>
-                <TextBlock>· 测试性能</TextBlock>
-                <TextBox Background="Gainsboro"><![CDATA[
+	<Design.DataContext>
+		<models:Instance>
+			<models:Instance.VpcId>vpc-xxxxxxxxxx</models:Instance.VpcId>
+			<models:Instance.PeerId>pcC-5vlns760$3p4uj988h</models:Instance.PeerId>
+			<models:Instance.PrivateIp>192.168.31.00</models:Instance.PrivateIp>
+		</models:Instance>
+	</Design.DataContext>
+	<Window.Styles>
+		<avalonia:HyperLinkStyle />
+		<Style Selector=":is(TemplatedControl)">
+			<Setter Property="FontFamily" Value="Microsoft YaHei,苹方-简,宋体-简"></Setter>
+		</Style>
+	</Window.Styles>
+	<Window.DataContext>
+		<models:Instance />
+	</Window.DataContext>
+	<ScrollViewer Margin="20">
+		<StackPanel>
+			<StackPanel>
+				<StackPanel.Styles>
+					<Style Selector="WrapPanel, controls|Hyperlink">
+						<Setter Property="Margin" Value="0,10,0,0"/>
+					</Style>
+				</StackPanel.Styles>
+				<WrapPanel>
+					<TextBlock>请登录阿里云，在</TextBlock>
+					<TextBlock FontWeight="Bold" Text="{Binding VpcId}" />
+					<TextBlock>下创建新ECS实例，操作系统请选择</TextBlock>
+					<TextBlock FontWeight="Bold" Foreground="Red">Centos(7/8)/AliyunOS/Ubuntu(16.04/18.04)</TextBlock>
+				</WrapPanel>
+				<WrapPanel>
+					<TextBlock>创建时请为ECS实例添加</TextBlock>
+					<TextBlock FontWeight="Bold" Foreground="Red">公网IP</TextBlock>
+					<TextBlock>(一键脚本使用公网安装 oss-util 相关依赖，使用内网挂载数据集)</TextBlock>
+				</WrapPanel>
+				<WrapPanel>
+					<TextBlock>一定在</TextBlock>
+					<TextBlock FontWeight="Bold" Text="{Binding VpcId}" />
+					<TextBlock>下创建实例！</TextBlock>
+				</WrapPanel>
+				<WrapPanel>
+					<TextBlock>操作系统请选择</TextBlock>
+					<TextBlock FontWeight="Bold" Foreground="Red">Centos(7/8)/AliyunOS/Ubuntu(16.04/18.04)</TextBlock>
+				</WrapPanel>
+				<WrapPanel>
+					<TextBlock>连接</TextBlock>
+					<TextBlock Text="{Binding PrivateIp}" />
+				</WrapPanel>
+
+				<controls:Hyperlink Alias="查看Grafana监控" Url="{Binding GrafanaUrl, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
+				<controls:Hyperlink Alias="查看引擎监控" Url="{Binding EngineUrl, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
+			</StackPanel>
+			<StackPanel Margin="0,10,0,0">
+				<StackPanel.Styles>
+					<Style Selector="WrapPanel, controls|Hyperlink">
+						<Setter Property="Margin" Value="0,10,0,0"/>
+					</Style>
+				</StackPanel.Styles>
+				<TextBlock>· 如果ping不通</TextBlock>
+				<WrapPanel>
+					<TextBlock>1. 运行</TextBlock>
+					<TextBox IsReadOnly="True" Background="Gainsboro">curl http://100.100.100.200/latest/meta-data/vpc-id</TextBox>
+					<TextBlock>查看结果是否为</TextBlock>
+					<TextBlock Text="{Binding VpcId}" />
+				</WrapPanel>
+				<WrapPanel>
+					<TextBlock>2. 查看路由表(</TextBlock>
+					<controls:Hyperlink>跳转链接</controls:Hyperlink>
+					<TextBlock>)，选择自定义路由条目，应该存在一条目标网段为为 10.0.0.0/16，下一跳为</TextBlock>
+					<TextBlock Text="{Binding PeerId}" />
+					<TextBlock>的条目。若缺少，请添加自定义路由条目：</TextBlock>
+					<TextBlock Text="{Binding VpcId}"/>
+					<TextBlock Text="{Binding ToplingConstants.ToplingAliYunUserId, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" />
+				</WrapPanel>
+			</StackPanel>
+			<StackPanel>
+				<TextBlock>· 测试性能</TextBlock>
+				<TextBox Background="Gainsboro">
+					<![CDATA[
 # 请首先确保测试实例为CentOS/AliOS
 # 下载自动脚本
 wget https://topling.cn/downloads/mount-test.sh && chmod +x ./mount-test.sh
 
 # 挂载测试程序及源数据到 /mnt
 sudo bash mount-test.sh /mnt
-                ]]></TextBox>
-                <TextBox Background="Gainsboro"><![CDATA[
+
 # 直接执行查看帮助
 /mnt/InsertKeys
 
@@ -100,8 +111,9 @@ zstd -d -c -q /mnt/wikipedia-flat-rand.zst | /mnt/InsertKeys -h {privateIp} -t 8
 
 # 测试 hash 写性能
 zstd -d -c -q /mnt/weibo.zst  |  /mnt/InsertWeiboData -h {privateIp} -t 32 -f /dev/stdin  --disabled_seekg --ignore_logs
-                ]]></TextBox>
-            </StackPanel>
-        </StackPanel>
-    </ScrollViewer>
+                ]]>
+				</TextBox>
+			</StackPanel>
+		</StackPanel>
+	</ScrollViewer>
 </Window>
