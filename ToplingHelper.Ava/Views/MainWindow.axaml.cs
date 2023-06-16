@@ -72,7 +72,8 @@ namespace ToplingHelper.Ava.Views
                 return;
             }
 
-            if (!uint.TryParse(ServerId.Text, out var serverId) || serverId == 0)
+            if (Context.EditServerId &&
+                (!uint.TryParse(ServerId.Text, out var serverId) || serverId == 0))
             {
                 ShowMessageBox("自定义 server-id 输入不合法");
                 SetInputs(true);
@@ -86,6 +87,7 @@ namespace ToplingHelper.Ava.Views
                 SetInputs(true);
                 return;
             }
+            SetInputs(true);
             _ = Dispatcher.UIThread.InvokeAsync(Worker, DispatcherPriority.Background);
 
         }
@@ -122,7 +124,7 @@ namespace ToplingHelper.Ava.Views
                 var handler = new AliYunResources(ToplingConstants, userData, AppendLog);
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
 
-                ShowMessageBox("流程约三分钟，请不要关闭窗口!");
+                ShowMessageBox("流程约三分钟，请不要关闭窗口!", caption: "正在执行");
                 var instance = await handler.CreateInstance();
 
                 Action action = userData.CreatingInstanceType switch
@@ -133,7 +135,6 @@ namespace ToplingHelper.Ava.Views
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             ToplingConstants = ToplingConstants,
-                            DataContext = instance,
                         };
                         window.Show();
                     }
@@ -203,7 +204,7 @@ namespace ToplingHelper.Ava.Views
                     {
                         ContentTitle = caption,
                         ContentMessage = text,
-                        FontFamily = "Microsoft YaHei,Simsun",
+                        FontFamily = "Microsoft YaHei,苹方-简",
                         ButtonDefinitions = new[]
                             { new ButtonDefinition { Name = "确定", IsDefault = true }, },
                         WindowStartupLocation = WindowStartupLocation.CenterOwner,

@@ -14,9 +14,4 @@ public partial class TodisResult : Window
     {
         InitializeComponent();
     }
-    
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
 }

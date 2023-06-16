@@ -16,8 +16,4 @@ public partial class MyToplingResult : Window
 #endif
     }
 
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
 }

@@ -26,7 +26,7 @@ namespace ToplingHelperModels.Models
 
         public string DefaultTodisEcsType { get; init; } = "ecs.r6e.large";
 
-        public string DefaultMyToplingEcsType { get; init; } = "ecs.g7.2xlarge";
+        public string DefaultMyToplingEcsType { get; init; } = "ecs.g6.2xlarge";
 
 
         public string ToplingCidr { get; init; } = "10.0.0.0/16";
