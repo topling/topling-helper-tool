@@ -5,8 +5,8 @@
         xmlns:controls="clr-namespace:HyperText.Avalonia.Controls;assembly=HyperText.Avalonia"
         xmlns:avalonia="clr-namespace:HyperText.Avalonia;assembly=HyperText.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="ToplingHelper.Ava.Views.SuccessfulResult"
-        Title="创建成功">
+        x:Class="ToplingHelper.Ava.Views.MyToplingResult"
+        Title="MyToplingResult">
     <Window.Styles>
         <avalonia:HyperLinkStyle />
         <Style Selector=":is(TemplatedControl)">
@@ -17,8 +17,10 @@
         <StackPanel>
             <StackPanel>
                 <WrapPanel>
-                    <TextBlock>请登录阿里云，在</TextBlock>
-                    <TextBlock>vpc-xxxxxxxxxx</TextBlock>
+                    <TextBlock>请登录阿里云，在可用区</TextBlock>
+                    <TextBlock FontWeight="Bold">深圳</TextBlock>
+                    <TextBlock>下，VPC选择</TextBlock>
+                    <TextBlock FontWeight="Bold">vpc-xxxxxxxxxx</TextBlock>
                     <TextBlock>下创建新ECS实例，操作系统请选择</TextBlock>
                     <TextBlock>Centos(7/8) /Aliyunos/Ubuntu (16.04/18.04)</TextBlock>
                 </WrapPanel>
@@ -56,36 +58,6 @@
                     <TextBlock>的条目。若缺少，请添加自定义路由条目：</TextBlock>
                     <TextBlock>vpc-xxxxxxxxxx</TextBlock>
                 </WrapPanel>
-            </StackPanel>
-            <StackPanel>
-                <TextBlock>· 测试性能</TextBlock>
-                <TextBox><![CDATA[
-# 请首先确保测试实例为CentOS/AliOS
-# 下载自动脚本
-wget https://topling.cn/downloads/mount-test.sh && chmod +x ./mount-test.sh
-
-# 挂载测试程序及源数据到 /mnt
-sudo bash mount-test.sh /mnt
-                ]]></TextBox>
-                <TextBlock><![CDATA[
-# 直接执行查看帮助
-/mnt/InsertKeys
-
-# 插入顺序数据(源文件过大，已使用 zstd 压缩)
-zstd -d -c -q /mnt/wikipedia-flat-seq.zst | /mnt/InsertKeys -h {privateIp} -t 8 --multi-set 8 -f /dev/stdin
-
-# 插入乱序数据(源文件过大，已使用 zstd 压缩)
-zstd -d -c -q /mnt/wikipedia-flat-rand.zst | /mnt/InsertKeys -h {privateIp} -t 8 --multi-set 8 -f /dev/stdin
-
-# 读取数据(顺序)
-/mnt/GetKeysQps -t 32 -n 8 -f /mnt/wikipedia-flat-key-seq.txt -h {privateIp}
-
-# 读取数据(乱序)
-/mnt/GetKeysQps -t 32 -n 8 -f /mnt/wikipedia-flat-key-rand.txt -h {privateIp}
-
-# 测试 hash 写性能
-zstd -d -c -q /mnt/weibo.zst  |  /mnt/InsertWeiboData -h {privateIp} -t 32 -f /dev/stdin  --disabled_seekg --ignore_logs
-                ]]></TextBlock>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>
