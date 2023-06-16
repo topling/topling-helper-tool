@@ -63,8 +63,7 @@ namespace ToplingHelper.Ava
                             });
                         }
                     }
-    
-                    userData.AccessId = "123";
+                    
                     desktop.MainWindow = new MainWindow()
                     {
                         ToplingConstants = constants,

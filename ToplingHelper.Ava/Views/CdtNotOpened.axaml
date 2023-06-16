@@ -1,0 +1,46 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:unicode="clr-namespace:Avalonia.Media.TextFormatting.Unicode;assembly=Avalonia.Visuals"
+        xmlns:controls="clr-namespace:HyperText.Avalonia.Controls;assembly=HyperText.Avalonia"
+        xmlns:avalonia="clr-namespace:HyperText.Avalonia;assembly=HyperText.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="ToplingHelper.Ava.Views.CdtNotOpened"
+        Title="此用户未开通对等连接"
+        Height="200" Width="600">
+	<Window.Styles>
+		<avalonia:HyperLinkStyle/>
+		<Style Selector=":is(TemplatedControl)">
+			<Setter Property="FontFamily" Value="Microsoft YaHei,苹方-简,宋体-简"/>
+		</Style>
+		<Style Selector="TextBox">
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="BorderBrush" Value="Transparent"/>
+			<Setter Property="IsReadOnly" Value="True" />
+			<Setter Property="BorderThickness" Value="0"></Setter>
+		</Style>
+		<Style Selector="TextBlock,StackPanel">
+			<Setter Property="Margin" Value="0,20,0,0"></Setter>
+		</Style>
+	</Window.Styles>
+	<Grid>
+		<StackPanel Margin="20">
+
+
+			<TextBlock Margin="0,0,0,0">执行失败, 此用户尚未开通对等连接</TextBlock>
+
+			<StackPanel Orientation="Horizontal">
+				<TextBlock Margin="0,0,10,0">前往</TextBlock>
+				<controls:Hyperlink Url="https://vpc.console.aliyun.com/vpcpeer/cn-shenzhen/vpcpeers"/>
+			</StackPanel>
+
+
+			<StackPanel Orientation="Horizontal">
+				<TextBlock >在打开的页面上点击 </TextBlock>
+				<TextBlock FontWeight="Bold">开通CDT功能</TextBlock>
+			</StackPanel>
+
+		</StackPanel>
+	</Grid>
+</Window>

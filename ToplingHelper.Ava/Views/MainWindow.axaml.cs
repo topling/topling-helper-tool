@@ -28,12 +28,9 @@ namespace ToplingHelper.Ava.Views
         public MainWindow()
         {
             InitializeComponent();
-        }
-        public MainWindow(ToplingUserData userData)
-        {
-
-            InitializeComponent();
-            DataContext = new ToplingUserDataBinding(userData);
+#if DEBUG
+            this.AttachDevTools();
+#endif
         }
 
         private void ChangeServiceInstanceType(object? sender, RoutedEventArgs e)
@@ -48,7 +45,7 @@ namespace ToplingHelper.Ava.Views
                     _ => context!.CreatingInstanceType
                 };
             }
-            //throw new System.NotImplementedException();
+            
         }
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
@@ -145,14 +142,14 @@ namespace ToplingHelper.Ava.Views
                     ,
                     ToplingUserData.InstanceType.MyTopling => () =>
                     {
-                        //var window = new MyToplingWindow(instance, ToplingConstants)
-                        //{
-                        //    WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                        //    Owner = this
-                        //};
-                        //window.Show();
-                    }
-                    ,
+                        var window = new MyToplingResult()
+                        {
+                            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                            ToplingConstants = ToplingConstants,
+                            Instance = instance
+                        };
+                        window.Show();
+                    },
                     _ => throw new ArgumentOutOfRangeException()
                 };
                 Dispatcher.UIThread.Post(action);
@@ -178,12 +175,11 @@ namespace ToplingHelper.Ava.Views
                 {
                     _ = _ = Dispatcher.UIThread.InvokeAsync(() =>
                      {
-                         //var window = new CdtNotOpened()
-                         //{
-                         //    WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                         //    Owner = this
-                         //};
-                         //window.Show();
+                         var window = new CdtNotOpened()
+                         {
+                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                         };
+                         window.Show();
                      });
                 }
                 else

@@ -14,12 +14,11 @@ public partial class TodisResult : Window
 
     public TodisResult()
     {
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        var window = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!;
-        Owner = window.MainWindow;
         InitializeComponent();
 
-
+#if DEBUG
+        this.AttachDevTools();
+#endif
 
     }
 }
