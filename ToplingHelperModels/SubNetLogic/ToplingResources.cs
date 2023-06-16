@@ -138,7 +138,7 @@ namespace ToplingHelperModels.SubNetLogic
             FlushXsrf();
 
             var bodyContent = JsonConvert.SerializeObject(new
-            {   
+            {
                 subNetId,
                 ecsType = _userData.CreatingInstanceType switch
                 {
@@ -182,7 +182,7 @@ namespace ToplingHelperModels.SubNetLogic
             dynamic? instance = body.FirstOrDefault(i =>
                 string.Equals((string)i["instanceType"]!, comparison, StringComparison.OrdinalIgnoreCase));
 
-
+            string subNetId = instance!.subNetId;
 
             if (instance == null)
             {
@@ -195,15 +195,29 @@ namespace ToplingHelperModels.SubNetLogic
                 VpcId = vpcId,
                 PeerId = instance.subNetId,
                 InstanceEcsId = instance.id,
-                PrivateIp = instance.host
+                PrivateIp = instance.host,
+                ToplingVpcId = GetToplingVpcId(subNetId)
             };
 
         }
 
+        private string GetToplingVpcId(string subNetId)
+        {
+            var uri = $"{_toplingConstants.ToplingConsoleHost}/api/subnet";
+            var response = _httpClient.GetAsync(uri).Result;
+            var content = response.Content.ReadAsStringAsync().Result;
+            var result = JObject.Parse(content)["data"]?
+                .FirstOrDefault(
+                    i => string.Equals(((string)i["peerId"]!), subNetId, StringComparison.OrdinalIgnoreCase))?[
+                    "toplingVpcId"]?.ToObject<string>();
+            return result ?? string.Empty;
+        }
+
+
         private void FlushXsrf()
         {
             var xsrf = _cookieContainer.GetCookies(new Uri(_toplingConstants.ToplingConsoleHost)).Cast<Cookie>()
-                .FirstOrDefault(i => i.Name.Equals("XSRF-TOKEN",StringComparison.OrdinalIgnoreCase))?.Value ?? string.Empty;
+                .FirstOrDefault(i => i.Name.Equals("XSRF-TOKEN", StringComparison.OrdinalIgnoreCase))?.Value ?? string.Empty;
             _httpClient.DefaultRequestHeaders.Remove("xsrf-token");
             _httpClient.DefaultRequestHeaders.Add("xsrf-token", xsrf);
         }
