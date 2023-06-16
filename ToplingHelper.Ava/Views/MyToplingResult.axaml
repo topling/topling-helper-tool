@@ -6,7 +6,7 @@
         xmlns:avalonia="clr-namespace:HyperText.Avalonia;assembly=HyperText.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="ToplingHelper.Ava.Views.MyToplingResult"
-        Title="MyToplingResult">
+        Title="创建成功">
     <Window.Styles>
         <avalonia:HyperLinkStyle />
         <Style Selector=":is(TemplatedControl)">
@@ -21,24 +21,21 @@
                     <TextBlock FontWeight="Bold">深圳</TextBlock>
                     <TextBlock>下，VPC选择</TextBlock>
                     <TextBlock FontWeight="Bold">vpc-xxxxxxxxxx</TextBlock>
-                    <TextBlock>下创建新ECS实例，操作系统请选择</TextBlock>
-                    <TextBlock>Centos(7/8) /Aliyunos/Ubuntu (16.04/18.04)</TextBlock>
+                    <TextBlock>创建新ECS实例以连接MyTopling (MySQL)服务</TextBlock>
                 </WrapPanel>
                 <WrapPanel>
-                    <TextBlock>创建时请为ECS实例添加</TextBlock>
-                    <TextBlock>公网IP</TextBlock>
-                    <TextBlock>(一键脚本使用公网安装 oss-util 相关依赖，使用内网挂载数据集)</TextBlock>
+                    <TextBlock>连接10.0.14.195用户名：admin 初始密码：123456</TextBlock>
                 </WrapPanel>
                 <WrapPanel>
-                    <TextBlock>一定在</TextBlock>
-                    <TextBlock>vpc-xxxxxxxxxx</TextBlock>
-                    <TextBlock>下创建实例！</TextBlock>
+                    <TextBlock>初次连接</TextBlock>
+                    <TextBlock>时必须</TextBlock>
+                    <TextBlock>修改密码</TextBlock>
+                    <TextBlock>后使用:</TextBlock>
                 </WrapPanel>
                 <WrapPanel>
-                    <TextBlock>操作系统请选择</TextBlock>
-                    <TextBlock>Centos(7/8) /Aliyunos/Ubuntu (16.04/18.04)</TextBlock>
+                    <TextBlock>alter user 'admin'@'%' identified WITH mysql_native_password by 'topling';</TextBlock>
+                    <TextBlock>flush privileges;</TextBlock>
                 </WrapPanel>
-                <TextBlock>连接</TextBlock>
                 <controls:Hyperlink>查看Grafana监控</controls:Hyperlink>
                 <controls:Hyperlink>查看引擎监控</controls:Hyperlink>
             </StackPanel>
