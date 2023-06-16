@@ -13,10 +13,10 @@ public partial class TodisResult : Window
     public TodisResult()
     {
         InitializeComponent();
-
-#if DEBUG
-        this.AttachDevTools();
-#endif
-
+    }
+    
+    private void InitializeComponent()
+    {
+        AvaloniaXamlLoader.Load(this);
     }
 }
