@@ -11,17 +11,18 @@
 	<Window.Styles>
 		<avalonia:HyperLinkStyle />
 		<Style Selector=":is(TemplatedControl)">
-			<Setter Property="FontFamily" Value="Microsoft YaHei,苹方-简,宋体-简"></Setter>
+			<Setter Property="FontFamily" Value="Microsoft YaHei,苹方-简,宋体-简" />
+			<Setter Property="FontSize" Value="24" />
 		</Style>
 		<Style Selector="WrapPanel">
-			<Setter Property="Margin" Value="0,10,0,0"></Setter>
+			<Setter Property="Margin" Value="0,10,0,0" />
 		</Style>
 		<Style Selector="TextBox">
 			<Setter Property="Background" Value="Transparent"/>
 			<Setter Property="BorderBrush" Value="Transparent"/>
 			<Setter Property="IsReadOnly" Value="True" />
 			<Setter Property="Padding" Value="0" />
-			<Setter Property="BorderThickness" Value="0"></Setter>
+			<Setter Property="BorderThickness" Value="0" />
         </Style>
 
 	</Window.Styles>
@@ -49,7 +50,7 @@
 				<TextBlock>请登录阿里云，在可用区</TextBlock>
 				<TextBlock FontWeight="Bold">深圳</TextBlock>
 				<TextBlock>下，VPC选择</TextBlock>
-				<TextBlock FontWeight="Bold" Text="{Binding VpcId}"/>
+				<TextBox FontWeight="Bold" Text="{Binding VpcId}"/>
 				<TextBlock>下创建新ECS实例，操作系统请选择</TextBlock>
 				<TextBlock>Centos(7/8) /Aliyunos/Ubuntu (16.04/18.04)</TextBlock>
 			</WrapPanel>
@@ -60,7 +61,7 @@
 			</WrapPanel>
 			<WrapPanel>
 				<TextBlock>一定在</TextBlock>
-				<TextBlock Text="{Binding VpcId}"/>
+				<TextBox Text="{Binding VpcId}"/>
 				<TextBlock>下创建实例！</TextBlock>
 			</WrapPanel>
 			<WrapPanel>
@@ -89,7 +90,7 @@
 				<TextBlock>1. 运行</TextBlock>
 				<TextBox IsReadOnly="True">curl http://100.100.100.200/latest/meta-data/vpc-id</TextBox>
 				<TextBlock>查看结果是否为</TextBlock>
-				<TextBlock Text="{Binding VpcId}"/>
+				<TextBox Text="{Binding VpcId}"/>
 			</WrapPanel>
 			<WrapPanel>
 				<TextBlock>2. 查看路由表(</TextBlock>
@@ -98,7 +99,7 @@
 				<TextBlock>目标网段为为 10.0.0.0/16，下一跳为 </TextBlock>
 				<TextBox Text="{Binding PeerId}"/>
 				<TextBlock>的条目。若缺少，请添加自定义路由条目：</TextBlock>
-				<TextBlock Text="{Binding VpcId}"/>
+				<TextBox Text="{Binding VpcId}"/>
 			</WrapPanel>
 		</StackPanel>
 
