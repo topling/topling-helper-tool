@@ -28,9 +28,6 @@ namespace ToplingHelper.Ava.Views
         public MainWindow()
         {
             InitializeComponent();
-#if DEBUG
-            this.AttachDevTools();
-#endif
         }
 
         private void ChangeServiceInstanceType(object? sender, RoutedEventArgs e)
@@ -45,11 +42,11 @@ namespace ToplingHelper.Ava.Views
                     _ => context!.CreatingInstanceType
                 };
             }
-            
+
         }
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
-
+            
             _logBuilder.Clear();
             Log.Text = "";
             SetInputs(false);
@@ -145,10 +142,11 @@ namespace ToplingHelper.Ava.Views
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             ToplingConstants = ToplingConstants,
-                            DataContext = instance
+                            DataContext = new InstanceDataBinding(ToplingConstants, instance)
                         };
                         window.Show();
-                    },
+                    }
+                    ,
                     _ => throw new ArgumentOutOfRangeException()
                 };
                 Dispatcher.UIThread.Post(action);

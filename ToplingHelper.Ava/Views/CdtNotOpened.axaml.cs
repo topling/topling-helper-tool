@@ -10,8 +10,5 @@ public partial class CdtNotOpened : Window
     {
 
         InitializeComponent();
-#if DEBUG
-        this.AttachDevTools();
-#endif
     }
 }

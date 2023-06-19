@@ -18,7 +18,7 @@ namespace ToplingHelper.Ava.Models
 
         }
 
-    public ToplingUserDataBinding(ToplingUserData userData)
+        public ToplingUserDataBinding(ToplingUserData userData)
         {
             var props = typeof(ToplingUserData)
                 .GetProperties().ToList();
