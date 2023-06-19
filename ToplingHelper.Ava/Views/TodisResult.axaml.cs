@@ -2,7 +2,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using SkiaSharp;
 using ToplingHelper.Ava.Models;
 using ToplingHelperModels.Models;
@@ -16,6 +18,8 @@ public partial class TodisResult : Window
     public TodisResult()
     {
         InitializeComponent();
+
+    
     }
 
 

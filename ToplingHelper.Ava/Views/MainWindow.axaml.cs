@@ -46,7 +46,23 @@ namespace ToplingHelper.Ava.Views
         }
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
-            
+
+            var instance = new Instance
+            {
+                PrivateIp = "1.2.3.4",
+                InstanceEcsId = "i=123456",
+                VpcId = "vpc-123456",
+                PeerId = "pcc-12345",
+                RouteId = "route-id",
+                ToplingVpcId = "vpc-topling"
+            };
+            var window = new TodisResult()
+            {
+                DataContext = new InstanceDataBinding(ToplingConstants, instance)
+            };
+            window.Show();
+            return;
+
             _logBuilder.Clear();
             Log.Text = "";
             SetInputs(false);
