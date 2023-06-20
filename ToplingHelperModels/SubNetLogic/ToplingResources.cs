@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Http;
@@ -11,7 +12,7 @@ using ToplingHelperModels.Models;
 using Newtonsoft.Json.Linq;
 using static ToplingHelperModels.Models.ToplingUserData;
 using Newtonsoft.Json;
-
+#nullable disable
 namespace ToplingHelperModels.SubNetLogic
 {
     public sealed class ToplingResources : IDisposable
@@ -144,7 +145,7 @@ namespace ToplingHelperModels.SubNetLogic
                 {
                     InstanceType.Todis => _toplingConstants.DefaultTodisEcsType,
                     InstanceType.MyTopling => _toplingConstants.DefaultMyToplingEcsType,
-                    _ => throw new ArgumentOutOfRangeException()
+                    _ => throw new InvalidEnumArgumentException("未知的数据库类型",(int) _userData.CreatingInstanceType, typeof(InstanceType))
                 },
                 name = "auto-created",
                 _userData.GtidMode,
@@ -154,7 +155,9 @@ namespace ToplingHelperModels.SubNetLogic
             });
             var body = new StringContent(bodyContent, Encoding.UTF8, "application/json");
             var response = _httpClient.PostAsync(uri, body).Result;
+#pragma warning disable IDE0059
             var content = response.Content.ReadAsStringAsync().Result;
+#pragma warning restore IDE0059
             Instance instance;
             do
             {

@@ -5,13 +5,7 @@ VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToplingHelperModels", "ToplingHelperModels\ToplingHelperModels.csproj", "{D6F31FE7-00F1-4F54-8948-531516FDD650}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToplingHelperMaui", "ToplingHelperMaui\ToplingHelperMaui.csproj", "{7CB1D0E1-42B3-4BB7-8C60-E56F7C9F6B6E}"
-	ProjectSection(ProjectDependencies) = postProject
-		{D6F31FE7-00F1-4F54-8948-531516FDD650} = {D6F31FE7-00F1-4F54-8948-531516FDD650}
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToplingHelper.Ava", "ToplingHelper.Ava\ToplingHelper.Ava.csproj", "{CF975BA3-D6C4-49CC-9240-76BD09F5B9A1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,12 +16,6 @@ Global
 		{D6F31FE7-00F1-4F54-8948-531516FDD650}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6F31FE7-00F1-4F54-8948-531516FDD650}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6F31FE7-00F1-4F54-8948-531516FDD650}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7CB1D0E1-42B3-4BB7-8C60-E56F7C9F6B6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7CB1D0E1-42B3-4BB7-8C60-E56F7C9F6B6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7CB1D0E1-42B3-4BB7-8C60-E56F7C9F6B6E}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{7CB1D0E1-42B3-4BB7-8C60-E56F7C9F6B6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7CB1D0E1-42B3-4BB7-8C60-E56F7C9F6B6E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7CB1D0E1-42B3-4BB7-8C60-E56F7C9F6B6E}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{CF975BA3-D6C4-49CC-9240-76BD09F5B9A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CF975BA3-D6C4-49CC-9240-76BD09F5B9A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF975BA3-D6C4-49CC-9240-76BD09F5B9A1}.Release|Any CPU.ActiveCfg = Release|Any CPU

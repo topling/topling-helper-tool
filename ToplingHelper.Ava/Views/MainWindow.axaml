@@ -12,14 +12,17 @@
 		Width="750"
 		Height="900"
         Title="拓扑岭自动化工具">
+    <!--<Window.Resources>
+        <FontFamily x:Key="UnicodeFont">avares://ToplingHelper.Ava/Assets/Fonts#WenQuanYi Micro Hei</FontFamily>
+    </Window.Resources>-->
 	<Window.Styles>
 		<avalonia:HyperLinkStyle/>
 		<Style Selector=":is(TemplatedControl)">
-            <Setter Property="FontFamily" Value="Microsoft YaHei,苹方-简,宋体-简"/>
-        </Style>
-    </Window.Styles>
-
-	<Design.DataContext>
+			<Setter Property="FontFamily" Value="Microsoft YaHei,苹方-简,宋体-简"/>
+			<!--<Setter Property="FontFamily" Value="{StaticResource UnicodeFont}"/>-->
+		</Style>
+	</Window.Styles>
+    <Design.DataContext>
 	<!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
 

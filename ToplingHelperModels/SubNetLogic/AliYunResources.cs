@@ -18,7 +18,7 @@ using DescribeVpcsRequest = Aliyun.Acs.Vpc.Model.V20160428.DescribeVpcsRequest;
 using DescribeVpcsResponse = Aliyun.Acs.Vpc.Model.V20160428.DescribeVpcsResponse;
 
 namespace ToplingHelperModels.SubNetLogic;
-
+#nullable disable
 public sealed class AliYunResources : IDisposable
 {
     private readonly ToplingConstants _toplingConstants;
@@ -443,7 +443,9 @@ public sealed class AliYunResources : IDisposable
     }
 
 
+#pragma warning disable CS8632
     private string? GetCurrentPeering(string vpcId)
+#pragma warning restore CS8632
     {
         var request = new CommonRequest
         {

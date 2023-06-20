@@ -20,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Dotnet.Bundle" Version="*" />
+		<PackageReference Condition="$([MSBuild]::IsOSPlatform('OSX'))" Include="Dotnet.Bundle" Version="0.9.13" />
 		<PackageReference Include="Avalonia" Version="0.10.21" />
 		<PackageReference Include="Avalonia.Desktop" Version="0.10.21" />
 		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
@@ -36,7 +36,4 @@
 	<ItemGroup>
 		<ProjectReference Include="..\ToplingHelperModels\ToplingHelperModels.csproj" />
 	</ItemGroup>
-	<!--
-	https://blog.csdn.net/wzl644/article/details/108428806
-	-->
 </Project>

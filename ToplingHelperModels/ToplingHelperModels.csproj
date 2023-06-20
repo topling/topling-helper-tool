@@ -11,5 +11,7 @@
     <PackageReference Include="aliyun-net-sdk-vpc" Version="3.0.14" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
-
+	<PropertyGroup>
+		<NoWarn>8632</NoWarn>
+	</PropertyGroup>
 </Project>
