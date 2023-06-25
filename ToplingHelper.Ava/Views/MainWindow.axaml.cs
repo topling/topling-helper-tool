@@ -123,6 +123,12 @@ namespace ToplingHelper.Ava.Views
                 ShowMessageBox("流程约三分钟，请不要关闭工具主窗口!", caption: "正在执行");
                 var instance = await handler.CreateInstance();
 
+                if (instance == null)
+                {
+                    ShowMessageBox("并网完成，实例创建可能失败，您可以前往 topling 控制台手动创建实例(选项更加丰富)，或者手动重试");
+                    return;
+                }
+
                 Action action = userData.CreatingInstanceType switch
                 {
                     ToplingUserData.InstanceType.Todis => () =>
@@ -131,7 +137,7 @@ namespace ToplingHelper.Ava.Views
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             ToplingConstants = ToplingConstants,
-                            DataContext = new InstanceDataBinding(ToplingConstants,instance)
+                            DataContext = new InstanceDataBinding(ToplingConstants, instance)
                         };
                         window.Show();
                         AppendLog("实例创建完成");
@@ -173,24 +179,23 @@ namespace ToplingHelper.Ava.Views
                 // 删除并重新创建实例
                 ShowMessageBox($"如果您在控制台上删除过网段，请删除 {handler.ExistingVpcId} 后重新运行本工具");
             }
+            catch (Exception e) when (e.Message.Contains("OperationFailed.CdtNotOpened"))
+            {
+                _ = _ = Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    var window = new CdtNotOpened()
+                    {
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                    };
+                    window.Show();
+                });
+            }
             catch (Exception e)
             {
-                if (e.Message.Contains("OperationFailed.CdtNotOpened"))
-                {
-                    _ = _ = Dispatcher.UIThread.InvokeAsync(() =>
-                     {
-                         var window = new CdtNotOpened()
-                         {
-                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                         };
-                         window.Show();
-                     });
-                }
-                else
-                {
-                    ShowMessageBox(e.Message);
-                }
-
+                var content = new StringBuilder();
+                content.AppendLine("操作失败，请重试");
+                content.AppendLine(e.Message);
+                ShowMessageBox(content.ToString(), "请重试");
             }
             finally
             {

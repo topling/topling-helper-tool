@@ -64,7 +64,8 @@ namespace ToplingHelperModels.Models
         {
             Unknown,
             Todis,
-            MyTopling
+            MyTopling,
+            Dummy
         }
     }
 }

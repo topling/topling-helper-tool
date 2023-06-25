@@ -34,7 +34,7 @@ public sealed class AliYunResources : IDisposable
         _toplingConstants = constants;
         _client = new DefaultAcsClient(DefaultProfile.GetProfile(constants.ToplingTestRegion, userData.AccessId, userData.AccessSecret));
         _appendLog = logger;
-        _toplingResources = new ToplingResources(constants, userData);
+        _toplingResources = new ToplingResources(constants, userData, logger);
     }
 
     public async Task<Instance> CreateInstance()
@@ -130,11 +130,11 @@ public sealed class AliYunResources : IDisposable
             _appendLog("创建交换机");
             CreateIdempotentVSwitch(vpcId, second);
             // 创建实例
+
             _appendLog("开始创建实例");
             var instance = _toplingResources.CreateDefaultInstance(peerId, vpcId);
             instance.RouteId = routeId;
             return instance;
-
 
         }
         // 本地创建了但是却没有并网
@@ -324,7 +324,7 @@ public sealed class AliYunResources : IDisposable
         _client.GetCommonResponse(request);
     }
 
-    private string  CreatePeer(string vpcId, AvailableVpc toplingAvailable, string cidr)
+    private string CreatePeer(string vpcId, AvailableVpc toplingAvailable, string cidr)
     {
         // 创建到topling的对等连接并且添加路由表
         var clientToken = $"pcc_{toplingAvailable.VpcId}_{vpcId}_{cidr}";

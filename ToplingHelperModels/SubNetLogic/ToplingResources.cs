@@ -19,13 +19,15 @@ namespace ToplingHelperModels.SubNetLogic
     {
         private readonly ToplingConstants _toplingConstants;
         private readonly ToplingUserData _userData;
+        private readonly Action<string> _appendLog;
         private readonly HttpClient _httpClient;
         private readonly CookieContainer _cookieContainer;
         private readonly HttpClientHandler _httpClientHandler;
-        public ToplingResources(ToplingConstants constants, ToplingUserData userData)
+        public ToplingResources(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
         {
             _toplingConstants = constants;
             _userData = userData;
+            _appendLog = logger;
             _cookieContainer = new CookieContainer();
             _httpClientHandler = new HttpClientHandler()
             {
@@ -33,7 +35,7 @@ namespace ToplingHelperModels.SubNetLogic
                 CookieContainer = _cookieContainer,
             };
             _httpClient = new HttpClient(_httpClientHandler);
-
+            _appendLog = logger;
             #region Login
             var uri = _toplingConstants.ToplingConsoleHost;
 
@@ -121,10 +123,11 @@ namespace ToplingHelperModels.SubNetLogic
 
             var uri = $"{_toplingConstants.ToplingConsoleHost}/api/SubNetInstance";
             var res = ((JArray)JObject.Parse(_httpClient.GetStringAsync(uri).Result)["data"]!)
-                    .FirstOrDefault();
+                .FirstOrDefault();
             if (res != null)
             {
-                if (!_userData.CreatingInstanceType.ToString().Equals(res["instanceType"].ToString(), StringComparison.OrdinalIgnoreCase))
+                if (!_userData.CreatingInstanceType.ToString().Equals(res["instanceType"].ToString(),
+                        StringComparison.OrdinalIgnoreCase))
                 {
                     throw new Exception("现在已经存在和待创建实例类型不同的实例，请再控制台中删除实例后直接创建新实例");
                 }
@@ -140,39 +143,48 @@ namespace ToplingHelperModels.SubNetLogic
 
             }
             // 创建并等待
-
-            uri = $"{_toplingConstants.ToplingConsoleHost}/api/SubNetInstance/aliyun/{_userData.CreatingInstanceType}";
-            FlushXsrf();
-
-            var bodyContent = JsonConvert.SerializeObject(new
+            try
             {
-                subNetId,
-                ecsType = _userData.CreatingInstanceType switch
+                uri =
+                    $"{_toplingConstants.ToplingConsoleHost}/api/SubNetInstance/aliyun/{_userData.CreatingInstanceType}";
+                FlushXsrf();
+
+                var bodyContent = JsonConvert.SerializeObject(new
                 {
-                    InstanceType.Todis => _toplingConstants.DefaultTodisEcsType,
-                    InstanceType.MyTopling => _toplingConstants.DefaultMyToplingEcsType,
-                    _ => throw new InvalidEnumArgumentException("未知的数据库类型",(int) _userData.CreatingInstanceType, typeof(InstanceType))
-                },
-                name = "auto-created",
-                _userData.GtidMode,
-                _userData.ServerId,
-                zoneId = $"{_toplingConstants.ToplingTestRegion}-e",
+                    subNetId,
+                    ecsType = _userData.CreatingInstanceType switch
+                    {
+                        InstanceType.Todis => _toplingConstants.DefaultTodisEcsType,
+                        InstanceType.MyTopling => _toplingConstants.DefaultMyToplingEcsType,
+                        _ => throw new InvalidEnumArgumentException("未知的数据库类型", (int)_userData.CreatingInstanceType,
+                            typeof(InstanceType))
+                    },
+                    name = "auto-created",
+                    _userData.GtidMode,
+                    _userData.ServerId,
+                    zoneId = $"{_toplingConstants.ToplingTestRegion}-e",
 
-            });
-            var body = new StringContent(bodyContent, Encoding.UTF8, "application/json");
-            var response = _httpClient.PostAsync(uri, body).Result;
+                });
+                var body = new StringContent(bodyContent, Encoding.UTF8, "application/json");
+                var response = _httpClient.PostAsync(uri, body).Result;
 #pragma warning disable IDE0059
-            var content = response.Content.ReadAsStringAsync().Result;
+                var content = response.Content.ReadAsStringAsync().Result;
 #pragma warning restore IDE0059
-            Instance instance;
-            do
+                Instance instance;
+                do
+                {
+                    Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+                    instance = WaitingForInstance(vpcId);
+
+                } while (string.IsNullOrWhiteSpace(instance.PrivateIp));
+
+                return instance;
+            }
+            catch (Exception e)
             {
-                Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                instance = WaitingForInstance(vpcId);
-
-            } while (string.IsNullOrWhiteSpace(instance.PrivateIp));
-
-            return instance;
+                _appendLog(JsonConvert.SerializeObject(e.Message));
+                return null;
+            }
         }
 
         public Instance WaitingForInstance(string vpcId)
@@ -195,7 +207,7 @@ namespace ToplingHelperModels.SubNetLogic
 
             if (instance == null)
             {
-                throw new Exception("实例创建可能出错，请重新执行本程序。");
+                throw new Exception("实例创建可能出错，并网已成功，请前往控制台手动创建实例，或者稍后重试");
             }
 
             return new Instance

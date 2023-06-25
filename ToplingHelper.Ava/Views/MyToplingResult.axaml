@@ -71,7 +71,7 @@
 			<WrapPanel>
 				<TextBlock>连接</TextBlock>
 				<TextBox Padding="0" Text="{Binding Path=PrivateIp }"/>
-				<TextBlock>使用 Todis 服务</TextBlock>
+				<TextBlock>使用 MyTopling 服务</TextBlock>
 			</WrapPanel>
 			<WrapPanel>
 				<controls:Hyperlink Url="{Binding Path=GrafanaUrl}" Alias="查看Grafana监控"/>
