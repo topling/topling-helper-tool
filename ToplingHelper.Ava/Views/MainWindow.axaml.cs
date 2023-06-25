@@ -120,7 +120,7 @@ namespace ToplingHelper.Ava.Views
             {
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
 
-                ShowMessageBox("流程约三分钟，请不要关闭窗口!", caption: "正在执行");
+                ShowMessageBox("流程约三分钟，请不要关闭工具主窗口!", caption: "正在执行");
                 var instance = await handler.CreateInstance();
 
                 Action action = userData.CreatingInstanceType switch
@@ -131,8 +131,10 @@ namespace ToplingHelper.Ava.Views
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             ToplingConstants = ToplingConstants,
+                            DataContext = new InstanceDataBinding(ToplingConstants,instance)
                         };
                         window.Show();
+                        AppendLog("实例创建完成");
                     }
                     ,
                     ToplingUserData.InstanceType.MyTopling => () =>
@@ -144,6 +146,7 @@ namespace ToplingHelper.Ava.Views
                             DataContext = new InstanceDataBinding(ToplingConstants, instance)
                         };
                         window.Show();
+                        AppendLog("实例创建完成");
                     }
                     ,
                     _ => throw new ArgumentOutOfRangeException()
