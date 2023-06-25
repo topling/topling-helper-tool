@@ -106,6 +106,12 @@ namespace ToplingHelperModels.SubNetLogic
             var res = JObject.Parse(content);
             if (res["code"].ToObject<int>() != 0)
             {
+                // 需要删除前面的VPC并重新创建
+                if (string.Equals(res["subCode"]?.Value<string>(), "CheckExisting"))
+                {
+                    throw new Exception("CheckExisting");
+                }
+                // 
                 throw new Exception(res["msg"].ToString());
             }
         }

@@ -115,9 +115,9 @@ namespace ToplingHelper.Ava.Views
         {
             var userData = (DataContext as ToplingUserData)!;
 
+            using var handler = new AliYunResources(ToplingConstants, userData, AppendLog);
             try
             {
-                var handler = new AliYunResources(ToplingConstants, userData, AppendLog);
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
 
                 ShowMessageBox("流程约三分钟，请不要关闭窗口!", caption: "正在执行");
@@ -157,13 +157,18 @@ namespace ToplingHelper.Ava.Views
                 if (e.ErrorCode.Equals("InvalidStatus.RouteEntry"))
                 {
                     ShowMessageBox($"云服务商路由表状态错误，请重试(不需要关闭自动化工具)。{Environment.NewLine}" +
-                              "如果十分钟后此错误仍然出现，请联系客服");
+                                   "如果十分钟后此错误仍然出现，请联系客服");
                 }
                 else
                 {
                     ShowMessageBox(e.Message);
                 }
 
+            }
+            catch (Exception e) when (e.Message.Equals("CheckExisting", StringComparison.OrdinalIgnoreCase))
+            {
+                // 删除并重新创建实例
+                ShowMessageBox($"如果您在控制台上删除过网段，请删除 {handler.ExistingVpcId} 后重新运行本工具");
             }
             catch (Exception e)
             {

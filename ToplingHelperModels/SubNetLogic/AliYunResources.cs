@@ -27,6 +27,8 @@ public sealed class AliYunResources : IDisposable
 
     private readonly Action<string> _appendLog;
 
+    public string ExistingVpcId { get; private set; } = string.Empty;
+
     public AliYunResources(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
     {
         _toplingConstants = constants;
@@ -72,6 +74,10 @@ public sealed class AliYunResources : IDisposable
             vpc = vpcList
                 .FirstOrDefault(v =>
                     v.Tags.Any(t => t.Key.Equals(_toplingConstants.ToplingVpcTagKey, StringComparison.OrdinalIgnoreCase)));
+            if (vpc != null)
+            {
+                ExistingVpcId = vpc.VpcId;
+            }
             if (!vpcList.Any() || vpc != null)
             {
                 break;
