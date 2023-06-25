@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net6.0</TargetFramework>
+		<RuntimeIdentifiers>win-x64;osx-x64;</RuntimeIdentifiers>
+		<Nullable>enable</Nullable>
+		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+	</PropertyGroup>
+	<PropertyGroup>
+		<CFBundleShortVersionString>1.0.0</CFBundleShortVersionString>
+	</PropertyGroup>
+	<ItemGroup>
+		<AvaloniaResource Include="Assets\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectCapability Include="Avalonia" />
+		<TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Condition="$([MSBuild]::IsOSPlatform('OSX'))" Include="Dotnet.Bundle" Version="0.9.13" />
+		<PackageReference Include="Avalonia" Version="0.10.21" />
+		<PackageReference Include="Avalonia.Desktop" Version="0.10.21" />
+		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.21" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.0" />
+		<PackageReference Include="HyperText.Avalonia" Version="1.0.0" />
+		<PackageReference Include="MessageBox.Avalonia" Version="2.1.0" />
+		<PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
+		<PackageReference Include="System.Text.Encoding.Extensions" Version="4.3.0" />
+		<PackageReference Include="XamlNameReferenceGenerator" Version="1.6.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ToplingHelperModels\ToplingHelperModels.csproj" />
+	</ItemGroup>
+</Project>

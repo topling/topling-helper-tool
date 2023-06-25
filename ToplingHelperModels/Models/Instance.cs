@@ -11,4 +11,6 @@ public class Instance
     public string? PeerId { get; set; }
 
     public string? RouteId { get; set; }
+
+    public string? ToplingVpcId { get; set; }
 }

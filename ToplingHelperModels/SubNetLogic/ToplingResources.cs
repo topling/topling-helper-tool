@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Http;
@@ -11,7 +12,7 @@ using ToplingHelperModels.Models;
 using Newtonsoft.Json.Linq;
 using static ToplingHelperModels.Models.ToplingUserData;
 using Newtonsoft.Json;
-
+#nullable disable
 namespace ToplingHelperModels.SubNetLogic
 {
     public sealed class ToplingResources : IDisposable
@@ -105,6 +106,12 @@ namespace ToplingHelperModels.SubNetLogic
             var res = JObject.Parse(content);
             if (res["code"].ToObject<int>() != 0)
             {
+                // 需要删除前面的VPC并重新创建
+                if (string.Equals(res["subCode"]?.Value<string>(), "CheckExisting"))
+                {
+                    throw new Exception("CheckExisting");
+                }
+                // 
                 throw new Exception(res["msg"].ToString());
             }
         }
@@ -138,13 +145,13 @@ namespace ToplingHelperModels.SubNetLogic
             FlushXsrf();
 
             var bodyContent = JsonConvert.SerializeObject(new
-            {   
+            {
                 subNetId,
                 ecsType = _userData.CreatingInstanceType switch
                 {
                     InstanceType.Todis => _toplingConstants.DefaultTodisEcsType,
                     InstanceType.MyTopling => _toplingConstants.DefaultMyToplingEcsType,
-                    _ => throw new ArgumentOutOfRangeException()
+                    _ => throw new InvalidEnumArgumentException("未知的数据库类型",(int) _userData.CreatingInstanceType, typeof(InstanceType))
                 },
                 name = "auto-created",
                 _userData.GtidMode,
@@ -154,7 +161,9 @@ namespace ToplingHelperModels.SubNetLogic
             });
             var body = new StringContent(bodyContent, Encoding.UTF8, "application/json");
             var response = _httpClient.PostAsync(uri, body).Result;
+#pragma warning disable IDE0059
             var content = response.Content.ReadAsStringAsync().Result;
+#pragma warning restore IDE0059
             Instance instance;
             do
             {
@@ -182,11 +191,11 @@ namespace ToplingHelperModels.SubNetLogic
             dynamic? instance = body.FirstOrDefault(i =>
                 string.Equals((string)i["instanceType"]!, comparison, StringComparison.OrdinalIgnoreCase));
 
-
+            string subNetId = instance!.subNetId;
 
             if (instance == null)
             {
-                throw new Exception("实例创建可能出错，请重新执行本程序");
+                throw new Exception("实例创建可能出错，请重新执行本程序。");
             }
 
             return new Instance
@@ -195,15 +204,29 @@ namespace ToplingHelperModels.SubNetLogic
                 VpcId = vpcId,
                 PeerId = instance.subNetId,
                 InstanceEcsId = instance.id,
-                PrivateIp = instance.host
+                PrivateIp = instance.host,
+                ToplingVpcId = GetToplingVpcId(subNetId)
             };
 
         }
 
+        private string GetToplingVpcId(string subNetId)
+        {
+            var uri = $"{_toplingConstants.ToplingConsoleHost}/api/subnet";
+            var response = _httpClient.GetAsync(uri).Result;
+            var content = response.Content.ReadAsStringAsync().Result;
+            var result = JObject.Parse(content)["data"]?
+                .FirstOrDefault(
+                    i => string.Equals(((string)i["peerId"]!), subNetId, StringComparison.OrdinalIgnoreCase))?[
+                    "toplingVpcId"]?.ToObject<string>();
+            return result ?? string.Empty;
+        }
+
+
         private void FlushXsrf()
         {
             var xsrf = _cookieContainer.GetCookies(new Uri(_toplingConstants.ToplingConsoleHost)).Cast<Cookie>()
-                .FirstOrDefault(i => i.Name.Equals("XSRF-TOKEN",StringComparison.OrdinalIgnoreCase))?.Value ?? string.Empty;
+                .FirstOrDefault(i => i.Name.Equals("XSRF-TOKEN", StringComparison.OrdinalIgnoreCase))?.Value ?? string.Empty;
             _httpClient.DefaultRequestHeaders.Remove("xsrf-token");
             _httpClient.DefaultRequestHeaders.Add("xsrf-token", xsrf);
         }

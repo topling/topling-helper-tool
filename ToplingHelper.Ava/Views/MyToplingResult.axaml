@@ -1,0 +1,108 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:HyperText.Avalonia.Controls;assembly=HyperText.Avalonia"
+        xmlns:avalonia="clr-namespace:HyperText.Avalonia;assembly=HyperText.Avalonia"
+        xmlns:models="clr-namespace:ToplingHelper.Ava.Models"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="ToplingHelper.Ava.Views.MyToplingResult"
+        Title="MyToplingResult">
+	<Window.Styles>
+		<avalonia:HyperLinkStyle />
+		<Style Selector=":is(TemplatedControl)">
+			<Setter Property="FontFamily" Value="Microsoft YaHei,苹方-简,宋体-简" />
+			<Setter Property="FontSize" Value="24" />
+		</Style>
+		<Style Selector="WrapPanel">
+			<Setter Property="Margin" Value="0,10,0,0" />
+		</Style>
+		<Style Selector="TextBox">
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="BorderBrush" Value="Transparent"/>
+			<Setter Property="IsReadOnly" Value="True" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+	</Window.Styles>
+
+	<Design.DataContext>
+		<models:InstanceDataBinding>
+			<models:InstanceDataBinding.VpcId>vpc-xxxxxxxxxx</models:InstanceDataBinding.VpcId>
+			<models:InstanceDataBinding.PeerId>pcc-5vlns760$3p4uj988h</models:InstanceDataBinding.PeerId>
+			<models:InstanceDataBinding.PrivateIp>255.255.255.255</models:InstanceDataBinding.PrivateIp>
+			<models:InstanceDataBinding.InstanceEcsId>i-xxxxxxxxxx</models:InstanceDataBinding.InstanceEcsId>
+		</models:InstanceDataBinding>
+	</Design.DataContext>
+	<Design.DesignStyle>
+		<Style Selector="controls|Hyperlink">
+			<Setter Property="Foreground" Value="#3483eb" />
+		</Style>
+	</Design.DesignStyle>
+	<Grid>
+		<Grid.Margin>
+			20
+		</Grid.Margin>
+
+		<StackPanel>
+			<WrapPanel>
+				<TextBlock>请登录阿里云，在可用区</TextBlock>
+				<TextBlock FontWeight="Bold">深圳</TextBlock>
+				<TextBlock>下，VPC选择</TextBlock>
+				<TextBox FontWeight="Bold" Text="{Binding VpcId}"/>
+				<TextBlock>下创建新ECS实例，操作系统请选择</TextBlock>
+				<TextBlock>Centos(7/8) /Aliyunos/Ubuntu (16.04/18.04)</TextBlock>
+			</WrapPanel>
+			<WrapPanel>
+				<TextBlock>创建时请为ECS实例添加</TextBlock>
+				<TextBlock>公网IP</TextBlock>
+				<TextBlock>(一键脚本使用公网安装 oss-util 相关依赖，使用内网挂载数据集)</TextBlock>
+			</WrapPanel>
+			<WrapPanel>
+				<TextBlock>一定在</TextBlock>
+				<TextBox Text="{Binding VpcId}"/>
+				<TextBlock>下创建实例！</TextBlock>
+			</WrapPanel>
+			<WrapPanel>
+				<TextBlock>操作系统请选择</TextBlock>
+				<TextBlock>Centos(7/8) /Aliyunos/Ubuntu (16.04/18.04)</TextBlock>
+			</WrapPanel>
+			<WrapPanel>
+				<TextBlock>连接</TextBlock>
+				<TextBox Padding="0" Text="{Binding Path=PrivateIp }"/>
+				<TextBlock>使用 Todis 服务</TextBlock>
+			</WrapPanel>
+			<WrapPanel>
+				<controls:Hyperlink Url="{Binding Path=GrafanaUrl}" Alias="查看Grafana监控"/>
+			</WrapPanel>
+			<WrapPanel>
+				<controls:Hyperlink Url="{Binding Path= EngineUrl}" Alias="查看引擎监控"/>
+			</WrapPanel>
+
+
+
+			<WrapPanel>
+				<TextBlock>· 如果ping不通</TextBlock>
+			</WrapPanel>
+
+			<WrapPanel>
+				<TextBlock>1. 运行</TextBlock>
+				<TextBox IsReadOnly="True">curl http://100.100.100.200/latest/meta-data/vpc-id</TextBox>
+				<TextBlock>查看结果是否为</TextBlock>
+				<TextBox Text="{Binding VpcId}"/>
+			</WrapPanel>
+			<WrapPanel>
+				<TextBlock>2. 查看路由表(</TextBlock>
+				<controls:Hyperlink  Url="{Binding Path=RouteUrl}" Alias="跳转链接"/>
+				<TextBlock>)，选择自定义路由条目，应该存在一条</TextBlock>
+				<TextBlock>目标网段为为 10.0.0.0/16，下一跳为 </TextBlock>
+				<TextBox Text="{Binding PeerId}"/>
+				<TextBlock>的条目。若缺少，请添加自定义路由条目：</TextBlock>
+				<TextBox Text="{Binding VpcId}"/>
+			</WrapPanel>
+		</StackPanel>
+
+	</Grid>
+
+</Window>

@@ -18,7 +18,7 @@ using DescribeVpcsRequest = Aliyun.Acs.Vpc.Model.V20160428.DescribeVpcsRequest;
 using DescribeVpcsResponse = Aliyun.Acs.Vpc.Model.V20160428.DescribeVpcsResponse;
 
 namespace ToplingHelperModels.SubNetLogic;
-
+#nullable disable
 public sealed class AliYunResources : IDisposable
 {
     private readonly ToplingConstants _toplingConstants;
@@ -26,6 +26,8 @@ public sealed class AliYunResources : IDisposable
     private readonly ToplingResources _toplingResources;
 
     private readonly Action<string> _appendLog;
+
+    public string ExistingVpcId { get; private set; } = string.Empty;
 
     public AliYunResources(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
     {
@@ -72,6 +74,10 @@ public sealed class AliYunResources : IDisposable
             vpc = vpcList
                 .FirstOrDefault(v =>
                     v.Tags.Any(t => t.Key.Equals(_toplingConstants.ToplingVpcTagKey, StringComparison.OrdinalIgnoreCase)));
+            if (vpc != null)
+            {
+                ExistingVpcId = vpc.VpcId;
+            }
             if (!vpcList.Any() || vpc != null)
             {
                 break;
@@ -318,7 +324,7 @@ public sealed class AliYunResources : IDisposable
         _client.GetCommonResponse(request);
     }
 
-    private string CreatePeer(string vpcId, AvailableVpc toplingAvailable, string cidr)
+    private string  CreatePeer(string vpcId, AvailableVpc toplingAvailable, string cidr)
     {
         // 创建到topling的对等连接并且添加路由表
         var clientToken = $"pcc_{toplingAvailable.VpcId}_{vpcId}_{cidr}";
@@ -443,7 +449,9 @@ public sealed class AliYunResources : IDisposable
     }
 
 
+#pragma warning disable CS8632
     private string? GetCurrentPeering(string vpcId)
+#pragma warning restore CS8632
     {
         var request = new CommonRequest
         {
