@@ -126,8 +126,22 @@ namespace ToplingHelperModels.SubNetLogic
                 .FirstOrDefault();
             if (res != null)
             {
-                if (!_userData.CreatingInstanceType.ToString().Equals(res["instanceType"].ToString(),
-                        StringComparison.OrdinalIgnoreCase))
+
+                var instanceType = res["instanceType"]?.Value<string>()?.ToLower() switch
+                {
+                    "todis" => InstanceType.Todis,
+                    "pika" => InstanceType.Todis,
+                    "todiscommunity" => InstanceType.Todis,
+                    "mytopling" => InstanceType.MyTopling,
+                    "mytoplingnvme" => InstanceType.MyTopling,
+                    _ => InstanceType.Unknown
+                };
+                if (instanceType == InstanceType.Unknown)
+                {
+                    _appendLog($"未知的数据库类型:{res["instanceType"]?.Value<string>()}");
+                }
+
+                if (instanceType != _userData.CreatingInstanceType)
                 {
                     throw new Exception("现在已经存在和待创建实例类型不同的实例，请再控制台中删除实例后直接创建新实例");
                 }

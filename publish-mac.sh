@@ -13,5 +13,5 @@ EOF
 
 cd publish
 mv ToplingHelper.Ava ToplingHelper
-zip -1r toplinghelper.zip ToplingHelper start-toplinghelper.sh
+zip -1r ToplingHelper-mac.zip ToplingHelper start-toplinghelper.sh
 open .
