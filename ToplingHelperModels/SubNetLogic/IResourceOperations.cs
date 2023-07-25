@@ -10,21 +10,26 @@ internal interface IResourceOperations
 
     public IList<DescribeZonesResponse.DescribeZones_Zone> GetZones(DescribeZonesRequest r);
 
-    public IList<DescribeVSwitchesResponse.DescribeVSwitches_VSwitch> GetVSwitches(DescribeVSwitchesRequest r);
+    public IList<DescribeVSwitchesResponse.DescribeVSwitches_VSwitch> GetVSwitches(DescribeVSwitchesRequest request);
 
     public string? GetCurrentPeering(string vpcId);
     
     // 创建一个VPC用于并网(暂不创建交换机)
-    public string CreateDefaultVpc(string cidr);
+    public string CreateDefaultVpc(string cidr, string key, string regionId);
 
-    public string CreateDefaultSecurityGroupIfNoneExists(string vpcId);
+    public string CreateDefaultSecurityGroupIfNoneExists(string vpcId, string region);
 
-    public string CreateVSwitch(CreateVSwitchRequest r);
+    public string CreateVSwitch(CreateVSwitchRequest request);
     
     // 到Topling的对等连接
-    public string CreatePeerConnection(string vpcId, AvailableVpc toplingAvailable, string cidr);
+    public string CreatePeerConnection(string vpcId, string acceptingRegion, AvailableVpc toplingAvailable, string cidr);
 
-    public string CreateRouteEntry(string vpcId, string cidr, string pccId);
+    public string CreateRouteEntry(string cidr, string regionId, string vpcId, string destinationCidr, string pccId);
 
-    public void AddVpcTag(string vpcId, string cidr);
+    public void AddVpcTag(string vpcId, string key, string cidr);
+    
+    public static IResourceOperations InitializeProvider()
+    {
+        throw new NotImplementedException();
+    }
 }

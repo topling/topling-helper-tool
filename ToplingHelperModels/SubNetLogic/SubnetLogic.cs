@@ -19,7 +19,7 @@ public class SubnetLogic : IDisposable
     public SubnetLogic(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
     {
         _toplingConstants = constants;
-        // TODO _operations初始化
+        _operations = IResourceOperations.InitializeProvider();
         _appendLog = logger;
         _toplingResources = new ToplingResources(constants, userData, logger);
     }
@@ -90,19 +90,19 @@ public class SubnetLogic : IDisposable
             // 已经找到可用的VPC与网段，尝试本地创建
             _appendLog("创建阿里云VPC");
             var cidr = $"10.{second}.0.0/16";
-            var vpcId = _operations.CreateDefaultVpc(cidr);
+            var vpcId = _operations.CreateDefaultVpc(cidr, _toplingConstants.ToplingVpcTagKey, _toplingConstants.ToplingTestRegion);
             _appendLog("为VPC创建默认安全组");
-            _operations.CreateDefaultSecurityGroupIfNoneExists(vpcId);
+            _operations.CreateDefaultSecurityGroupIfNoneExists(vpcId, _toplingConstants.ToplingTestRegion);
             // 创建对等连接&发送并网请求
             _appendLog("对VPC创建对等连接并设置路由");
-            var peerId = _operations.CreatePeerConnection(vpcId, availableVpc, cidr);
+            var peerId = _operations.CreatePeerConnection(vpcId, _toplingConstants.ToplingTestRegion, availableVpc, cidr);
             _appendLog("使用对等连接并网");
             _toplingResources.GrantPeer(peerId, second, vpcId);
 
             Task.Delay(TimeSpan.FromSeconds(10)).Wait();
             // 添加路由
             _appendLog("添加路由表项");
-            var routeId = _operations.CreateRouteEntry(cidr, vpcId, peerId);
+            var routeId = _operations.CreateRouteEntry(cidr, _toplingConstants.ToplingTestRegion, vpcId, _toplingConstants.ToplingCidr, peerId);
             // 创建交换机(幂等)
             _appendLog("创建交换机");
             CreateIdempotentVSwitch(vpcId, second);
@@ -146,11 +146,11 @@ public class SubnetLogic : IDisposable
 
                 Debug.Assert(cidr != null);
                 // 如果有变化则更新cidr
-                _operations.AddVpcTag(vpc.VpcId, cidr);
-                _operations.CreateDefaultSecurityGroupIfNoneExists(vpc.VpcId);
+                _operations.AddVpcTag(vpc.VpcId, _toplingConstants.ToplingVpcTagKey, cidr);
+                _operations.CreateDefaultSecurityGroupIfNoneExists(vpc.VpcId, _toplingConstants.ToplingTestRegion);
 
                 Debug.Assert(availableVpc != null);
-                peerId = _operations.CreatePeerConnection(vpc.VpcId, availableVpc, cidr);
+                peerId = _operations.CreatePeerConnection(vpc.VpcId, _toplingConstants.ToplingTestRegion, availableVpc, cidr);
             }
             // 如果失败，则删除对等连接并且在这个上面重新尝试新的交换机并且尝试并网
             _appendLog("使用对等连接并网");
@@ -162,7 +162,7 @@ public class SubnetLogic : IDisposable
             // 添加路由
             Debug.Assert(cidr != null);
             _appendLog("添加路由表项");
-            _operations.CreateRouteEntry(cidr, vpc.VpcId, peerId);
+            _operations.CreateRouteEntry(cidr, _toplingConstants.ToplingTestRegion, vpc.VpcId, _toplingConstants.ToplingCidr, peerId);
             _appendLog("创建交换机");
             CreateIdempotentVSwitch(vpc.VpcId, second!.Value);
             // 创建实例
@@ -184,8 +184,8 @@ public class SubnetLogic : IDisposable
 
             var second = GetSecondFromCidr(subNet.Cidr)!.Value;
             // 已经联网完成，添加路由表和交换机
-            _operations.CreateRouteEntry(subNet.Cidr, vpc.VpcId, subNet.PeerId);
-            _operations.CreateDefaultSecurityGroupIfNoneExists(vpc.VpcId);
+            _operations.CreateRouteEntry(subNet.Cidr, _toplingConstants.ToplingTestRegion, vpc.VpcId, _toplingConstants.ToplingCidr, subNet.PeerId);
+            _operations.CreateDefaultSecurityGroupIfNoneExists(vpc.VpcId, _toplingConstants.ToplingTestRegion);
             CreateIdempotentVSwitch(vpc.VpcId, second);
             _appendLog("开始创建实例");
             var res = _toplingResources.CreateDefaultInstance(subNet.PeerId, vpc.VpcId);

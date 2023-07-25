@@ -115,13 +115,13 @@ namespace ToplingHelper.Ava.Views
         {
             var userData = (DataContext as ToplingUserData)!;
 
-            using var handler = new AliYunResources(ToplingConstants, userData, AppendLog);
+            using var handler = new SubnetLogic(ToplingConstants, userData, AppendLog);
             try
             {
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
 
                 ShowMessageBox("流程约三分钟，请不要关闭工具主窗口!", caption: "正在执行");
-                var instance = await handler.CreateInstance();
+                var instance = await handler.CreateInstanceAsync();
 
                 if (instance == null)
                 {
