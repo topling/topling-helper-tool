@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Aliyun.Acs.Ecs.Model.V20140526;
+using ToplingHelperModels;
 using ToplingHelperModels.Models;
 
 namespace ToplingHelper.Ava.Models

@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls.Notifications;
+using ToplingHelperModels;
 using ToplingHelperModels.Models;
 
 namespace ToplingHelper.Ava.Models

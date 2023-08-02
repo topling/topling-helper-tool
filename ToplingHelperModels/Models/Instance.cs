@@ -13,4 +13,6 @@ public class Instance
     public string? RouteId { get; set; }
 
     public string? ToplingVpcId { get; set; }
+
+    public string InstanceType { get; set; } = string.Empty;
 }

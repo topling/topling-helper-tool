@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 using ToplingHelper.Ava.Models;
 using ToplingHelper.Ava.ViewModels;
 using ToplingHelper.Ava.Views;
-using ToplingHelperModels.Models;
+using ToplingHelperModels;
 
 namespace ToplingHelper.Ava
 {

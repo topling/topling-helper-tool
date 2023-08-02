@@ -7,7 +7,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using SkiaSharp;
 using ToplingHelper.Ava.Models;
-using ToplingHelperModels.Models;
+using ToplingHelperModels;
 
 namespace ToplingHelper.Ava.Views;
 

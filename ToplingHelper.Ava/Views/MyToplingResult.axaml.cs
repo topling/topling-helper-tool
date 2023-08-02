@@ -1,6 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using ToplingHelperModels.Models;
+using ToplingHelperModels;
 
 namespace ToplingHelper.Ava.Views;
 

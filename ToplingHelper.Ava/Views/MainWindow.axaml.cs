@@ -11,9 +11,8 @@ using Avalonia.Threading;
 using MessageBox.Avalonia.DTO;
 using MessageBox.Avalonia.Models;
 using ToplingHelper.Ava.Models;
-using ToplingHelperModels.Models;
-using ToplingHelperModels.SubNetLogic;
-using static ToplingHelperModels.Models.ToplingUserData;
+using ToplingHelperModels;
+using static ToplingHelperModels.ToplingUserData;
 
 namespace ToplingHelper.Ava.Views
 {
@@ -114,20 +113,19 @@ namespace ToplingHelper.Ava.Views
         private async Task Worker()
         {
             var userData = (DataContext as ToplingUserData)!;
-
-            using var handler = new AliYunResources(ToplingConstants, userData, AppendLog);
+            using var handler = new ToplingHelperService(ToplingConstants, userData, AppendLog);
+            
             try
             {
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
 
                 ShowMessageBox("流程约三分钟，请不要关闭工具主窗口!", caption: "正在执行");
-                var instance = await handler.CreateInstance();
-
-                if (instance == null)
-                {
-                    ShowMessageBox("并网完成，实例创建可能失败，您可以前往 topling 控制台手动创建实例(选项更加丰富)，或者手动重试");
-                    return;
-                }
+                var instance = await handler.CreateInstanceAsync();
+                //if (instance == null)
+                //{
+                //    ShowMessageBox("并网完成，实例创建可能失败，您可以前往 topling 控制台手动创建实例(选项更加丰富)，或者手动重试");
+                //    return;
+                //}
 
                 Action action = userData.CreatingInstanceType switch
                 {
@@ -160,36 +158,37 @@ namespace ToplingHelper.Ava.Views
                 Dispatcher.UIThread.Post(action);
 
             }
-            catch (ClientException e)
-            {
-                // 后面测试这里是否能够捕获
-                if (e.ErrorCode.Equals("InvalidStatus.RouteEntry"))
-                {
-                    ShowMessageBox($"云服务商路由表状态错误，请重试(不需要关闭自动化工具)。{Environment.NewLine}" +
-                                   "如果十分钟后此错误仍然出现，请联系客服");
-                }
-                else
-                {
-                    ShowMessageBox(e.Message);
-                }
+            // 下沉到运营商
+            //catch (ClientException e)
+            //{
+            //    // 后面测试这里是否能够捕获
+            //    if (e.ErrorCode.Equals("InvalidStatus.RouteEntry"))
+            //    {
+            //        ShowMessageBox($"云服务商路由表状态错误，请重试(不需要关闭自动化工具)。{Environment.NewLine}" +
+            //                       "如果十分钟后此错误仍然出现，请联系客服");
+            //    }
+            //    else
+            //    {
+            //        ShowMessageBox(e.Message);
+            //    }
 
-            }
-            catch (Exception e) when (e.Message.Equals("CheckExisting", StringComparison.OrdinalIgnoreCase))
-            {
-                // 删除并重新创建实例
-                ShowMessageBox($"如果您在控制台上删除过网段，请删除 {handler.ExistingVpcId} 后重新运行本工具");
-            }
-            catch (Exception e) when (e.Message.Contains("OperationFailed.CdtNotOpened"))
-            {
-                _ = _ = Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    var window = new CdtNotOpened()
-                    {
-                        WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                    };
-                    window.Show();
-                });
-            }
+            //}
+            //catch (Exception e) when (e.Message.Equals("CheckExisting", StringComparison.OrdinalIgnoreCase))
+            //{
+            //    // 删除并重新创建实例
+            //    ShowMessageBox($"如果您在控制台上删除过网段，请删除 {handler.ExistingVpcId} 后重新运行本工具");
+            //}
+            //catch (Exception e) when (e.Message.Contains("OperationFailed.CdtNotOpened"))
+            //{
+            //    _ = _ = Dispatcher.UIThread.InvokeAsync(() =>
+            //    {
+            //        var window = new CdtNotOpened()
+            //        {
+            //            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            //        };
+            //        window.Show();
+            //    });
+            //}
             catch (Exception e)
             {
                 var content = new StringBuilder();
