@@ -1,15 +1,16 @@
-﻿using Aliyun.Acs.Core;
+﻿using System.Diagnostics;
+using Aliyun.Acs.Core;
 using Aliyun.Acs.Core.Exceptions;
 using Aliyun.Acs.Core.Http;
 using Aliyun.Acs.Core.Profile;
 using Aliyun.Acs.Ecs.Model.V20140526;
+using Aliyun.Acs.Sts.Model.V20150401;
 using Newtonsoft.Json.Linq;
 using ToplingHelperModels.Models.CloudService;
 using ToplingHelperModels.Models.WebApi;
 using CreateRouteEntryRequest = Aliyun.Acs.Vpc.Model.V20160428.CreateRouteEntryRequest;
 using CreateVpcRequest = Aliyun.Acs.Ecs.Model.V20140526.CreateVpcRequest;
 using DescribeVpcsRequest = Aliyun.Acs.Vpc.Model.V20160428.DescribeVpcsRequest;
-using DescribeVpcsResponse = Aliyun.Acs.Vpc.Model.V20160428.DescribeVpcsResponse;
 
 namespace ToplingHelperModels.CloudService
 {
@@ -17,11 +18,6 @@ namespace ToplingHelperModels.CloudService
     {
 
         private readonly DefaultAcsClient _client;
-
-        private string? _ownerId = null;
-
-
-
 
 
         public AliYunResourcesProvider(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
@@ -32,75 +28,29 @@ namespace ToplingHelperModels.CloudService
 
             _client = new DefaultAcsClient(DefaultProfile.GetProfile(constants.ToplingTestRegion, userData.AccessId,
                 userData.AccessSecret));
-        }
-
-        
-        protected override string DefaultZoneId(string regionId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override UserVpc? GetVpcForTopling(string region)
-        {
-
-            for (var pageNumber = 1; ; ++pageNumber)
-            {
-                DescribeVpcsResponse vpcResponse;
-                try
-                {
-                    vpcResponse = _client.GetAcsResponse(new DescribeVpcsRequest
-                    {
-                        RegionId = ToplingConstants.ToplingTestRegion,
-                        PageNumber = pageNumber,
-                        PageSize = 50
-                    });
-                }
-                catch (ClientException e) when
-                    (e.ErrorCode.Equals("SDK.InvalidProfile", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new Exception("请确保您提供的AccessKey Secret有效");
-                }
-
-                var vpcList = vpcResponse.Vpcs;
-                if (vpcList.Any())
-                {
-                    _ownerId = _client.GetAcsResponse(new DescribeVpcsRequest
-                    {
-                        RegionId = ToplingConstants.ToplingTestRegion,
-                        PageNumber = 1,
-                        PageSize = 50
-                    }).Vpcs.First().OwnerId!.Value.ToString();
-                }
-                else
-                {
-                    //break;
-                    return null;
-                }
-
-                var vpc = vpcList
-                    .Where(v => v.Tags.Any(t =>
-                        t.Key.Equals(ToplingConstants.ToplingVpcTagKey, StringComparison.OrdinalIgnoreCase)))
-                    .Select(i => new UserVpc
-                    {
-                        OwnerId = i.OwnerId!.ToString()!,
-                        VpcId = i.VpcId,
-                        SubNetCidr = i.Tags.First(tag => tag.Key.Equals(ToplingConstants.ToplingVpcTagKey, StringComparison.OrdinalIgnoreCase))._Value
-                    }).FirstOrDefault();
-                if (vpc != null)
-                {
-                    return vpc;
-                }
-            }
-
+            UserCloudId = _client.GetAcsResponse(new GetCallerIdentityRequest())
+                .AccountId;
         }
 
 
         public override UserVpc? GetUserVpcForTopling(string region)
         {
-            throw new NotImplementedException();
+            var vpcList = _client.GetAcsResponse(new DescribeVpcsRequest
+            {
+                RegionId = UserData.RegionId
+            }).Vpcs;
+            return vpcList
+                .Where(v => v.Tags.Any(i => i.Key == ToplingConstants.ToplingVpcTagKey))
+                .Select(v => new UserVpc
+                {
+                    OwnerId = UserCloudId,
+                    VpcId = v.VpcId,
+                    SubNetCidr = v.Tags.First(i => i.Key == ToplingConstants.ToplingVpcTagKey)._Value,
+                    RouteId = v.VRouterId
+                }).FirstOrDefault();
         }
 
-        public override void AddVpcTag(string vpcId, string cidr)
+        private void AddVpcTag(string vpcId, string cidr)
         {
             var request = new CommonRequest
             {
@@ -116,19 +66,59 @@ namespace ToplingHelperModels.CloudService
             _client.GetCommonResponse(request);
         }
 
-        public override string GetUserCloudId()
-        {
-            throw new NotImplementedException();
-        }
-
         internal override void CreateIdempotentVSwitch(string vpcId, int secondCidr)
         {
+            // 获取所有的可用区
+            var zoneList = _client.GetAcsResponse(new DescribeZonesRequest
+            {
+                RegionId = UserData.RegionId
+            });
+            var switchCidrList = _client.GetAcsResponse(new DescribeVSwitchesRequest
+            {
+                VpcId = vpcId,
+            }).VSwitches.Select(s => s.CidrBlock).ToList();
+            foreach (var (index, zoneId) in zoneList.Zones.Select((zone, index) => (index, zone.ZoneId)))
+            {
+                var block = $"10.{secondCidr}.{index}.0/24";
+                // 阿里云幂等性不做长时间保证,这里手动判定
+                if (switchCidrList.Contains(block))
+                {
+                    continue;
+                }
+                for (int i = 0; i < 10; ++i)
+                {
+                    try
+                    {
+                        _client.GetAcsResponse(new CreateVSwitchRequest
+                        {
+                            VpcId = vpcId,
+                            ZoneId = zoneId,
+                            CidrBlock = block,
+                            ClientToken = $"{vpcId}_{zoneId}_{block}"
+                        });
+                        break;
+                    }
+                    catch (ClientException e) when (e.ErrorCode.Equals("InvalidStatus.RouteEntry",
+                                                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (i < 9)
+                        {
+                            Task.Delay(TimeSpan.FromSeconds(3 * (i + 1))).Wait();
+                            continue;
+                        }
+
+                        throw;
+                    }
+                }
+
+            }
+
             throw new NotImplementedException();
         }
 
         public override void Dispose()
         {
-            throw new NotImplementedException();
+
         }
 
         /// <summary>
@@ -147,18 +137,11 @@ namespace ToplingHelperModels.CloudService
             Log($"创建VPC成功: {res.VpcId}");
             Task.Delay(TimeSpan.FromSeconds(5)).Wait();
             AddVpcTag(res.VpcId, cidr);
-
-            _ownerId ??= _client.GetAcsResponse(new DescribeVpcsRequest
-            {
-                RegionId = ToplingConstants.ToplingTestRegion,
-                PageNumber = 1,
-                PageSize = 50
-            }).Vpcs.First().OwnerId!.Value.ToString();
-
+            
             CreateDefaultSecurityGroupIfNotExists(res.VpcId);
             return new UserVpc
             {
-                OwnerId = _ownerId,
+                OwnerId = UserCloudId,
                 VpcId = res.VpcId
             };
         }

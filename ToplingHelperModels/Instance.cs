@@ -1,4 +1,4 @@
-﻿namespace ToplingHelperModels.Models;
+﻿namespace ToplingHelperModels;
 
 public class Instance
 {

@@ -11,7 +11,6 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using ToplingHelperModels.Models;
 using System.Reflection;
 using Aliyun.Acs.Ecs.Model.V20140526;
 using ToplingHelperModels.CloudService;

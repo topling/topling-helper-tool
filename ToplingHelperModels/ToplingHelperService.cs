@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using ToplingHelperModels.CloudService;
-using ToplingHelperModels.Models;
 using ToplingHelperModels.Models.CloudService;
 using ToplingHelperModels.Models.WebApi;
 using ToplingHelperModels.ToplingService;
@@ -94,7 +93,7 @@ namespace ToplingHelperModels
             if (/*subNet != null &&*/userVpcForTopling == null)
             {
                 Debug.Assert(subNet != null);
-                var userId = _resources.GetUserCloudId();
+                var userId = _resources.UserCloudId;
                 //var userId = subNet.
                 if (userId != null && userId == subNet.UserCloudId)
                 {

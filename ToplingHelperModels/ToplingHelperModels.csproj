@@ -8,7 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="aliyun-net-sdk-ecs" Version="4.24.18" />
+    <PackageReference Include="aliyun-net-sdk-sts" Version="3.1.1" />
     <PackageReference Include="aliyun-net-sdk-vpc" Version="3.0.14" />
+    <PackageReference Include="AWSSDK.EC2" Version="3.7.203.4" />
+    <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.201.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 	<PropertyGroup>

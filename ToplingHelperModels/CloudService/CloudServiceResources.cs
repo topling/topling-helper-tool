@@ -6,9 +6,6 @@ namespace ToplingHelperModels.CloudService
 {
     internal abstract class CloudServiceResources : IDisposable
     {
-
-        protected abstract string DefaultZoneId(string regionId);
-
         protected const string ToplingCidr = "10.0.0.0/16";
         protected CloudServiceResources(ToplingConstants constants, ToplingUserData userData, Action<string>? logger = null)
         {
@@ -20,6 +17,7 @@ namespace ToplingHelperModels.CloudService
 
         protected ToplingConstants ToplingConstants { get; init; }
         protected ToplingUserData UserData { get; init; }
+        public  string UserCloudId { get; init; }
 
         public static CloudServiceResources GetResourcesProvider(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
         {
@@ -32,7 +30,6 @@ namespace ToplingHelperModels.CloudService
             };
         }
 
-        public abstract UserVpc? GetVpcForTopling(string region);
         public abstract UserVpc CreateDefaultVpc(string cidr);
         public abstract string CreatePeer(UserVpc userVpc, ToplingVpcForSubnetModel vpc);
         /// <summary>
@@ -45,9 +42,6 @@ namespace ToplingHelperModels.CloudService
         public abstract string AddRoute(string cidr, string vpcId, string pccId);
         public abstract string? GetCurrentPeering(string vpcId);
         public abstract UserVpc? GetUserVpcForTopling(string region);
-        public abstract void AddVpcTag(string vpcId, string cidr);
-
-        public abstract string GetUserCloudId();
 
 
         internal abstract void CreateIdempotentVSwitch(string vpcId, int secondCidr);
