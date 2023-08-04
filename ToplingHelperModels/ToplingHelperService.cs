@@ -48,7 +48,7 @@ namespace ToplingHelperModels
             {
                 _appendLog("尝试获取可用网段创建VPC与子网.");
                 var vpcFromTopling = _toplingResourcesHandler.GetToplingVpc();
-                var userVpc = _resources.CreateDefaultVpc(vpcFromTopling.Cidr);
+                var userVpc = _resources.CreateVpcForTopling(vpcFromTopling.Cidr);
                 InitUserVpcAndPeer(userVpc);
 
                 return await CreateDbInstanceAsync(userVpc);

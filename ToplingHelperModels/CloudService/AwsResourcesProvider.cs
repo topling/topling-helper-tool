@@ -12,10 +12,10 @@ using Tag = Amazon.EC2.Model.Tag;
 
 namespace ToplingHelperModels.CloudService
 {
-    internal class AwsResourcesProvider : CloudServiceResources
+    internal sealed class AwsResourcesProvider : CloudServiceResources
     {
         private readonly AmazonEC2Client _client;
-        
+
         public AwsResourcesProvider(ToplingConstants constants, ToplingUserData userData, Action<string>? logger = null) : base(constants, userData, logger)
         {
             _client = new AmazonEC2Client(userData.AccessId, userData.AccessSecret, RegionEndpoint.GetBySystemName(userData.RegionId));
@@ -24,7 +24,9 @@ namespace ToplingHelperModels.CloudService
         }
 
 
-        public override UserVpc CreateDefaultVpc(string cidr)
+        public override string UserCloudId { get; protected init; }
+
+        public override UserVpc CreateVpcForTopling(string cidr)
         {
             Log("创建aws VPC");
             var res = _client.CreateVpcAsync(new CreateVpcRequest()
@@ -38,7 +40,7 @@ namespace ToplingHelperModels.CloudService
             }).Result;
             Log($"创建VPC成功: {res.Vpc.VpcId}");
             Task.Delay(TimeSpan.FromSeconds(5)).Wait();
-            
+
             CreateDefaultSecurityGroupIfNotExists(res.Vpc.VpcId);
             var route = _client.DescribeRouteTablesAsync(new DescribeRouteTablesRequest()
             {
@@ -86,10 +88,80 @@ namespace ToplingHelperModels.CloudService
             return res.VpcPeeringConnection.VpcPeeringConnectionId;
         }
 
-        public override string AddRoute(string cidr, string vpcId, string pccId)
+        public override void AddRoute(string cidr, string vpcId, string pccId)
         {
 
-            throw new NotImplementedException();
+            var routeTable = _client.DescribeRouteTablesAsync(new DescribeRouteTablesRequest()
+            {
+                Filters = new List<Filter>()
+                {
+                    new Filter() { Name = "vpc-id", Values = new List<string> { vpcId } }
+                }
+            }).Result.RouteTables.First()!;
+
+            #region igw
+            var igw = _client.DescribeInternetGatewaysAsync(new DescribeInternetGatewaysRequest()
+            {
+                Filters = new List<Filter>()
+                {
+                    new Filter("attachment.vpc-id", new List<string>() { vpcId })
+                }
+            }).Result;
+            string igwId;
+            if (!igw.InternetGateways.Any())
+            {
+                var igw2 = _client.CreateInternetGatewayAsync(new CreateInternetGatewayRequest
+                {
+                    TagSpecifications = new List<TagSpecification>()
+                    {
+                        new() { Tags = new List<Tag> { new() { Key = ToplingConstants.ToplingVpcTagKey } } }
+                    },
+                }).Result;
+                _client.AttachInternetGatewayAsync(new AttachInternetGatewayRequest
+                {
+                    InternetGatewayId = igw2.InternetGateway.InternetGatewayId,
+                    VpcId = vpcId
+                }).Wait();
+                igwId = igw2.InternetGateway.InternetGatewayId;
+            }
+            else
+            {
+                igwId = igw.InternetGateways.First().InternetGatewayId;
+            }
+
+
+            #endregion
+
+            //  添加路由表：
+            // 网关
+            if (routeTable.Routes.All(i => i.DestinationCidrBlock != "0.0.0.0"))
+            {
+                _client.CreateRouteAsync(new CreateRouteRequest()
+                {
+                    RouteTableId = routeTable.RouteTableId,
+                    DestinationCidrBlock = "0.0.0.0",
+                    GatewayId = igwId,
+                }).Wait();
+            }
+            if (routeTable.Routes.All(i => i.DestinationCidrBlock != "::/0"))
+            {
+                _client.CreateRouteAsync(new CreateRouteRequest()
+                {
+                    RouteTableId = routeTable.RouteTableId,
+                    DestinationCidrBlock = "::/0",
+                    GatewayId = igwId,
+                }).Wait();
+            }
+
+            if (routeTable.Routes.All(i => i.DestinationCidrBlock != cidr))
+            {
+                _client.CreateRouteAsync(new CreateRouteRequest()
+                {
+                    DestinationCidrBlock = cidr,
+                    RouteTableId = routeTable.RouteTableId,
+                    VpcPeeringConnectionId = pccId
+                });
+            }
         }
 
         public override string? GetCurrentPeering(string vpcId)
@@ -137,58 +209,53 @@ namespace ToplingHelperModels.CloudService
                 SubNetCidr = vpc.Tags.First(t => t.Key == ToplingConstants.ToplingVpcTagKey).Value,
                 RouteId = route.RouteTables.First().RouteTableId
             };
-            throw new NotImplementedException();
+
         }
 
 
         internal override void CreateIdempotentVSwitch(string vpcId, int secondCidr)
         {
-            throw new NotImplementedException();
+            var zones = _client.DescribeAvailabilityZonesAsync(new DescribeAvailabilityZonesRequest()
+            {
+                AllAvailabilityZones = true,
+            }).Result.AvailabilityZones.Select(i => new
+            {
+                i.ZoneId,
+                i.ZoneName
+            }).OrderBy(i => i.ZoneName).ToList();
+
+            var subnets = _client.DescribeSubnetsAsync(new DescribeSubnetsRequest()
+            {
+                Filters = new List<Filter>()
+                {
+                    new Filter("vpc-id", new List<string>() { vpcId })
+                },
+            }).Result.Subnets!;
+            foreach (var (index, zone) in zones.Select((zone, index) => (index, zone)))
+            {
+                var block = $"10.{secondCidr}.{index}.0/24";
+                if (subnets.Any(s => s.CidrBlock == block))
+                {
+                    continue;
+                }
+
+                _client.CreateSubnetAsync(new CreateSubnetRequest
+                {
+                    AvailabilityZoneId = zone.ZoneId,
+                    CidrBlock = block,
+                    VpcId = vpcId
+                }).Wait();
+            }
         }
 
         public override void Dispose()
         {
             _client.Dispose();
-            //throw new NotImplementedException();
         }
 
         private void CreateDefaultSecurityGroupIfNotExists(string vpcId)
         {
-#if false
-            var sgId = _client.GetAcsResponse(new DescribeSecurityGroupsRequest
-            {
-                VpcId = vpcId,
-                RegionId = ToplingConstants.ToplingTestRegion
-            }).SecurityGroups.FirstOrDefault()?.SecurityGroupId;
-
-            if (string.IsNullOrWhiteSpace(sgId))
-            {
-                Log("创建VPC安全组");
-                sgId = _client.GetAcsResponse(new CreateSecurityGroupRequest
-                {
-                    VpcId = vpcId
-                }).SecurityGroupId;
-            }
-            else
-            {
-                Log("VPC安全组已存在");
-            }
-
-            _client.GetAcsResponse(new AuthorizeSecurityGroupRequest
-            {
-                SecurityGroupId = sgId,
-                IpProtocol = "Tcp",
-                PortRange = "22/22",
-                SourceCidrIp = "0.0.0.0/0"
-            });
-            _client.GetAcsResponse(new AuthorizeSecurityGroupRequest
-            {
-                SecurityGroupId = sgId,
-                IpProtocol = "Icmp",
-                PortRange = "-1/-1",
-                SourceCidrIp = "0.0.0.0/0"
-            });
-#endif
+            // 可能不需要
         }
 
 

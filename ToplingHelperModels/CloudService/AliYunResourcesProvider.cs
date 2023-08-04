@@ -14,7 +14,7 @@ using DescribeVpcsRequest = Aliyun.Acs.Vpc.Model.V20160428.DescribeVpcsRequest;
 
 namespace ToplingHelperModels.CloudService
 {
-    internal class AliYunResourcesProvider : CloudServiceResources
+    internal sealed class AliYunResourcesProvider : CloudServiceResources
     {
 
         private readonly DefaultAcsClient _client;
@@ -31,6 +31,8 @@ namespace ToplingHelperModels.CloudService
             UserCloudId = _client.GetAcsResponse(new GetCallerIdentityRequest())
                 .AccountId;
         }
+
+        public override string UserCloudId { get; protected init; }
 
 
         public override UserVpc? GetUserVpcForTopling(string region)
@@ -113,7 +115,6 @@ namespace ToplingHelperModels.CloudService
 
             }
 
-            throw new NotImplementedException();
         }
 
         public override void Dispose()
@@ -125,7 +126,7 @@ namespace ToplingHelperModels.CloudService
         /// 创建一个VPC用于并网(暂不创建交换机)
         /// </summary>
         /// <returns>vpc-id</returns>
-        public override UserVpc CreateDefaultVpc(string cidr)
+        public override UserVpc CreateVpcForTopling(string cidr)
         {
 
             Log("创建阿里云VPC");
@@ -218,7 +219,7 @@ namespace ToplingHelperModels.CloudService
         #endregion
 
 
-        public override string AddRoute(string cidr, string vpcId, string pccId)
+        public override void AddRoute(string cidr, string vpcId, string pccId)
         {
 
             var routeTableId = _client.GetAcsResponse(new DescribeVpcsRequest
@@ -241,7 +242,7 @@ namespace ToplingHelperModels.CloudService
                         NextHopType = "VpcPeer",
                         ClientToken = routeToken
                     });
-                    return routeTableId;
+                    return ;
                 }
                 catch (ClientException e) when (e.ErrorCode.Equals("InvalidStatus.RouteEntry",
                                                     StringComparison.OrdinalIgnoreCase))
@@ -257,7 +258,7 @@ namespace ToplingHelperModels.CloudService
                 catch (ClientException e) when (e.ErrorMessage.Equals("Specified CIDR block is already exists.",
                                                     StringComparison.OrdinalIgnoreCase))
                 {
-                    return routeTableId;
+                    return;
                 }
             }
 
