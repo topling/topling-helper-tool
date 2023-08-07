@@ -10,7 +10,7 @@ namespace ToplingHelper.Ava.Models
 {
     public class InstanceDataBinding : Instance
     {
-        public InstanceDataBinding(ToplingConstants constants, Instance instance)
+        public InstanceDataBinding(ToplingConstants constants, Instance instance, Provider provider)
         {
             var props = typeof(Instance)
                 .GetProperties().ToList();
@@ -25,14 +25,6 @@ namespace ToplingHelper.Ava.Models
                 .TakeLast(2));
             ToplingTestRegion = constants.ToplingTestRegion;
         }
-#if DEBUG
-        public InstanceDataBinding()
-        {
-            ToplingBaseHost = "topling.cn";
-            ToplingTestRegion = "cn-shenzhen";
-            InstanceEcsId = string.Empty;
-        }
-#endif
 
 
 
@@ -40,9 +32,11 @@ namespace ToplingHelper.Ava.Models
 
         public string ToplingTestRegion { get; init; }
 
-        public string GrafanaUrl => $"http://{InstanceEcsId}.aliyun.db.{ToplingBaseHost}:8000";
+        public Provider Provider { get; init; }
 
-        public string EngineUrl => $"http://{InstanceEcsId}.aliyun.db.{ToplingBaseHost}:3000";
-        public string RouteUrl=> $"https://vpcnext.console.aliyun.com/vpc/{ToplingTestRegion}/route-tables/{RouteId}";
+        public string GrafanaUrl => $"http://{InstanceEcsId}.{Provider}.db.{ToplingBaseHost}:8000";
+
+        public string EngineUrl => $"http://{InstanceEcsId}.{Provider}.db.{ToplingBaseHost}:3000";
+        public string RouteUrl => $"https://vpcnext.console.aliyun.com/vpc/{ToplingTestRegion}/route-tables/{RouteId}";
     }
 }

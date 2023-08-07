@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
 using Avalonia.Controls.Notifications;
 using ToplingHelperModels;
 using ToplingHelperModels.Models;
@@ -14,10 +15,6 @@ namespace ToplingHelper.Ava.Models
 {
     internal sealed class ToplingUserDataBinding : ToplingUserData, INotifyPropertyChanged
     {
-        public ToplingUserDataBinding()
-        {
-
-        }
 
         public ToplingUserDataBinding(ToplingUserData userData)
         {
@@ -37,7 +34,25 @@ namespace ToplingHelper.Ava.Models
 
         private bool _useGtid;
 
+        public new Provider Provider
+        {
+            get => base.Provider;
+            set
+            {
+                base.Provider = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(RamUrl));
+            }
+        }
 
+        public string RamUrl =>
+            Provider switch
+            {
+                Provider.AliYun => "https://ram.console.aliyun.com/manage",
+                Provider.Aws => "https://us-east-1.console.aws.amazon.com/iamv2/home#/security_credentials",
+                Provider.Unknown => "",
+                _ => ""
+            };
 
         public bool UseGtid
         {

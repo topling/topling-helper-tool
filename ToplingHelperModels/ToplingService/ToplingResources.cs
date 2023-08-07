@@ -77,16 +77,16 @@ namespace ToplingHelperModels.ToplingService
                         default:
                             throw ex;
                     }
-                    break;
+                    
                 case Provider.Aws:
                     switch (regionId)
                     {
                         case "cn-shenzhen":
+#error aws 地域
                             return "";
                         default:
                             throw ex;
                     }
-                    break;
                 default:
                     throw ex;
             }
@@ -104,10 +104,10 @@ namespace ToplingHelperModels.ToplingService
                 // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
                 InstanceType = _userData.CreatingInstanceType switch
                 {
-                    ToplingUserData.InstanceType.Todis => CreateInstanceRequestType.Todis,
-                    ToplingUserData.InstanceType.MyTopling when _userData.UseLocalStorage => CreateInstanceRequestType
+                    InstanceType.Todis => CreateInstanceRequestType.Todis,
+                    InstanceType.MyTopling when _userData.UseLocalStorage => CreateInstanceRequestType
                         .MyToplingLocalStorage,
-                    ToplingUserData.InstanceType.MyTopling when !_userData.UseLocalStorage => CreateInstanceRequestType
+                    InstanceType.MyTopling when !_userData.UseLocalStorage => CreateInstanceRequestType
                         .MyTopling,
                     _ => throw new ArgumentOutOfRangeException()
                 }

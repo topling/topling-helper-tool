@@ -10,6 +10,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using MessageBox.Avalonia.DTO;
 using MessageBox.Avalonia.Models;
+using Newtonsoft.Json;
 using ToplingHelper.Ava.Models;
 using ToplingHelperModels;
 using static ToplingHelperModels.ToplingUserData;
@@ -27,28 +28,23 @@ namespace ToplingHelper.Ava.Views
         public MainWindow()
         {
             InitializeComponent();
+#if !DEBUG
+            Debugger.IsVisible = false;
+#endif
         }
 
-        private void ChangeServiceInstanceType(object? sender, RoutedEventArgs e)
-        {
-            if (sender is RadioButton btn && DataContext is not null)
-            {
-                var context = DataContext as ToplingUserDataBinding;
-                context!.CreatingInstanceType = btn.Name switch
-                {
-                    "MySqlRadio" => ToplingUserData.InstanceType.MyTopling,
-                    "TodisRadio" => ToplingUserData.InstanceType.Todis,
-                    _ => context!.CreatingInstanceType
-                };
-            }
 
-        }
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
             _logBuilder.Clear();
             Log.Text = "";
             SetInputs(false);
-
+            if (Context.Provider == Provider.Unknown)
+            {
+                ShowMessageBox("请选云服务商");
+                SetInputs(true);
+                return;
+            }
             if (Context.CreatingInstanceType == InstanceType.Unknown)
             {
                 ShowMessageBox("请选择创建 Todis 服务或 MyTopling 服务");
@@ -103,8 +99,8 @@ namespace ToplingHelper.Ava.Views
             ToplingPassword.IsEnabled = status;
             AccessId.IsEnabled = status;
             AccessSecret.IsEnabled = status;
-            MySqlRadio.IsEnabled = status;
-            TodisRadio.IsEnabled = status;
+            //MySqlRadio.IsEnabled = status;
+            //TodisRadio.IsEnabled = status;
             UseGtid.IsEnabled = status;
             EditServerId.IsEnabled = status;
             ServerId.IsEnabled = status;
@@ -114,7 +110,7 @@ namespace ToplingHelper.Ava.Views
         {
             var userData = (DataContext as ToplingUserData)!;
             using var handler = new ToplingHelperService(ToplingConstants, userData, AppendLog);
-            
+
             try
             {
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
@@ -129,25 +125,25 @@ namespace ToplingHelper.Ava.Views
 
                 Action action = userData.CreatingInstanceType switch
                 {
-                    ToplingUserData.InstanceType.Todis => () =>
+                    InstanceType.Todis => () =>
                     {
                         var window = new TodisResult
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             ToplingConstants = ToplingConstants,
-                            DataContext = new InstanceDataBinding(ToplingConstants, instance)
+                            DataContext = new InstanceDataBinding(ToplingConstants, instance, userData.Provider)
                         };
                         window.Show();
                         AppendLog("实例创建完成");
                     }
                     ,
-                    ToplingUserData.InstanceType.MyTopling => () =>
+                    InstanceType.MyTopling => () =>
                     {
                         var window = new MyToplingResult()
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             ToplingConstants = ToplingConstants,
-                            DataContext = new InstanceDataBinding(ToplingConstants, instance)
+                            DataContext = new InstanceDataBinding(ToplingConstants, instance, userData.Provider)
                         };
                         window.Show();
                         AppendLog("实例创建完成");
@@ -222,6 +218,16 @@ namespace ToplingHelper.Ava.Views
                 messageBoxStandardWindow.ShowDialog(this);
             });
         }
+#if DEBUG
+        private void Flush(object? sender, RoutedEventArgs e)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                Log.Text = JsonConvert.SerializeObject(Context, Formatting.Indented);
+            });
+
+        }
+#endif
 
 
     }

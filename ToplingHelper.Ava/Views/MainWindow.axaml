@@ -24,10 +24,14 @@
 		</Style>
 	</Window.Styles>
     <Design.DataContext>
-	<!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+	 <!--This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs)--> 
 
-	<models:ToplingUserDataBinding />
+	<models:ToplingUserDataBinding >
+        <x:Arguments>
+			<toplingHelperModels:ToplingUserData/>
+        </x:Arguments>
+    </models:ToplingUserDataBinding>
 	</Design.DataContext>
 	<Grid>
 		<Viewbox Stretch="Uniform">
@@ -51,50 +55,71 @@
 					</Grid.Styles>
 					<TextBlock Grid.Column="0" Grid.Row="1" >
 						拓扑岭用户名
-						<!--<Run  Text="拓扑岭用户名"/>-->
-					</TextBlock>
+                    </TextBlock>
 					<TextBox Grid.Column="1" Grid.Row="1" Name="ToplingUserId"
                              Text="{Binding ToplingUserId}" />
 
 					<TextBlock Grid.Column="0" Grid.Row="2">
 						拓扑岭用户密码
-						<!--<Run  Text="拓扑岭用户密码"/>-->
-					</TextBlock>
+                    </TextBlock>
 					<TextBox Grid.Column="1" Grid.Row="2" Name="ToplingPassword"
                              Text="{Binding ToplingPassword}" PasswordChar="*" />
 
-					<controls:Hyperlink Grid.Column="0" Grid.Row="3" Url="https://ram.console.aliyun.com/manage" Alias="阿里云 accessKeyID"/>
-					<TextBox Grid.Column="1" Grid.Row="3" Name="AccessId"
+					<TextBlock Grid.Column="0" Grid.Row="3">云服务商</TextBlock>
+                    <StackPanel Grid.Column="1" Grid.Row="3" Orientation="Horizontal">
+                        <StackPanel.Styles>
+                            <Style Selector="RadioButton">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="HorizontalAlignment" Value="Left"/>
+                                <Setter Property="FontSize" Value="14" />
+                            </Style>
+                        </StackPanel.Styles>
+						<StackPanel.Resources>
+							<models:EnumToBooleanConverter x:Key="ComparisonConverter"/>
+                        </StackPanel.Resources>
+                        <RadioButton Content="阿里云" 
+                                     IsChecked="{Binding Provider, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static toplingHelperModels:Provider.AliYun}}"/>
+                        <RadioButton Content="Aws" 
+                                     Margin="10,0,0,0"
+                                     IsChecked="{Binding Provider, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static toplingHelperModels:Provider.Aws}}"/>
+					</StackPanel>
+
+					<controls:Hyperlink Grid.Column="0" Grid.Row="4" Url="{Binding RamUrl}" Alias="服务商 accessKeyID" />
+					<TextBox Grid.Column="1" Grid.Row="4" Name="AccessId"
                              Text="{Binding AccessId}"   TextWrapping="Wrap" />
 
-					<controls:Hyperlink Grid.Column="0" Grid.Row="4" Url="https://ram.console.aliyun.com/manage" Alias="阿里云 accessKeySecret"/>
-					<TextBox Grid.Column="1" Grid.Row="4" Name="AccessSecret" PasswordChar="*"
+					<controls:Hyperlink Grid.Column="0" Grid.Row="5" Url="{Binding RamUrl}" Alias="服务商 accessKeySecret"/>
+					<TextBox Grid.Column="1" Grid.Row="5" Name="AccessSecret" PasswordChar="*"
                              Text="{Binding AccessSecret }"  TextWrapping="Wrap"/>
 
 
-					<TextBlock Grid.Column="0" Grid.Row="5" >服务选择</TextBlock>
-					<StackPanel Grid.Column="1" Grid.Row="5" Orientation="Horizontal">
-						<StackPanel.Styles>
-							<Style Selector="RadioButton">
-								<Setter Property="VerticalAlignment" Value="Center"/>
-								<Setter Property="HorizontalAlignment" Value="Left"/>
-								<Setter Property="FontSize" Value="14" />
-							</Style>
-						</StackPanel.Styles>
-						<RadioButton Name="MySqlRadio"
-                                     IsChecked="{Binding IsMySql}" Click="ChangeServiceInstanceType" >MyTopling (MySQL 服务)</RadioButton>
-						<RadioButton Name="TodisRadio" Margin="10,0,0,0"  IsChecked="{Binding IsTodis}" Click="ChangeServiceInstanceType">Todis (Redis 服务)</RadioButton>
-					</StackPanel>
-
-
-					<TextBlock Grid.Column="0" Grid.Row="6"
-                               IsVisible="{Binding Path=IsMySql}">MySQL 使用 Gtid</TextBlock>
-					<CheckBox  Grid.Column="1" Grid.Row="6"  IsChecked="True"  Name="UseGtid"
-                               IsVisible="{Binding Path=IsMySql,Mode=OneWay}"/>
+					<TextBlock Grid.Column="0" Grid.Row="6" >服务选择</TextBlock>
+                    <StackPanel Grid.Column="1" Grid.Row="6" Orientation="Horizontal">
+                        <StackPanel.Resources>
+                            <models:EnumToBooleanConverter x:Key="ComparisonConverter"/>
+                        </StackPanel.Resources>
+                        <StackPanel.Styles>
+                            <Style Selector="RadioButton">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="HorizontalAlignment" Value="Left"/>
+                                <Setter Property="FontSize" Value="14" />
+                            </Style>
+                        </StackPanel.Styles>
+                        <RadioButton Content="MyTopling (MySQL 服务)"
+                                     IsChecked="{Binding CreatingInstanceType, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static toplingHelperModels:InstanceType.MyTopling}}"/>
+                        <RadioButton Content="Todis (Redis 服务)"
+                                     Margin="10,0,0,0"
+                                     IsChecked="{Binding CreatingInstanceType, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static toplingHelperModels:InstanceType.Todis}}"/>
+                    </StackPanel>
 
 					<TextBlock Grid.Column="0" Grid.Row="7"
+                               IsVisible="{Binding Path=IsMySql}">MySQL 使用 Gtid</TextBlock>
+					<CheckBox  Grid.Column="1" Grid.Row="7"  IsChecked="True"  Name="UseGtid"
+                               IsVisible="{Binding Path=IsMySql,Mode=OneWay}"/>
+
+					<TextBlock Grid.Column="0" Grid.Row="8"
                                IsVisible="{Binding Path=IsMySql,Mode=OneWay}">自定义 server-id</TextBlock>
-                    <StackPanel Grid.Column="1" Grid.Row="7" Orientation="Horizontal">
+                    <StackPanel Grid.Column="1" Grid.Row="8" Orientation="Horizontal">
 					<CheckBox  Name="EditServerId" 
                               IsChecked="{Binding Path=EditServerId}" IsVisible="{Binding Path=IsMySql,Mode=OneWay}"/>
                     <TextBox  Name="ServerId" MaxLength="10" Margin="50,0,0,0" MaxWidth="100"
@@ -107,6 +132,7 @@
                         <Button Name="Btn" FontSize="24"
                                 HorizontalAlignment="Center" Click="Submit_Click">开始创建</Button>
                         <TextBox Name="Log" Margin="0,20,0,0" Height="350" Width="700" TextWrapping="Wrap" IsReadOnly="True" />
+						<Button Name="Debugger" Click="Flush">输出Context</Button>
                     </StackPanel>
 				</Canvas>
 
