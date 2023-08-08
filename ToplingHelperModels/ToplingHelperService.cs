@@ -24,6 +24,7 @@ namespace ToplingHelperModels
 
         private readonly Action<string> _appendLog;
 
+        private readonly string _regionId;
 
         public ToplingHelperService(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
         {
@@ -31,7 +32,7 @@ namespace ToplingHelperModels
             _resources = CloudServiceResources.GetResourcesProvider(constants, userData, logger);
             _toplingResourcesHandler = new ToplingResources(constants, userData, logger);
             _appendLog = logger;
-            
+            _regionId = constants.ProviderToRegion[userData.Provider].RegionId;
         }
 
 
@@ -41,7 +42,8 @@ namespace ToplingHelperModels
             await Task.Yield();
             // 先处理记录了VPC的情况
             var subNet = _toplingResourcesHandler.GetDefaultUserSubNet();
-            var userVpcForTopling = _resources.GetUserVpcForTopling(_toplingConstants.ToplingTestRegion);
+            
+            var userVpcForTopling = _resources.GetUserVpcForTopling(_regionId);
             // 默认初始状态
             // 默认初始状态
             if (subNet == null && userVpcForTopling == null)

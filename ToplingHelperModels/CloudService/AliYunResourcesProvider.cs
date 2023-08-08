@@ -19,17 +19,18 @@ namespace ToplingHelperModels.CloudService
 
         private readonly DefaultAcsClient _client;
 
-
+        private readonly string _regionId;
         public AliYunResourcesProvider(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
         : base(constants, userData, logger)
         {
 
             UserData = userData;
 
-            _client = new DefaultAcsClient(DefaultProfile.GetProfile(constants.ToplingTestRegion, userData.AccessId,
+            _client = new DefaultAcsClient(DefaultProfile.GetProfile(constants.ProviderToRegion[userData.Provider].RegionId, userData.AccessId,
                 userData.AccessSecret));
             UserCloudId = _client.GetAcsResponse(new GetCallerIdentityRequest())
                 .AccountId;
+            _regionId = constants.ProviderToRegion[userData.Provider].RegionId;
         }
 
         public override string UserCloudId { get; protected init; }
@@ -132,13 +133,13 @@ namespace ToplingHelperModels.CloudService
             Log("创建阿里云VPC");
             var res = _client.GetAcsResponse(new CreateVpcRequest
             {
-                RegionId = ToplingConstants.ToplingTestRegion,
+                RegionId = _regionId,
                 CidrBlock = cidr
             });
             Log($"创建VPC成功: {res.VpcId}");
             Task.Delay(TimeSpan.FromSeconds(5)).Wait();
             AddVpcTag(res.VpcId, cidr);
-            
+
             CreateDefaultSecurityGroupIfNotExists(res.VpcId);
             return new UserVpc
             {
@@ -163,7 +164,7 @@ namespace ToplingHelperModels.CloudService
             request.AddQueryParameters("ClientToken", clientToken);
             request.AddQueryParameters("VpcId", userVpc.VpcId);
             request.AddQueryParameters("AcceptingAliUid", toplingAvailableVpc.ToplingId);
-            request.AddQueryParameters("AcceptingRegionId", ToplingConstants.ToplingTestRegion);
+            request.AddQueryParameters("AcceptingRegionId", _regionId);
             request.AddQueryParameters("AcceptingVpcId", toplingAvailableVpc.VpcId);
             request.AddQueryParameters("Name", "for-topling");
             var response = _client.GetCommonResponse(request);
@@ -184,7 +185,7 @@ namespace ToplingHelperModels.CloudService
             var sgId = _client.GetAcsResponse(new DescribeSecurityGroupsRequest
             {
                 VpcId = vpcId,
-                RegionId = ToplingConstants.ToplingTestRegion
+                RegionId = _regionId
             }).SecurityGroups.FirstOrDefault()?.SecurityGroupId;
 
             if (string.IsNullOrWhiteSpace(sgId))
@@ -224,7 +225,7 @@ namespace ToplingHelperModels.CloudService
 
             var routeTableId = _client.GetAcsResponse(new DescribeVpcsRequest
             {
-                RegionId = ToplingConstants.ToplingTestRegion,
+                RegionId = _regionId,
                 VpcId = vpcId,
             }).Vpcs.First().RouterTableIds.First();
             // add route
@@ -242,7 +243,7 @@ namespace ToplingHelperModels.CloudService
                         NextHopType = "VpcPeer",
                         ClientToken = routeToken
                     });
-                    return ;
+                    return;
                 }
                 catch (ClientException e) when (e.ErrorCode.Equals("InvalidStatus.RouteEntry",
                                                     StringComparison.OrdinalIgnoreCase))

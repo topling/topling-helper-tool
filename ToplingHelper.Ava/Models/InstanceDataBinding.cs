@@ -23,7 +23,7 @@ namespace ToplingHelper.Ava.Models
             ToplingBaseHost = string.Join(".", constants.ToplingConsoleHost
                 .Split(".")
                 .TakeLast(2));
-            ToplingTestRegion = constants.ToplingTestRegion;
+            ToplingTestRegion = constants.ProviderToRegion[provider].RegionId;
         }
 
 

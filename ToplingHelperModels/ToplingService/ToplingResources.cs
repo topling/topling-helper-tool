@@ -64,32 +64,9 @@ namespace ToplingHelperModels.ToplingService
         }
         #region instance
 
-        private string GetDefaultZoneId(string regionId)
+        private string GetDefaultZoneId()
         {
-            var ex = new ArgumentOutOfRangeException($"{regionId}不存在默认可用区");
-
-            switch (_userData.Provider)
-            {
-                case Provider.AliYun:
-                    switch (regionId)
-                    {
-                        case "cn-shenzhen": return "cn-shenzhen-e";
-                        default:
-                            throw ex;
-                    }
-                    
-                case Provider.Aws:
-                    switch (regionId)
-                    {
-                        case "cn-shenzhen":
-#error aws 地域
-                            return "";
-                        default:
-                            throw ex;
-                    }
-                default:
-                    throw ex;
-            }
+            return _toplingConstants.ProviderToRegion[_provider].ZoneId;
         }
 
 
@@ -98,7 +75,7 @@ namespace ToplingHelperModels.ToplingService
             var model = new CreateInstanceModel
             {
                 Provider = _userData.Provider,
-                ZoneId = GetDefaultZoneId(_userData.RegionId),
+                ZoneId = GetDefaultZoneId(),
                 Regionid = _userData.RegionId,
                 Name = "auto-created",
                 // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
