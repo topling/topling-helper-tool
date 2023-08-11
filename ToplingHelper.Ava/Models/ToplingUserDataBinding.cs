@@ -42,6 +42,12 @@ namespace ToplingHelper.Ava.Models
                 base.Provider = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(RamUrl));
+                OnPropertyChanged(nameof(ShowTodis));
+                if (Provider == Provider.Aws)
+                {
+                    CreatingInstanceType = InstanceType.MyTopling;
+                    OnPropertyChanged(nameof(CreatingInstanceType));
+                }
             }
         }
 
@@ -91,6 +97,8 @@ namespace ToplingHelper.Ava.Models
         }
 
         public bool IsMySql => CreatingInstanceType == InstanceType.MyTopling;
+
+        public bool ShowTodis => Provider != Provider.Aws;
 
         public bool IsTodis => CreatingInstanceType == InstanceType.Todis;
 

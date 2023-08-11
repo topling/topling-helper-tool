@@ -5,7 +5,6 @@ namespace ToplingHelperModels
     {
         public Provider Provider { get; set; }
 
-        public string RegionId { get; set; } = string.Empty;
 
         public string AccessId { get; set; } = string.Empty;
         public string AccessSecret { get; set; } = string.Empty;

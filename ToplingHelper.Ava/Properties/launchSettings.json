@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ToplingHelper.Ava": {
+      "commandName": "Project",
+      "commandLineArgs": "D:\\Users\\Desktop\\debug.json"
+    }
+  }
+}

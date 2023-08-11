@@ -10,7 +10,7 @@ namespace ToplingHelperModels.Models.WebApi
 {
     internal class CreateInstanceModel
     {
-        public Provider Provider { get; set; }
+        public string Provider { get; set; }=string.Empty;
         public string ZoneId { get; set; } = default!;
 
         public string Regionid { get; set; } = default!;
@@ -18,12 +18,13 @@ namespace ToplingHelperModels.Models.WebApi
         public string Name { get; set; } = default!;
 
         public CreateInstanceRequestType InstanceType { get; set; }
+        public string SubNetId { get; set; } = default!;
     }
 
     internal enum CreateInstanceRequestType
     {
-        Todis,
-        MyTopling,
-        MyToplingLocalStorage
+        Todis = 0,
+        MyTopling = 4,
+        MyToplingLocalStorage =6
     }
 }

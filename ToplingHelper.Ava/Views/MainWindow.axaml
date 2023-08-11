@@ -106,9 +106,12 @@
                             </Style>
                         </StackPanel.Styles>
                         <RadioButton Content="MyTopling (MySQL 服务)"
+                                     Name="MyToplingRadio"
                                      IsChecked="{Binding CreatingInstanceType, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static toplingHelperModels:InstanceType.MyTopling}}"/>
                         <RadioButton Content="Todis (Redis 服务)"
+                                     Name="TodisRadio"
                                      Margin="10,0,0,0"
+                                     IsVisible="{Binding ShowTodis}"
                                      IsChecked="{Binding CreatingInstanceType, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static toplingHelperModels:InstanceType.Todis}}"/>
                     </StackPanel>
 

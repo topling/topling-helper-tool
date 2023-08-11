@@ -5,6 +5,8 @@
 
         public long ToplingAliYunUserId { get; init; } = 1343819498686551;
 
+        public string ToplingAwsId { get; set; } = "079281836905";
+
 
         public string ToplingConsoleHost { get; init; } = "https://console.topling.cn";
 

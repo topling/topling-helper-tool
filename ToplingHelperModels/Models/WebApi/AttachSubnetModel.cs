@@ -16,13 +16,13 @@ namespace ToplingHelperModels.Models.WebApi
         /// 待并网对等连接ID
         /// </summary>
         public string PeerId { get; set; } = default!;
-        public Provider Provider { get; set; } = default!;
+        public string Provider { get; set; } = default!;
         public string Region { get; set; } = default!;
 
         /// <summary>
         /// 10.x.0.0/16
         /// </summary>
-        public string SubNetCidr { get; set; } = default!;
+        public string Cidr { get; set; } = default!;
 
     }
 }

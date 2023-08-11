@@ -16,7 +16,7 @@ namespace ToplingHelperModels
     public sealed class ToplingHelperService : IDisposable
     {
         private readonly ToplingConstants _toplingConstants;
-        
+
 
         private readonly CloudServiceResources _resources;
         //private readonly DefaultAcsClient _client;
@@ -29,8 +29,18 @@ namespace ToplingHelperModels
         public ToplingHelperService(ToplingConstants constants, ToplingUserData userData, Action<string> logger)
         {
             _toplingConstants = constants;
-            _resources = CloudServiceResources.GetResourcesProvider(constants, userData, logger);
-            _toplingResourcesHandler = new ToplingResources(constants, userData, logger);
+            try
+            {
+                _resources = CloudServiceResources.GetResourcesProvider(constants, userData, logger);
+                _toplingResourcesHandler = new ToplingResources(constants, userData, logger);
+            }
+            catch (Exception)
+            {
+                _resources?.Dispose();
+                _toplingResourcesHandler?.Dispose();
+                throw;
+            }
+
             _appendLog = logger;
             _regionId = constants.ProviderToRegion[userData.Provider].RegionId;
         }
@@ -42,7 +52,7 @@ namespace ToplingHelperModels
             await Task.Yield();
             // 先处理记录了VPC的情况
             var subNet = _toplingResourcesHandler.GetDefaultUserSubNet();
-            
+
             var userVpcForTopling = _resources.GetUserVpcForTopling(_regionId);
             // 默认初始状态
             // 默认初始状态
@@ -51,9 +61,9 @@ namespace ToplingHelperModels
                 _appendLog("尝试获取可用网段创建VPC与子网.");
                 var vpcFromTopling = _toplingResourcesHandler.GetToplingVpc();
                 var userVpc = _resources.CreateVpcForTopling(vpcFromTopling.Cidr);
-                InitUserVpcAndPeer(userVpc);
+                var peerId = InitUserVpcAndPeer(userVpc);
 
-                return await CreateDbInstanceAsync(userVpc);
+                return await CreateDbInstanceAsync(userVpc, peerId);
             }
 
             // 本地创建了但是却没有并网
@@ -65,13 +75,9 @@ namespace ToplingHelperModels
 
 
                 // 查看现在是否存在请求中的对等连接，尝试并网，(注意确认对等连接一端是否是这个VPC)
-                var peerId = _resources.GetCurrentPeering(userVpcForTopling.VpcId);
-                // 没有对等连接，准备并网并初始化交换机
-                if (peerId == null)
-                {
-                    InitUserVpcAndPeer(userVpcForTopling);
-                }
-                return await CreateDbInstanceAsync(userVpcForTopling);
+                var peerId = InitUserVpcAndPeer(userVpcForTopling);
+
+                return await CreateDbInstanceAsync(userVpcForTopling, peerId);
 
             }
 
@@ -88,8 +94,8 @@ namespace ToplingHelperModels
 
                 _appendLog("检测到已并网，检测是否正常工作");
                 InitUserVpcAndPeer(userVpcForTopling, subNet);
-                _appendLog("开始创建实例");
-                return await CreateDbInstanceAsync(userVpcForTopling);
+
+                return await CreateDbInstanceAsync(userVpcForTopling, subNet.PeerId);
             }
             // 病态
             if (/*subNet != null &&*/userVpcForTopling == null)
@@ -99,7 +105,7 @@ namespace ToplingHelperModels
                 //var userId = subNet.
                 if (userId != null && userId == subNet.UserCloudId)
                 {
-                    
+
                     // 提示自己到控制台下手工删除这个子网，然后使用自动化工具重新并网
                     throw new Exception($"已注册子网的用户端VPC被删除，请在topling控制台中手动删除子网后重新运行本程序");
                 }
@@ -119,11 +125,12 @@ namespace ToplingHelperModels
             throw new IndexOutOfRangeException("执行错误，请联系客服");
         }
 
-        private void InitUserVpcAndPeer(UserVpc userVpcForTopling, UserSubNet? userSubnet = null)
+        private string InitUserVpcAndPeer(UserVpc userVpcForTopling, UserSubNet? userSubnet = null)
         {
+            string peerId;
             _appendLog("开始创建对等连接");
             var vpcFromTopling = _toplingResourcesHandler.GetToplingVpc();
-            string peerId;
+
             if (userSubnet == null)
             {
                 peerId = _resources.CreatePeer(userVpcForTopling, vpcFromTopling);
@@ -155,16 +162,17 @@ namespace ToplingHelperModels
 
             #endregion
 
-            _resources.CreateIdempotentVSwitch(vpcFromTopling.VpcId, second);
+            _resources.CreateIdempotentVSwitch(userVpcForTopling.VpcId, second);
+            return peerId;
         }
 
 
-        private async Task<Instance> CreateDbInstanceAsync(UserVpc userVpc)
+        private async Task<Instance> CreateDbInstanceAsync(UserVpc userVpc, string peerId)
         {
             _appendLog("开始创建实例");
             try
             {
-                _toplingResourcesHandler.CreateInstance();
+                _toplingResourcesHandler.CreateInstance(peerId);
             }
             catch (Exception e)
             {
@@ -172,6 +180,7 @@ namespace ToplingHelperModels
                 _appendLog(JsonConvert.SerializeObject(e));
             }
 
+            _appendLog("创建实例已提交，等待初始化");
             // 等待实例初始化完成
             Instance? instance;
             do

@@ -40,7 +40,7 @@ namespace ToplingHelperModels.CloudService
         {
             var vpcList = _client.GetAcsResponse(new DescribeVpcsRequest
             {
-                RegionId = UserData.RegionId
+                RegionId = _regionId
             }).Vpcs;
             return vpcList
                 .Where(v => v.Tags.Any(i => i.Key == ToplingConstants.ToplingVpcTagKey))
@@ -74,7 +74,7 @@ namespace ToplingHelperModels.CloudService
             // 获取所有的可用区
             var zoneList = _client.GetAcsResponse(new DescribeZonesRequest
             {
-                RegionId = UserData.RegionId
+                RegionId = _regionId
             });
             var switchCidrList = _client.GetAcsResponse(new DescribeVSwitchesRequest
             {

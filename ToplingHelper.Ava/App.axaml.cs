@@ -2,6 +2,8 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -34,26 +36,29 @@ namespace ToplingHelper.Ava
                 {
                     var userData = new ToplingUserData();
                     var constants = new ToplingConstants();
-    
+
                     if (e.Args.Length > 0 && File.Exists(e.Args[0]))
                     {
                         var content = File.ReadAllText(e.Args[0]);
                         try
                         {
                             var json = JsonNode.Parse(content);
-    
-                            userData = json?["ToplingUserData"]?.Deserialize<ToplingUserData>() ?? userData;
-                            constants = json?["ToplingConstants"]?.Deserialize<ToplingConstants>() ?? constants;
+                            var options = new JsonSerializerOptions();
+                            options.Converters.Add(new JsonStringEnumConverter());
+
+                            userData = json?["ToplingUserData"]?.Deserialize<ToplingUserData>(options) ?? userData;
+                            constants = json?["ToplingConstants"]?.Deserialize<ToplingConstants>(options) ?? constants;
                         }
                         catch (Exception e1)
                         {
                             Dispatcher.UIThread.Post(() =>
                             {
+
                                 var messageBoxStandardWindow = MessageBox.Avalonia.MessageBoxManager
                                     .GetMessageBoxCustomWindow(new MessageBoxCustomParams
                                     {
                                         ContentTitle = "json注入错误",
-                                        ContentMessage = JsonConvert.SerializeObject(e1.Data),
+                                        ContentMessage = e1.Message,
                                         FontFamily = "Microsoft YaHei,Simsun",
                                         ButtonDefinitions = new[]
                                             { new ButtonDefinition { Name = "确定", IsDefault = true }, },
@@ -63,7 +68,7 @@ namespace ToplingHelper.Ava
                             });
                         }
                     }
-                    
+
                     desktop.MainWindow = new MainWindow()
                     {
                         ToplingConstants = constants,
@@ -71,7 +76,7 @@ namespace ToplingHelper.Ava
                     };
                 };
             }
-            
+
 
             base.OnFrameworkInitializationCompleted();
         }

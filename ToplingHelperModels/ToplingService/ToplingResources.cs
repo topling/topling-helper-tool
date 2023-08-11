@@ -22,28 +22,39 @@ namespace ToplingHelperModels.ToplingService
     {
         private readonly ToplingConstants _toplingConstants;
         private readonly ToplingUserData _userData;
-        private readonly Action<string> _appendLog;
+        private readonly Action<string>? _appendLog;
         private readonly HttpClient _httpClient;
         private readonly CookieContainer _cookieContainer;
         private readonly HttpClientHandler _httpClientHandler;
-        private readonly string _regionId;
+
         private readonly Provider _provider;
+
+        private readonly string _regionId;
 
         public ToplingResources(ToplingConstants toplingConstants, ToplingUserData userData, Action<string> logger)
         {
             _toplingConstants = toplingConstants;
             _userData = userData;
             _appendLog = logger;
-            _cookieContainer = new CookieContainer();
-            _httpClientHandler = new HttpClientHandler()
+            try
             {
-                UseCookies = true,
-                CookieContainer = _cookieContainer,
-            };
-            _httpClient = new HttpClient(_httpClientHandler);
+                _cookieContainer = new CookieContainer();
+                _httpClientHandler = new HttpClientHandler()
+                {
+                    UseCookies = true,
+                    CookieContainer = _cookieContainer,
+                };
+                _httpClient = new HttpClient(_httpClientHandler);
+            }
+            catch (Exception)
+            {
+                _httpClientHandler?.Dispose();
+                _httpClient?.Dispose();
+                throw;
+            }
             _appendLog = logger;
             _provider = userData.Provider;
-            _regionId = userData.RegionId;
+            _regionId = toplingConstants.ProviderToRegion[userData.Provider].RegionId;
             #region Login
             var uri = _toplingConstants.ToplingConsoleHost;
 
@@ -70,13 +81,14 @@ namespace ToplingHelperModels.ToplingService
         }
 
 
-        internal void CreateInstance()
+        internal void CreateInstance(string subnetId)
         {
             var model = new CreateInstanceModel
             {
-                Provider = _userData.Provider,
+                Provider = _userData.Provider.ToString(),
                 ZoneId = GetDefaultZoneId(),
-                Regionid = _userData.RegionId,
+                SubNetId = subnetId,
+                Regionid = _regionId,
                 Name = "auto-created",
                 // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
                 InstanceType = _userData.CreatingInstanceType switch
@@ -135,10 +147,20 @@ namespace ToplingHelperModels.ToplingService
         internal UserSubNet? GetDefaultUserSubNet()
         {
             var uri = $"{_toplingConstants.ToplingConsoleHost}/api/v2/Subnet/{_provider}/{_regionId}";
-            var response = _httpClient.GetAsync(uri).Result;
-            var res = response.Content.ReadFromJsonAsync<List<UserSubNet>>().Result;
 
-            return res?.FirstOrDefault();
+            var response = _httpClient.GetAsync(uri).Result;
+            try
+            {
+                var res = response.Content.ReadFromJsonAsync<List<UserSubNet>>().Result;
+                return res?.FirstOrDefault();
+            }
+            catch (Exception)
+            {
+                var res = response.Content.ReadAsStringAsync().Result;
+                Log(res);
+                throw;
+            }
+
         }
 
         internal ToplingVpcForSubnetModel GetToplingVpc()
@@ -158,12 +180,13 @@ namespace ToplingHelperModels.ToplingService
             var model = new AttachSubnetModel
             {
                 PeerId = subnet.PeerId,
-                Provider = _provider,
+                Provider = _provider.ToString(),
                 Region = _regionId,
-                SubNetCidr = subnet.Cidr
+                Cidr = subnet.Cidr
             };
 
             var uri = $"{_toplingConstants.ToplingConsoleHost}/api/v2/Subnet";
+            FlushXsrf();
             var response = _httpClient.PostAsync(uri, JsonContent.Create(model)).Result;
             CheckError(response);
         }
@@ -190,8 +213,13 @@ namespace ToplingHelperModels.ToplingService
                 return;
             }
             var msg = message.Content.ReadAsStringAsync().Result;
-            _appendLog(msg);
+            Log(msg);
             throw new Exception(msg);
+        }
+
+        private void Log(string msg)
+        {
+            _appendLog?.Invoke(msg);
         }
     }
 }

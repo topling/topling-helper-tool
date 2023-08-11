@@ -16,11 +16,23 @@ namespace ToplingHelperModels.CloudService
     {
         private readonly AmazonEC2Client _client;
 
+
         public AwsResourcesProvider(ToplingConstants constants, ToplingUserData userData, Action<string>? logger = null) : base(constants, userData, logger)
         {
-            _client = new AmazonEC2Client(userData.AccessId, userData.AccessSecret, RegionEndpoint.GetBySystemName(userData.RegionId));
-            using var stsClient = new AmazonSecurityTokenServiceClient(userData.AccessId, userData.AccessSecret, RegionEndpoint.GetBySystemName(userData.RegionId));
-            UserCloudId = stsClient.GetCallerIdentityAsync(new GetCallerIdentityRequest()).Result.Account;
+            using var stsClient = new AmazonSecurityTokenServiceClient(userData.AccessId, userData.AccessSecret,
+                RegionEndpoint.GetBySystemName(RegionId));
+            try
+            {
+
+                UserCloudId = stsClient.GetCallerIdentityAsync(new GetCallerIdentityRequest()).Result.Account;
+            }
+            catch (AggregateException e) when (e.InnerExceptions.First() is AmazonSecurityTokenServiceException)
+            {
+                throw new Exception("请检查是否AccessKeyId和AccessKeySecret有效");
+            }
+
+            _client = new AmazonEC2Client(userData.AccessId, userData.AccessSecret, RegionEndpoint.GetBySystemName(RegionId));
+
         }
 
 
@@ -29,16 +41,29 @@ namespace ToplingHelperModels.CloudService
         public override UserVpc CreateVpcForTopling(string cidr)
         {
             Log("创建aws VPC");
-            var res = _client.CreateVpcAsync(new CreateVpcRequest()
+            CreateVpcResponse res = null;
+            try
             {
-                CidrBlock = cidr,
-                AmazonProvidedIpv6CidrBlock = true,
-                TagSpecifications = new List<TagSpecification>()
+                res = _client.CreateVpcAsync(new CreateVpcRequest()
                 {
-                    new() { Tags = new List<Tag> { new() { Key = ToplingConstants.ToplingVpcTagKey,Value = cidr} } }
-                },
-            }).Result;
-            Log($"创建VPC成功: {res.Vpc.VpcId}");
+                    CidrBlock = cidr,
+                    AmazonProvidedIpv6CidrBlock = true,
+                    TagSpecifications = new List<TagSpecification>()
+                    {
+                        new()
+                        {
+                            ResourceType = ResourceType.Vpc,
+                            Tags = new List<Tag> { new() { Key = ToplingConstants.ToplingVpcTagKey, Value = cidr } }
+                        }
+                    },
+                }).Result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            Log($"创建VPC成功: {res!.Vpc.VpcId}");
             Task.Delay(TimeSpan.FromSeconds(5)).Wait();
 
             CreateDefaultSecurityGroupIfNotExists(res.Vpc.VpcId);
@@ -79,9 +104,10 @@ namespace ToplingHelperModels.CloudService
             {
                 TagSpecifications = new List<TagSpecification>()
                 {
-                    new() { Tags = new List<Tag> { new() { Key = ToplingConstants.ToplingVpcTagKey } } }
+                    new() { ResourceType = ResourceType.VpcPeeringConnection,Tags = new List<Tag> { new() { Key = ToplingConstants.ToplingVpcTagKey,Value=string.Empty } } }
                 },
-                PeerRegion = UserData.RegionId,
+                PeerRegion = RegionId,
+                PeerOwnerId = ToplingConstants.ToplingAwsId,
                 PeerVpcId = vpc.VpcId,
                 VpcId = userVpc.VpcId
             }).Result;
@@ -114,7 +140,7 @@ namespace ToplingHelperModels.CloudService
                 {
                     TagSpecifications = new List<TagSpecification>()
                     {
-                        new() { Tags = new List<Tag> { new() { Key = ToplingConstants.ToplingVpcTagKey } } }
+                        new() { ResourceType = ResourceType.InternetGateway,Tags = new List<Tag> { new() { Key = ToplingConstants.ToplingVpcTagKey,Value = string.Empty} } }
                     },
                 }).Result;
                 _client.AttachInternetGatewayAsync(new AttachInternetGatewayRequest
@@ -134,21 +160,21 @@ namespace ToplingHelperModels.CloudService
 
             //  添加路由表：
             // 网关
-            if (routeTable.Routes.All(i => i.DestinationCidrBlock != "0.0.0.0"))
+            if (routeTable.Routes.All(i => i.DestinationCidrBlock != "0.0.0.0/0"))
             {
                 _client.CreateRouteAsync(new CreateRouteRequest()
                 {
                     RouteTableId = routeTable.RouteTableId,
-                    DestinationCidrBlock = "0.0.0.0",
+                    DestinationCidrBlock = "0.0.0.0/0",
                     GatewayId = igwId,
                 }).Wait();
             }
-            if (routeTable.Routes.All(i => i.DestinationCidrBlock != "::/0"))
+            if (routeTable.Routes.All(i => i.DestinationIpv6CidrBlock != "::/0"))
             {
                 _client.CreateRouteAsync(new CreateRouteRequest()
                 {
                     RouteTableId = routeTable.RouteTableId,
-                    DestinationCidrBlock = "::/0",
+                    DestinationIpv6CidrBlock = "::/0",
                     GatewayId = igwId,
                 }).Wait();
             }
@@ -206,7 +232,7 @@ namespace ToplingHelperModels.CloudService
             {
                 OwnerId = vpc.OwnerId,
                 VpcId = vpc.VpcId,
-                SubNetCidr = vpc.Tags.First(t => t.Key == ToplingConstants.ToplingVpcTagKey).Value,
+                SubNetCidr = vpc.CidrBlock,
                 RouteId = route.RouteTables.First().RouteTableId
             };
 

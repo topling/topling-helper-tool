@@ -99,8 +99,8 @@ namespace ToplingHelper.Ava.Views
             ToplingPassword.IsEnabled = status;
             AccessId.IsEnabled = status;
             AccessSecret.IsEnabled = status;
-            //MySqlRadio.IsEnabled = status;
-            //TodisRadio.IsEnabled = status;
+            MyToplingRadio.IsEnabled = status;
+            TodisRadio.IsEnabled = status;
             UseGtid.IsEnabled = status;
             EditServerId.IsEnabled = status;
             ServerId.IsEnabled = status;
@@ -109,13 +109,25 @@ namespace ToplingHelper.Ava.Views
         private async Task Worker()
         {
             var userData = (DataContext as ToplingUserData)!;
-            using var handler = new ToplingHelperService(ToplingConstants, userData, AppendLog);
-
+            ToplingHelperService? handler = null;
             try
             {
+                
+                
+                try
+                {
+                    handler = new ToplingHelperService(ToplingConstants, userData, AppendLog);
+                }
+                catch (Exception e)
+                {
+                    Log.Text = JsonConvert.SerializeObject(e);
+                    return;
+                }
+
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
 
                 ShowMessageBox("流程约三分钟，请不要关闭工具主窗口!", caption: "正在执行");
+                //return;
                 var instance = await handler.CreateInstanceAsync();
                 //if (instance == null)
                 //{
@@ -190,11 +202,15 @@ namespace ToplingHelper.Ava.Views
                 var content = new StringBuilder();
                 content.AppendLine("操作失败，请重试");
                 content.AppendLine(e.Message);
+                content.AppendLine(e.StackTrace);
                 ShowMessageBox(content.ToString(), "请重试");
+
+                _logBuilder.AppendLine(content.ToString());
             }
             finally
             {
                 _ = Dispatcher.UIThread.InvokeAsync(() => { SetInputs(true); });
+                handler?.Dispose();
             }
         }
 

@@ -12,8 +12,10 @@ namespace ToplingHelperModels.CloudService
             ToplingConstants = constants;
             UserData = userData;
             _logger = logger;
+            RegionId = ToplingConstants.ProviderToRegion[userData.Provider].RegionId;
         }
-        
+
+        protected readonly string RegionId;
 
         protected ToplingConstants ToplingConstants { get; init; }
         protected ToplingUserData UserData { get; init; }
@@ -73,7 +75,7 @@ namespace ToplingHelperModels.CloudService
         /// <param name="vpcId"></param>
         /// <param name="secondCidr"></param>
         internal abstract void CreateIdempotentVSwitch(string vpcId, int secondCidr);
-        
+
 
         private readonly Action<string>? _logger;
 
