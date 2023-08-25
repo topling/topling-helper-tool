@@ -51,11 +51,11 @@ namespace ToplingHelperModels.CloudService
         /// <summary>
         /// 给用户VPC添加路由表项，指向对等连接
         /// </summary>
-        /// <param name="cidr">用户VPC所属CIDR，仅用于标记</param>
+        /// <param name="cidrForTag">用户VPC所属CIDR，仅用于标记</param>
         /// <param name="vpcId">用户VPCID</param>
         /// <param name="pccId">用户对等连接ID</param>
         /// <returns></returns>
-        public abstract void AddRoute(string cidr, string vpcId, string pccId);
+        public abstract void AddRoute(string cidrForTag, string vpcId, string pccId);
         /// <summary>
         /// 获取当前VPC和Topling并网用对等连接
         /// </summary>

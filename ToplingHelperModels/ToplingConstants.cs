@@ -18,7 +18,7 @@
         public Dictionary<Provider, Region> ProviderToRegion { get; set; } = new()
         {
             {Provider.AliYun,new Region {RegionId = "cn-zhenzhen",ZoneId = "cn-shenzhen-e"}},
-            {Provider.Aws, new Region {RegionId = "us-east-2",ZoneId = "use2-az1"}}
+            {Provider.Aws, new Region {RegionId = "us-west-1",ZoneId = "usw1-az1"}}
         };
     }
 

@@ -1,9 +1,6 @@
-﻿using Aliyun.Acs.Core;
-using Amazon;
+﻿using Amazon;
 using Amazon.EC2;
 using Amazon.EC2.Model;
-using System;
-using Amazon.Runtime.Internal;
 using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
 using ToplingHelperModels.Models.CloudService;
@@ -114,7 +111,7 @@ namespace ToplingHelperModels.CloudService
             return res.VpcPeeringConnection.VpcPeeringConnectionId;
         }
 
-        public override void AddRoute(string cidr, string vpcId, string pccId)
+        public override void AddRoute(string cidrForTag, string vpcId, string pccId)
         {
 
             var routeTable = _client.DescribeRouteTablesAsync(new DescribeRouteTablesRequest()
@@ -160,6 +157,8 @@ namespace ToplingHelperModels.CloudService
 
             //  添加路由表：
             // 网关
+
+            #region 网关
             if (routeTable.Routes.All(i => i.DestinationCidrBlock != "0.0.0.0/0"))
             {
                 _client.CreateRouteAsync(new CreateRouteRequest()
@@ -179,11 +178,13 @@ namespace ToplingHelperModels.CloudService
                 }).Wait();
             }
 
-            if (routeTable.Routes.All(i => i.DestinationCidrBlock != cidr))
+            #endregion
+            // add route to topling
+            if (routeTable.Routes.All(i => i.DestinationCidrBlock != ToplingConstants.ToplingCidr))
             {
                 _client.CreateRouteAsync(new CreateRouteRequest()
                 {
-                    DestinationCidrBlock = cidr,
+                    DestinationCidrBlock = ToplingConstants.ToplingCidr,
                     RouteTableId = routeTable.RouteTableId,
                     VpcPeeringConnectionId = pccId
                 });

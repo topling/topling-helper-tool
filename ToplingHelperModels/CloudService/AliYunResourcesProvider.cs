@@ -220,7 +220,7 @@ namespace ToplingHelperModels.CloudService
         #endregion
 
 
-        public override void AddRoute(string cidr, string vpcId, string pccId)
+        public override void AddRoute(string cidrForTag, string vpcId, string pccId)
         {
 
             var routeTableId = _client.GetAcsResponse(new DescribeVpcsRequest
@@ -229,7 +229,7 @@ namespace ToplingHelperModels.CloudService
                 VpcId = vpcId,
             }).Vpcs.First().RouterTableIds.First();
             // add route
-            var routeToken = $"route_{cidr}_{routeTableId}_{pccId}";
+            var routeToken = $"route_{cidrForTag}_{routeTableId}_{pccId}";
 
             for (int i = 0; i < 10; ++i)
             {

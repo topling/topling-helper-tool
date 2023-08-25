@@ -125,8 +125,13 @@ namespace ToplingHelper.Ava.Views
                 }
 
                 // 上面构造的过程中会尝试登录topling服务器，判定用户名密码。
+                var content = "流程约三分钟，请不要关闭工具主窗口!";
+                if (userData.Provider == Provider.Aws)
+                {
 
-                ShowMessageBox("流程约三分钟，请不要关闭工具主窗口!", caption: "正在执行");
+                    content += " 您正在创建aws实例，aws目前以演示为主，compact 服务集群未长期激活。如果您有测试aws实例性能的需求，请联系客服启动 compact 集群";
+                }
+                ShowMessageBox(content, caption: "正在执行");
                 //return;
                 var instance = await handler.CreateInstanceAsync();
                 //if (instance == null)
