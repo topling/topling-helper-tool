@@ -37,6 +37,15 @@ namespace ToplingHelper.Ava.Models
         public string GrafanaUrl => $"http://{InstanceEcsId}.{Provider}.db.{ToplingBaseHost}:8000";
 
         public string EngineUrl => $"http://{InstanceEcsId}.{Provider}.db.{ToplingBaseHost}:3000";
-        public string RouteUrl => $"https://vpcnext.console.aliyun.com/vpc/{ToplingTestRegion}/route-tables/{RouteId}";
+        public string RouteUrl =>
+            // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+            Provider switch
+            {
+                Provider.Aws =>
+                    $"https://{ToplingTestRegion}.console.aws.amazon.com/vpc/home?region={ToplingTestRegion}#RouteTableDetails:RouteTableId={RouteId}",
+                Provider.AliYun =>
+                    $"https://vpcnext.console.aliyun.com/vpc/{ToplingTestRegion}/route-tables/{RouteId}",
+                _ => throw new ArgumentOutOfRangeException()
+            };
     }
 }

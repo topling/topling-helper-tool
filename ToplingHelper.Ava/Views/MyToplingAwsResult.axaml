@@ -6,15 +6,19 @@
         xmlns:avalonia="clr-namespace:HyperText.Avalonia;assembly=HyperText.Avalonia"
         xmlns:models="clr-namespace:ToplingHelper.Ava.Models"
         xmlns:toplingHelperModels="clr-namespace:ToplingHelperModels;assembly=ToplingHelperModels"
+        xmlns:unicode="clr-namespace:Avalonia.Media.TextFormatting.Unicode;assembly=Avalonia.Visuals"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="650"
-        x:Class="ToplingHelper.Ava.Views.MyToplingResult"
-        Title="MyToplingResult">
+        x:Class="ToplingHelper.Ava.Views.MyToplingAwsResult"
+        Title="MyToplingAwsResult">
 	<Window.Styles>
 		<avalonia:HyperLinkStyle />
 		<Style Selector=":is(TemplatedControl)">
 			<Setter Property="FontFamily" Value="Microsoft YaHei,苹方-简,宋体-简" />
-			<Setter Property="FontSize" Value="24" />
+			<!--<Setter Property="FontSize" Value="24" />-->
 		</Style>
+		<Style Selector="TextBlock">
+			<Setter Property="FontSize" Value="24"/>
+        </Style>
 		<Style Selector="WrapPanel">
 			<Setter Property="Margin" Value="0,10,0,0" />
 		</Style>
@@ -24,24 +28,25 @@
 			<Setter Property="IsReadOnly" Value="True" />
 			<Setter Property="Padding" Value="0" />
 			<Setter Property="BorderThickness" Value="0" />
-        </Style>
+            <Setter Property="FontSize" Value="24"/>
+		</Style>
 
 	</Window.Styles>
 
 	<Design.DataContext>
-        <models:InstanceDataBinding>
+		<models:InstanceDataBinding>
 			<x:Arguments>
 				<toplingHelperModels:ToplingConstants>
-                </toplingHelperModels:ToplingConstants>
+				</toplingHelperModels:ToplingConstants>
 				<toplingHelperModels:Instance>
-                    <toplingHelperModels:Instance.PrivateIp>255.255.255.255</toplingHelperModels:Instance.PrivateIp>
-                    <toplingHelperModels:Instance.PeerId>pcc-1234567890123456</toplingHelperModels:Instance.PeerId>
-                    <toplingHelperModels:Instance.InstanceEcsId>i-xxxxxxxxxx</toplingHelperModels:Instance.InstanceEcsId>
+					<toplingHelperModels:Instance.PrivateIp>255.255.255.255</toplingHelperModels:Instance.PrivateIp>
+					<toplingHelperModels:Instance.PeerId>pcx-1234567890123456</toplingHelperModels:Instance.PeerId>
+					<toplingHelperModels:Instance.InstanceEcsId>i-xxxxxxxxxx</toplingHelperModels:Instance.InstanceEcsId>
 					<toplingHelperModels:Instance.VpcId>vpc-1234567890</toplingHelperModels:Instance.VpcId>
-                </toplingHelperModels:Instance>
+				</toplingHelperModels:Instance>
 				<toplingHelperModels:Provider>AliYun</toplingHelperModels:Provider>
-            </x:Arguments>
-        </models:InstanceDataBinding>
+			</x:Arguments>
+		</models:InstanceDataBinding>
 	</Design.DataContext>
 	<Design.DesignStyle>
 		<Style Selector="controls|Hyperlink">
@@ -56,27 +61,21 @@
 		<StackPanel>
 			<WrapPanel>
 				<TextBlock>请登录阿里云，在可用区</TextBlock>
-				<TextBlock FontWeight="Bold">深圳</TextBlock>
+				<TextBlock FontWeight="Bold">us-west-1(加利福尼亚)</TextBlock>
 				<TextBlock>下，VPC选择</TextBlock>
 				<TextBox FontWeight="Bold" Text="{Binding VpcId}"/>
-				<TextBlock>下创建新ECS实例，操作系统请选择</TextBlock>
-				<TextBlock>Centos(7/8) /Aliyunos/Ubuntu (16.04/18.04)</TextBlock>
-			</WrapPanel>
+				<TextBlock>下创建新EC2实例</TextBlock>
+            </WrapPanel>
 			<WrapPanel>
-				<TextBlock>创建时请为ECS实例添加</TextBlock>
+				<TextBlock>创建时请为EC2实例添加</TextBlock>
 				<TextBlock>公网IP</TextBlock>
-				<TextBlock>(一键脚本使用公网安装 oss-util 相关依赖，使用内网挂载数据集)</TextBlock>
-			</WrapPanel>
+            </WrapPanel>
 			<WrapPanel>
 				<TextBlock>一定在</TextBlock>
 				<TextBox Text="{Binding VpcId}"/>
 				<TextBlock>下创建实例！</TextBlock>
 			</WrapPanel>
-			<WrapPanel>
-				<TextBlock>操作系统请选择</TextBlock>
-				<TextBlock>Centos(7/8) /Aliyunos/Ubuntu (16.04/18.04)</TextBlock>
-			</WrapPanel>
-			<WrapPanel>
+            <WrapPanel>
 				<TextBlock>连接</TextBlock>
 				<TextBox Padding="0" Text="{Binding Path=PrivateIp }"/>
 				<TextBlock>使用 MyTopling 服务</TextBlock>
@@ -94,15 +93,20 @@
 				<TextBlock>· 如果ping不通</TextBlock>
 			</WrapPanel>
 
+            <TextBlock>1.执行以下命令:</TextBlock>
+			<WrapPanel/>
+            <TextBox IsReadOnly="True" FontSize="12">
+                TOKEN=`curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+macid=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/network/interfaces/macs/)
+curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/network/interfaces/macs/${macid}/vpc-id
+            </TextBox>
 			<WrapPanel>
-				<TextBlock>1. 运行</TextBlock>
-				<TextBox IsReadOnly="True">curl http://100.100.100.200/latest/meta-data/vpc-id</TextBox>
-				<TextBlock>查看结果是否为</TextBlock>
+                <TextBlock>查看结果是否为</TextBlock>
 				<TextBox Text="{Binding VpcId}"/>
 			</WrapPanel>
 			<WrapPanel>
 				<TextBlock>2. 查看路由表(</TextBlock>
-				<controls:Hyperlink  Url="{Binding Path=RouteUrl}" Alias="跳转链接"/>
+				<controls:Hyperlink FontSize="24" Url="{Binding Path=RouteUrl}" Alias="跳转链接"/>
 				<TextBlock>)，选择自定义路由条目，应该存在一条</TextBlock>
 				<TextBlock>目标网段为为 10.0.0.0/16，下一跳为 </TextBlock>
 				<TextBox Text="{Binding PeerId}"/>
@@ -112,5 +116,4 @@
 		</StackPanel>
 
 	</Grid>
-
 </Window>

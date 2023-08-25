@@ -154,9 +154,21 @@ namespace ToplingHelper.Ava.Views
                         AppendLog("实例创建完成");
                     }
                     ,
-                    InstanceType.MyTopling => () =>
+                    InstanceType.MyTopling when userData.Provider == Provider.AliYun => () =>
                     {
                         var window = new MyToplingResult()
+                        {
+                            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                            ToplingConstants = ToplingConstants,
+                            DataContext = new InstanceDataBinding(ToplingConstants, instance, userData.Provider)
+                        };
+                        window.Show();
+                        AppendLog("实例创建完成");
+                    }
+                    ,
+                    InstanceType.MyTopling when userData.Provider == Provider.Aws => () =>
+                    {
+                        var window = new MyToplingAwsResult()
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             ToplingConstants = ToplingConstants,
