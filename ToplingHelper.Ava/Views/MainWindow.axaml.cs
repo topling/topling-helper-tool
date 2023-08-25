@@ -112,8 +112,8 @@ namespace ToplingHelper.Ava.Views
             ToplingHelperService? handler = null;
             try
             {
-                
-                
+
+
                 try
                 {
                     handler = new ToplingHelperService(ToplingConstants, userData, AppendLog);
@@ -154,9 +154,21 @@ namespace ToplingHelper.Ava.Views
                         AppendLog("实例创建完成");
                     }
                     ,
-                    InstanceType.MyTopling => () =>
+                    InstanceType.MyTopling when userData.Provider == Provider.AliYun => () =>
                     {
                         var window = new MyToplingResult()
+                        {
+                            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                            ToplingConstants = ToplingConstants,
+                            DataContext = new InstanceDataBinding(ToplingConstants, instance, userData.Provider)
+                        };
+                        window.Show();
+                        AppendLog("实例创建完成");
+                    }
+                    ,
+                    InstanceType.MyTopling when userData.Provider == Provider.Aws => () =>
+                    {
+                        var window = new MyToplingAwsResult()
                         {
                             WindowStartupLocation = WindowStartupLocation.CenterOwner,
                             ToplingConstants = ToplingConstants,
@@ -239,17 +251,16 @@ namespace ToplingHelper.Ava.Views
                 messageBoxStandardWindow.ShowDialog(this);
             });
         }
-#if DEBUG
+
         private void Flush(object? sender, RoutedEventArgs e)
         {
+#if DEBUG
             Dispatcher.UIThread.Post(() =>
             {
                 Log.Text = JsonConvert.SerializeObject(Context, Formatting.Indented);
             });
-
-        }
 #endif
 
-
+        }
     }
 }

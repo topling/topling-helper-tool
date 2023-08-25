@@ -38,7 +38,7 @@ namespace ToplingHelperModels.CloudService
         public override UserVpc CreateVpcForTopling(string cidr)
         {
             Log("创建aws VPC");
-            CreateVpcResponse res = null;
+            CreateVpcResponse? res = null;
             try
             {
                 res = _client.CreateVpcAsync(new CreateVpcRequest()
